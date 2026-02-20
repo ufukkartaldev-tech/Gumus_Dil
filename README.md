@@ -4,8 +4,6 @@
 
 ![GümüşDil Logo](docs/logo.png)
 
-**TEKNOFEST 2026 - Eğitim Teknolojileri Yarışması Finalisti**
-
 [![Pardus](https://img.shields.io/badge/Pardus-Tam_Uyum-2c5aa0?style=for-the-badge&logo=linux)](https://pardus.org.tr)
 [![GitHub Stars](https://img.shields.io/github/stars/ufukkartal/gumusdil?style=for-the-badge&logo=github)](https://github.com/ufukkartal/gumusdil)
 [![TEKNOFEST](https://img.shields.io/badge/TEKNOFEST-2026-red?style=for-the-badge)](https://teknofest.org)
