@@ -44,6 +44,7 @@
 
 ### 🖥️ Yeni Nesil IDE
 - **GümüşHafıza:** Kod çalışırken RAM'deki verileri canlı (real-time) görselleştirir.
+- **Gümüş Sahne Editörü:** `grafik_3d.tr` için sürükle-bırak voxel dünya tasarımcısı.
 - **Glassmorphism UI:** Modern, estetik ve premium kullanıcı arayüzü.
 - **Çoklu Tema Desteği:** Cyberpunk, Nord, Monokai ve Pardus özel temimarirı.
 - **Gümüş-Modül:** Eklenti sistemi ile IDE'yi kişiselleştirme imkanı.
@@ -76,6 +77,7 @@ IDE içerisindeki özel **Leopar Butonu** ile:
 ### 🤖 Gümüş Zeka (AI Sidekick)
 - **Hata Analizi:** Syntax hatalarını sadece söylemez, nedenini açıklar ve çözüm önerir.
 - **Kod Özetleme:** Karmaşık kod bloklarını Türkçe cümlelerle özetler.
+- **Gümüş Akış:** Yazılan kodu anlık olarak profesyonel akış şemalarına (flowchart) dönüştürür.
 - **Gümüş Anlatıcı:** Kodun ne yaptığını hikayeleştirerek anlatır.
 
 ### 🏋️ Gümüş GYM (Antrenman)
