@@ -12,6 +12,7 @@ from .pardus_panel import PardusPanel
 from .market_panel import MarketPanel
 from .profiler_panel import ProfilerPanel
 from .docs_panel import DocsPanel
+from .flowchart_panel import FlowchartPanel
 
 class TreeNode(ctk.CTkFrame):
     def __init__(self, parent, path, is_file, level, on_file_click, config):
@@ -383,6 +384,7 @@ class Sidebar(ctk.CTkFrame):
         self.market_panel = MarketPanel(self.content_container, config)
         self.profiler_panel = ProfilerPanel(self.content_container, config)
         self.docs_panel = DocsPanel(self.content_container, config)
+        self.flowchart_panel = FlowchartPanel(self.content_container, config)
         
         # MemoryView'e AI Köprüsü
         def bridge_to_ai(context_text):
@@ -432,6 +434,7 @@ class Sidebar(ctk.CTkFrame):
         self.market_panel.pack_forget()
         self.profiler_panel.pack_forget()
         self.docs_panel.pack_forget()
+        self.flowchart_panel.pack_forget()
         
         # İlgili Paneli Göster
         label_map = {
@@ -448,7 +451,8 @@ class Sidebar(ctk.CTkFrame):
             "transpiler": "🐍 PYTHON ÇEVİRİ",
             "market": "🛒 GÜMÜŞ PAZAR",
             "profiler": "📊 GÜMÜŞ ANALİZ",
-            "docs": "📚 GÜMÜŞ SÖZLÜK"
+            "docs": "📚 GÜMÜŞ SÖZLÜK",
+            "flowchart": "🌿 GÜMÜŞ AKIŞ"
         }
         self.label.configure(text=label_map.get(mode, "GEZGİN"))
         
@@ -491,6 +495,13 @@ class Sidebar(ctk.CTkFrame):
             for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "docs":
             self.docs_panel.pack(fill="both", expand=True)
+            for widget in self.btn_frame.winfo_children(): widget.destroy()
+        elif mode == "flowchart":
+            self.flowchart_panel.pack(fill="both", expand=True)
+            # Eğer kod varsa, akış şemasını güncelle
+            if self.callbacks.get('get_code'):
+                code = self.callbacks['get_code']()
+                self.flowchart_panel.update_flowchart(code)
             for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "variables":
             self.var_watch_panel.pack(fill="both", expand=True)

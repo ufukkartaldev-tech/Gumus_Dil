@@ -115,6 +115,7 @@ class LayoutManager:
         self._add_activity_icon("🛒", "Gümüş Pazar", "market")
         self._add_activity_icon("📊", "Gümüş Analiz", "profiler")
         self._add_activity_icon("📚", "Gümüş Sözlük", "docs")
+        self._add_activity_icon("🌿", "Gümüş Akış", "flowchart")
         self._add_activity_icon("🐆", "Pardus", "pardus")
         self._add_activity_icon("📓", "Notlar", "notes")
         self._add_activity_icon("⚙️", "Ayarlar", "settings", side="bottom")
