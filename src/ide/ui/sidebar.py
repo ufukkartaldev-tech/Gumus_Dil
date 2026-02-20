@@ -14,6 +14,7 @@ from .profiler_panel import ProfilerPanel
 from .docs_panel import DocsPanel
 from .flowchart_panel import FlowchartPanel
 from .voxel_editor import VoxelEditor
+from .vizyon_panel import VizyonPanel
 
 class TreeNode(ctk.CTkFrame):
     def __init__(self, parent, path, is_file, level, on_file_click, config):
@@ -387,6 +388,7 @@ class Sidebar(ctk.CTkFrame):
         self.docs_panel = DocsPanel(self.content_container, config)
         self.flowchart_panel = FlowchartPanel(self.content_container, config)
         self.voxel_editor = VoxelEditor(self.content_container, config)
+        self.vizyon_panel = VizyonPanel(self.content_container, config)
         
         # MemoryView'e AI Köprüsü
         def bridge_to_ai(context_text):
@@ -438,6 +440,7 @@ class Sidebar(ctk.CTkFrame):
         self.docs_panel.pack_forget()
         self.flowchart_panel.pack_forget()
         self.voxel_editor.pack_forget()
+        self.vizyon_panel.pack_forget()
         
         # İlgili Paneli Göster
         label_map = {
@@ -456,7 +459,8 @@ class Sidebar(ctk.CTkFrame):
             "profiler": "📊 GÜMÜŞ ANALİZ",
             "docs": "📚 GÜMÜŞ SÖZLÜK",
             "flowchart": "🌿 GÜMÜŞ AKIŞ",
-            "voxel_editor": "🎮 SAHNE EDİTÖRÜ"
+            "voxel_editor": "🎮 SAHNE EDİTÖRÜ",
+            "vizyon": "📡 GÜMÜŞ VİZYON"
         }
         self.label.configure(text=label_map.get(mode, "GEZGİN"))
         
@@ -509,6 +513,11 @@ class Sidebar(ctk.CTkFrame):
             for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "voxel_editor":
             self.voxel_editor.pack(fill="both", expand=True)
+            for widget in self.btn_frame.winfo_children(): widget.destroy()
+        elif mode == "vizyon":
+            self.vizyon_panel.pack(fill="both", expand=True)
+            # Simüle telemetri
+            self.after(500, lambda: self.vizyon_panel.update_metrics(240, 85, 92, -65))
             for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "variables":
             self.var_watch_panel.pack(fill="both", expand=True)
