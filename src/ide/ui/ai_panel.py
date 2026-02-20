@@ -130,6 +130,13 @@ class AIPanel(ctk.CTkFrame):
         self.show_typing(True)
         self.after(1000, lambda: self.process_response(msg))
         
+    def _apply_mood(self, text):
+        """Metne 'Dayı' ruhu katar (Basit rastgele eklemeler)"""
+        if random.random() < 0.2:
+            moods = [" yeğenim", " aslanım", " genç meslektaşım"]
+            text += random.choice(moods)
+        return text
+
     def add_message(self, text, is_user=False, is_error=False):
         self.show_typing(False) 
         
