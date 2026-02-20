@@ -116,17 +116,6 @@ sudo apt-get install -f
 
 ---
 
-## 🏆 TEKNOFEST 2026 Başarı Tablosu
-
-| Kriter | Puan | Durum |
-|--------|------|-------|
-| Yerli ve Milli Değer | 30/30 | ✅ Pardus Çekirdek Uyumu |
-| Teknik Derinlik | 25/25 | ✅ C++ Derleyici + Voxel Engine |
-| Eğitim Teknolojileri | 25/25 | ✅ Gümüş GYM + ETAP Modu |
-| Özgünlük | 20/20 | ✅ İlk Yerli AI Geliştirme Ortamı |
-| **Puan** | **100/100** | **🥇 Tam Puan** |
-
----
 
 ## 🤝 Katkıda Bulunma
 
