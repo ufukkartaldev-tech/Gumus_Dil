@@ -1,0 +1,56 @@
+yazdır("---!!! WORST CASE SCENARIOS !!!---");
+yazdır("Uyarı: Bu test sistemi kilitleyebilir veya çökertebilir.");
+bekle(1000);
+
+// 1. MEGA STRING TESTİ
+yazdır("\n[TEST 1] Mega String (Bellek Zorlama)");
+dene {
+    değişken s = "A";
+    değişken i = 0;
+    // 2^20 karakter (Yaklaşık 1MB, sonra 10MB...)
+    döngü (i < 22) { 
+        s = s + s; // Katlayarak büyüt
+        yazdır("Katlama " + i + ": Uzunluk " + uzunluk(s));
+        i = i + 1;
+    }
+    yazdır("✅ Mega String hayatta kaldı.");
+} yakala (hata) {
+    yazdır("❌ String patladı: " + hata);
+}
+
+// 2. STACK OVERFLOW TESTİ (Derinlik)
+yazdır("\n[TEST 2] Stack Overflow (Recursion Depth)");
+değişken derinlik = 0;
+fonksiyon dalis_yap() {
+    derinlik = derinlik + 1;
+    eğer (derinlik % 1000 == 0) { yazdır("Derinlik: " + derinlik); }
+    dalis_yap(); // Sonsuz özyineleme
+}
+
+dene {
+    // Bu muhtemelen C++ stack limitine takılıp programı tamamen kapatacak (Crash).
+    // Try-Catch bunu yakalayamayabilir (Segmentation Fault).
+    dalis_yap(); 
+} yakala (hata) {
+    yazdır("✅ Stack hatası yakalandı: " + hata);
+}
+
+// 3. HEAP ZORLAMA (Devasa Liste)
+// Eğer yukarıdaki crash yapmazsa buraya geçer
+yazdır("\n[TEST 3] Devasa Liste (Heap Allocation)");
+dene {
+    değişken liste = [];
+    değişken j = 0;
+    yazdır("Liste dolduruluyor...");
+    döngü (j < 1000000) { // 1 Milyon Eleman
+        ekle(liste, j);
+        j = j + 1;
+        eğer (j % 100000 == 0) { yazdır("Eleman: " + j); }
+    }
+    yazdır("✅ Liste dolduruldu. Uzunluk: " + uzunluk(liste));
+} yakala (hata) {
+    yazdır("❌ Liste patladı: " + hata);
+}
+
+yazdır("\n--- TEST SONU (Eğer ölmediysek) ---");
+

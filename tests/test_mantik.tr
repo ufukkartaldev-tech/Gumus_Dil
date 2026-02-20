@@ -1,0 +1,166 @@
+// ============================================
+// MANTIK HATALARI TEST PAKETI (Try-Catch Olmadan)
+// ============================================
+
+dahil_et("../lib/birim.tr")
+
+deðiþken t = yeni BirimTest("Mantik Hatalari Testi")
+
+// ============================================
+// 1. DÃ¶ngÃ¼ VE BREAK KONTROLU
+// ============================================
+t.bolum("DÃ¶ngÃ¼ Kontrolu")
+
+deðiþken sayac = 0
+döngü (sayac < 1000000) {
+    sayac = sayac + 1
+    eðer (sayac == 100) {
+        kýr
+    }
+}
+t.esit_mi(100, sayac, "DÃ¶ngÃ¼ break ile doÄŸru durdu")
+
+// ============================================
+// 2. RECURSION (FAKTORIYEL)
+// ============================================
+t.bolum("Derin Recursion")
+
+fonksiyon faktoriyelHesapla(n) {
+    eðer (n <= 1) {
+        dön 1
+    }
+    dön n * faktoriyelHesapla(n - 1)
+}
+
+deðiþken fakt5 = faktoriyelHesapla(5)
+t.esit_mi(120, fakt5, "Faktoriyel(5) = 120")
+
+deðiþken fakt10 = faktoriyelHesapla(10)
+t.esit_mi(3628800, fakt10, "Faktoriyel(10) = 3628800")
+
+// ============================================
+// 3. LISTE ISLEMLERI
+// ============================================
+t.bolum("Liste Islemleri")
+
+deðiþken liste = [1, 2, 3, 4, 5]
+t.esit_mi(5, uzunluk(liste), "Liste uzunlugu doÄŸru")
+
+ekle(liste, 6)
+t.esit_mi(6, uzunluk(liste), "Eleman ekleme basarili")
+
+deðiþken son = liste[5]
+t.esit_mi(6, son, "Son eleman doÄŸru")
+
+// ============================================
+// 4. FLOAT HASSASIYET
+// ============================================
+t.bolum("Float Hassasiyet")
+
+deðiþken a = 0.1 + 0.2
+deðiþken b = 0.3
+
+yazdýr("0.1 + 0.2 = " + metin(a))
+yazdýr("Beklenen: " + metin(b))
+
+// Float karsilastirma (hassasiyet problemi var mi?)
+t.esit_mi(b, a, "Float toplama hassasiyeti")
+
+// ============================================
+// 5. BOOLEAN MANTIGI
+// ============================================
+t.bolum("Boolean Mantigi")
+
+deðiþken dogru_deÄŸer = doðru
+deðiþken yanlis_deÄŸer = yanlýþ
+
+t.dogru_mu(dogru_deÄŸer, "doÄŸru deÄŸeri doÄŸru")
+t.dogru_mu(!yanlis_deÄŸer, "yanlÄ±ÅŸ deÄŸeri terslenince doÄŸru")
+
+deðiþken ve_sonuc = dogru_deÄŸer ve dogru_deÄŸer
+t.dogru_mu(ve_sonuc, "doÄŸru VE doÄŸru = doÄŸru")
+
+deðiþken veya_sonuc = yanlis_deÄŸer veya dogru_deÄŸer
+t.dogru_mu(veya_sonuc, "yanlÄ±ÅŸ VEYA doÄŸru = doÄŸru")
+
+// ============================================
+// 6. METIN ISLEMLERI
+// ============================================
+t.bolum("Metin Islemleri")
+
+deðiþken metin1 = "Gumus"
+deðiþken metin2 = "Dil"
+deðiþken birlesik = metin1 + metin2
+
+t.esit_mi("GumusDil", birlesik, "Metin birlestirme")
+t.esit_mi(8, uzunluk(birlesik), "Birlesik metin uzunlugu")
+
+// ============================================
+// 7. SINIF VE NESNE MANTIGI
+// ============================================
+t.bolum("Sinif ve Nesne")
+
+sýnýf TestSinifi {
+    kurucu(deÄŸer) {
+        öz.deÄŸer = deÄŸer
+    }
+    
+    fonksiyon deÄŸeriAl() {
+        dön öz.deÄŸer
+    }
+    
+    fonksiyon deÄŸeriAyarla(yeni_deÄŸer) {
+        öz.deÄŸer = yeni_deÄŸer
+    }
+}
+
+deðiþken nesne = yeni TestSinifi(42)
+t.esit_mi(42, nesne.deÄŸeriAl(), "Nesne kurucu ve getter")
+
+nesne.deÄŸeriAyarla(100)
+t.esit_mi(100, nesne.deÄŸeriAl(), "Nesne setter")
+
+// ============================================
+// 8. KARSILASTIRMA OPERATORLERI
+// ============================================
+t.bolum("Karsilastirma Operatorleri")
+
+t.dogru_mu(5 > 3, "5 > 3")
+t.dogru_mu(3 < 5, "3 < 5")
+t.dogru_mu(5 >= 5, "5 >= 5")
+t.dogru_mu(3 <= 5, "3 <= 5")
+t.dogru_mu(5 == 5, "5 == 5")
+t.dogru_mu(5 != 3, "5 != 3")
+
+// ============================================
+// 9. ARITMETIK ISLEMLER
+// ============================================
+t.bolum("Aritmetik Islemler")
+
+t.esit_mi(8, 5 + 3, "Toplama")
+t.esit_mi(2, 5 - 3, "Cikarma")
+t.esit_mi(15, 5 * 3, "Carpma")
+t.esit_mi(2, 6 / 3, "Bolme")
+t.esit_mi(2, 5 % 3, "Mod")
+
+// ============================================
+// 10. KOSULLU IFADELER
+// ============================================
+t.bolum("Kosullu Ifadeler")
+
+deðiþken x = 10
+deðiþken sonuc = ""
+
+eðer (x > 5) {
+    sonuc = "buyuk"
+} deðilse {
+    sonuc = "kucuk"
+}
+
+t.esit_mi("buyuk", sonuc, "If-else mantigi")
+
+// ============================================
+// RAPOR
+// ============================================
+t.raporla()
+

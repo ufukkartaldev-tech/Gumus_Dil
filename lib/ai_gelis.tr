@@ -1,0 +1,55 @@
+// ---------------------------------------------------------
+// GUMUS ZEKA (ai_gelis.tr)
+// Yapay Zeka ve Makine Ogrenmesi Temel Kutuphanesi
+// ---------------------------------------------------------
+
+dahil_et("matematik.tr")
+
+// Basit bir noron katmani
+sýnýf Katman {
+    // deðiþken giris_boyutu
+    // deðiþken cikis_boyutu
+    // deðiþken agirliklar
+
+    kurucu(giris, cikis) {
+        öz.giris_boyutu = giris
+        öz.cikis_boyutu = cikis
+        öz.agirliklar = [] // Rastgele baslatilabilir
+        yazdýr("[AI] Katman olusturuldu: " + metin(giris) + " -> " + metin(cikis))
+    }
+}
+
+// Yapay Sinir Agi Yoneticisi
+sýnýf SinirAgi {
+    // deðiþken katmanlar
+    // deðiþken ogrenme_orani
+
+    kurucu(lr) {
+        öz.ogrenme_orani = lr
+        öz.katmanlar = []
+    }
+
+    fonksiyon katman_ekle(giris, cikis) {
+        deðiþken k = yeni Katman(giris, cikis)
+        ekle(öz.katmanlar, k)
+    }
+
+    fonksiyon egit(veri_seti, epok_sayisi) {
+        yazdýr("[AI] Egitim basliyor... Epok: " + metin(epok_sayisi))
+        
+        deðiþken e = 0
+        döngü (e < epok_sayisi) {
+            // Ileri yayilim ve geri yayilim simulasyonu
+            yazdýr("... Epok " + metin(e+1) + " tamamlandi.")
+            e = e + 1
+        }
+        yazdýr("[AI] Egitim tamamlandi.")
+    }
+
+    fonksiyon tahmin_et(giris_verisi) {
+        yazdýr("[AI] Tahmin yurutuluyor...")
+        // Hesaplama sonucu dondur
+        dön 0.95 
+    }
+}
+

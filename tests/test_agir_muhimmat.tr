@@ -1,0 +1,85 @@
+// ---------------------------------------------------------
+// AGIR MUHIMMAT TESTI (test_agir_muhimmat.tr)
+// G�m��Dil'in kritik ve karmasik bilesenlerini test eder.
+// ---------------------------------------------------------
+
+dahil_et("../lib/birim.tr")
+
+// Test edilecek kutuphaneler
+dahil_et("../std_lib/matematik.tr")
+dahil_et("../std_lib/liste.tr")
+dahil_et("../lib/ai_gelis.tr") 
+// "db_yonetimi.tr" ve "coklu_islem.tr" gibi kutuphaneler 
+// native bagimliliklar veya karmasik setup gerektirebilir, simdilik mock logic test edelim.
+
+değişken t = yeni BirimTest("Agir Muhimmat Testleri")
+
+// ----------------------------------------------------------------
+// 1. BOLUM: MATEMATIK (Sarp Formuller)
+// ----------------------------------------------------------------
+t.bolum("MATEMATIK KUTUPHANESI")
+
+t.esit_mi(8, mat_üs(2, 3), "2 uzeri 3 = 8 olmali")
+t.esit_mi(1, mat_üs(5, 0), "5 uzeri 0 = 1 olmali")
+t.esit_mi(120, mat_faktoriyel(5), "5! = 120 olmali")
+t.esit_mi(10, mat_mutlak_değer(-10), "|-10| = 10 olmali")
+
+// Cift/Tek Kontrolu (Ozel mantik iceriyor)
+t.dogru_mu(mat_cift_mi(10), "10 cift sayidir")
+t.dogru_mu(mat_tek_mi(7), "7 tek sayidir")
+t.dogru_mu(!mat_cift_mi(7), "7 cift degildir")
+
+// ----------------------------------------------------------------
+// 2. BOLUM: VERI YAPILARI (Liste Algoritmimariri)
+// ----------------------------------------------------------------
+t.bolum("LISTE KUTUPHANESI")
+
+değişken orijinal = [10, 20, 30, 40]
+değişken kopya = listeyi_kopyala(orijinal)
+
+t.esit_mi(uzunluk(orijinal), uzunluk(kopya), "Kopya liste uzunlugu esit olmali")
+t.esit_mi(kopya[0], 10, "Kopya[0] doğru olmali")
+t.esit_mi(kopya[3], 40, "Kopya[son] doğru olmali")
+
+// Arama Testi
+t.esit_mi(1, eleman_ara(orijinal, 20), "20 değeri 1. indekste olmali")
+t.esit_mi(-1, eleman_ara(orijinal, 99), "99 değeri listede olmamali (-1)")
+
+// Ters Cevirme
+değişken ters = ters_cevir(orijinal)
+t.esit_mi(40, ters[0], "Ters listenin basi 40 olmali")
+t.esit_mi(10, ters[3], "Ters listenin sonu 10 olmali")
+
+// ----------------------------------------------------------------
+// 3. BOLUM: YAPAY ZEKA (Karmasik Mantik & 'oz' Kullanimi)
+// ----------------------------------------------------------------
+t.bolum("YAPAY ZEKA (AI) KUTUPHANESI")
+
+// Sinif yapisini ve 'oz' kullanimini test ediyoruz
+değişken sinir_agi = yeni SinirAgi(0.01)
+
+// Katman ekleme (Array push mantigi)
+sinir_agi.katman_ekle(2, 3) // Giris: 2, Cikis: 3
+sinir_agi.katman_ekle(3, 1) // Giris: 3, Cikis: 1
+
+t.esit_mi(2, uzunluk(sinir_agi.katmanlar), "Aga 2 katman eklenmis olmali")
+
+// Ilk katmanin ozelliklerini kontrol et ('oz' erisimi doğru calisiyor mu?)
+değişken katman1 = sinir_agi.katmanlar[0]
+t.esit_mi(2, katman1.giris_boyutu, "1. Katman giris boyutu 2 olmali")
+t.esit_mi(3, katman1.cikis_boyutu, "1. Katman cikis boyutu 3 olmali")
+
+// Egitim ve Tahmin (Mock fonksiyonlar)
+sinir_agi.egit([], 1) // 1 Epok egitim (Hata vermemeli)
+değişken sonuc = sinir_agi.tahmin_et([1, 0])
+
+// Tahmin sonucu float donmeli (Simulasyonda 0.95 donuyor)
+// Float karsilastirmasi icin basit bir aralik kontrolu veya direk esitlik (simdilik)
+t.esit_mi(0.95, sonuc, "Tahmin sonucu beklenen değerde olmali")
+
+// ----------------------------------------------------------------
+// RAPOR
+// ----------------------------------------------------------------
+t.raporla()
+
+

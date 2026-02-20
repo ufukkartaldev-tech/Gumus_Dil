@@ -1,0 +1,34 @@
+modül Dosya {
+    fonksiyon oku(yol) {
+        dön _dosya_oku(yol)
+    }
+
+    fonksiyon yaz(yol, icerik) {
+        dön _dosya_yaz(yol, icerik)
+    }
+
+    fonksiyon ekle(yol, icerik) {
+        dön _dosya_ekle(yol, icerik)
+    }
+
+    fonksiyon varmi(yol) {
+        dön _dosya_varmi(yol)
+    }
+
+    fonksiyon sil(yol) {
+        dön _dosya_sil(yol)
+    }
+    
+    fonksiyon klasor_olustur(yol) {
+        dön _klasor_olustur(yol)
+    }
+    
+    fonksiyon kopyala(kaynak, hedef) {
+        deðiþken icerik = oku(kaynak)
+        eðer (icerik == "") { 
+            dön yanlýþ 
+        }
+        dön yaz(hedef, icerik)
+    }
+}
+

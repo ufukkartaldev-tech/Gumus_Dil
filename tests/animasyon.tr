@@ -1,0 +1,44 @@
+// Gelismis Saya� ve Animasyon Testi
+
+sistem("cls") // Ekrani temizle
+
+// 1. Yukleniyor Animasyonu
+yazdır("Sistem Baslatiliyor...")
+gorevler = parcala("Bellek_Kontrolu,Ag_Baglantisi,Grafikler_Yukleniyor,Kullanici_Girisi", ",")
+sayac = 0
+
+döngü (sayac < uzunluk(gorevler)) {
+    // Ilerleme cubugu olustur
+    cubuk = ""
+    i = 0
+    döngü (i < sayac + 1) {
+        cubuk = cubuk + "##"
+        i = i + 1
+    }
+    
+    // Ekrani temizle ve guncel durumu yaz
+    sistem("cls") 
+    yazdır("")
+    yazdır("Sistem Yukleniyor [" + cubuk + "]")
+    renkli_yazdir("sari", ">>> Islem: " + gorevler[sayac])
+    
+    bekle(800) // 0.8 saniye bekle
+    sayac = sayac + 1
+}
+
+sistem("cls")
+renkli_yazdir("yesil", "TUM SISTEMLER HAZIR!")
+bekle(1000)
+
+// 2. Geri Sayim
+yazdır("")
+yazdır("Geri sayim basliyor...")
+k = 3
+döngü (k > 0) {
+    renkli_yazdir("kirmizi", metin(k) + "...")
+    bekle(1000)
+    k = k - 1
+}
+
+renkli_yazdir("turkuaz", "BASLA!")
+

@@ -1,0 +1,58 @@
+// ---------------------------------------------------------
+// GUMUS VERITABANI YONETICISI (db_yonetimi.tr)
+// Verileri yapisal olarak saklamak ve sorgulamak icin
+// ---------------------------------------------------------
+
+dahil_et("dosya.tr")
+dahil_et("metin.tr") // JSON parsing vb icin olabilir
+
+// Veritabani baglantisi sinifi
+sýnýf Veritabani {
+    // deðiþken baglanti_yolu
+    // deðiþken bagli_mi
+    // deðiþken tur
+
+    kurucu(yol, db_turu) {
+        öz.baglanti_yolu = yol
+        öz.tur = db_turu
+        öz.bagli_mi = yanlýþ
+    }
+
+    fonksiyon baglan() {
+        yazdýr("[DB] Baglanti kuruluyor: " + öz.baglanti_yolu + " (" + öz.tur + ")")
+        // Burada native baglanti kodu veya dosya acma islemi olur
+        öz.bagli_mi = doðru
+        dön doðru
+    }
+
+    fonksiyon sorgu(sql_kodu) {
+        eðer (öz.bagli_mi == yanlýþ) {
+            yazdýr("HATA: Veritabani bagli degil!")
+            dön boþ
+        }
+        
+        yazdýr("[DB] Sorgu calistiriliyor: " + sql_kodu)
+        // Simulasyon: Basarili donus
+        dön [] 
+    }
+
+    fonksiyon ekle(tablo, veri) {
+        // ORM tarzi basit ekleme
+        yazdýr("[DB] " + tablo + " tablosuna veri ekleniyor...")
+        dön doðru
+    }
+
+    fonksiyon kapat() {
+        öz.bagli_mi = yanlýþ
+        yazdýr("[DB] Baglanti kapatildi.")
+    }
+}
+
+// Kolay kullanim fonksiyonu
+fonksiyon db_baglan(yol) {
+    yazdýr("DEBUG: db_baglan cagrildi, yol=" + metin(yol))
+    deðiþken db = yeni Veritabani(yol, "sqlite")
+    db.baglan()
+    dön db
+}
+

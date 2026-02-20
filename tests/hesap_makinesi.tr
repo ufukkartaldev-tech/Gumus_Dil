@@ -1,0 +1,56 @@
+// Basit Hesap Makinesi
+
+yazdır("--- HESAP MAKINESI ---")
+değişken devam = doğru
+
+döngü (devam == doğru) {
+    yazdır("")
+    yazdır("Yapilacak islemi sec:")
+    yazdır("1. Toplama (+)")
+    yazdır("2. Cikarma (-)")
+    yazdır("3. Carpma (*)")
+    yazdır("4. Bolme (/)")
+    yazdır("5. Karekok")
+    yazdır("0. Cikis")
+    yazdır("--------------------")
+    
+    değişken secim = sayi(girdi())
+    
+    eğer (secim == 0) {
+        yazdır("Cikis yapiliyor...")
+        devam = yanlış
+    } degilse {
+        // Karekok tek parametreli
+        eğer (secim == 5) {
+             yazdır("Sayiyi gir:")
+             değişken s1 = sayi(girdi())
+             yazdır("SONUC: " + metin(karekok(s1)))
+        } degilse {
+             // Digerleri iki parametreli
+             eğer (secim > 0) { // Gecerli bir secim mi?
+                 yazdır("Birinci sayi:")
+                 değişken s1 = sayi(girdi())
+                 
+                 yazdır("Ikinci sayi:")
+                 değişken s2 = sayi(girdi())
+                 
+                 eğer (secim == 1) {
+                     yazdır("SONUC: " + metin(s1 + s2))
+                 } degilse eğer (secim == 2) {
+                     yazdır("SONUC: " + metin(s1 - s2))
+                 } degilse eğer (secim == 3) {
+                     yazdır("SONUC: " + metin(s1 * s2))
+                 } degilse eğer (secim == 4) {
+                     eğer (s2 == 0) {
+                         yazdır("HATA: Sifira bolunemez!")
+                     } degilse {
+                         yazdır("SONUC: " + metin(s1 / s2))
+                     }
+                 }
+             } degilse {
+                 yazdır("Gecersiz secim!")
+             }
+        }
+    }
+}
+

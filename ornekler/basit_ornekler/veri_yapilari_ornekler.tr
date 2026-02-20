@@ -1,0 +1,308 @@
+// ============================================
+// VERİ YAPILARI - GERÇEK DÜNYA ÖRNEKLERİ
+// Pratik kullanım senaryoları
+// ============================================
+
+yazdır("=== VERİ YAPILARI GERÇEK DÜNYA ÖRNEKLERİ ===")
+yazdır("")
+
+// ============================================
+// ÖRNEK 1: TARAYICI GEÇMİŞİ (Stack)
+// ============================================
+
+yazdır("ÖRNEK 1: Tarayıcı Geçmişi (Geri/İleri)")
+yazdır("========================================")
+
+sınıf TarayiciGecmisi {
+    kurucu() {
+        oz.geriYigini = yeni Yigin()
+        oz.ileriYigini = yeni Yigin()
+        oz.mevcutSayfa = "anasayfa.com"
+    }
+    
+    fonksiyon sayfayaGit(url) {
+        oz.geriYigini.ekle(oz.mevcutSayfa)
+        oz.mevcutSayfa = url
+        oz.ileriYigini.temizle()  // Yeni sayfaya gidince ileri geçmişi sil
+        yazdır("→ " + url)
+    }
+    
+    fonksiyon geri() {
+        eğer (!oz.geriYigini.bosmu()) {
+            oz.ileriYigini.ekle(oz.mevcutSayfa)
+            oz.mevcutSayfa = oz.geriYigini.cikar()
+            yazdır("← Geri: " + oz.mevcutSayfa)
+        } değilse {
+            yazdır("Geri gidilecek sayfa yok!")
+        }
+    }
+    
+    fonksiyon ileri() {
+        eğer (!oz.ileriYigini.bosmu()) {
+            oz.geriYigini.ekle(oz.mevcutSayfa)
+            oz.mevcutSayfa = oz.ileriYigini.cikar()
+            yazdır("→ İleri: " + oz.mevcutSayfa)
+        } değilse {
+            yazdır("İleri gidilecek sayfa yok!")
+        }
+    }
+}
+
+değişken tarayici = yeni TarayiciGecmisi()
+tarayici.sayfayaGit("google.com")
+tarayici.sayfayaGit("github.com")
+tarayici.sayfayaGit("stackoverflow.com")
+tarayici.geri()
+tarayici.geri()
+tarayici.ileri()
+
+yazdır("")
+
+// ============================================
+// ÖRNEK 2: YAZICI KUYRUĞU (Queue)
+// ============================================
+
+yazdır("ÖRNEK 2: Yazıcı Kuyruğu")
+yazdır("========================================")
+
+sınıf YaziciKuyrugu {
+    kurucu() {
+        oz.kuyruk = yeni Kuyruk()
+        oz.toplamYazdirildi = 0
+    }
+    
+    fonksiyon belgeyiEkle(belgeAdi) {
+        oz.kuyruk.ekle(belgeAdi)
+        yazdır("📄 Kuyruğa eklendi: " + belgeAdi)
+        yazdır("   Sırada bekleyen: " + metin(oz.kuyruk.boyut))
+    }
+    
+    fonksiyon yazdir() {
+        eğer (!oz.kuyruk.bosmu()) {
+            değişken belge = oz.kuyruk.cikar()
+            yazdır("🖨️  Yazdırılıyor: " + belge)
+            oz.toplamYazdirildi = oz.toplamYazdirildi + 1
+            yazdır("   Kalan: " + metin(oz.kuyruk.boyut))
+        } değilse {
+            yazdır("Kuyrukta belge yok!")
+        }
+    }
+    
+    fonksiyon tumunuYazdir() {
+        yazdır("🖨️  Tüm belgeler yazdırılıyor...")
+        döngü (!oz.kuyruk.bosmu()) {
+            oz.yazdir()
+        }
+        yazdır("✅ Toplam " + metin(oz.toplamYazdirildi) + " belge yazdırıldı")
+    }
+}
+
+değişken yazici = yeni YaziciKuyrugu()
+yazici.belgeyiEkle("rapor.pdf")
+yazici.belgeyiEkle("fatura.docx")
+yazici.belgeyiEkle("ozgecmis.pdf")
+yazici.yazdir()
+yazici.belgeyiEkle("sunum.pptx")
+yazici.tumunuYazdir()
+
+yazdır("")
+
+// ============================================
+// ÖRNEK 3: HASTANE ACİL SERVİS (Priority Queue)
+// ============================================
+
+yazdır("ÖRNEK 3: Hastane Acil Servis")
+yazdır("========================================")
+
+sınıf AcilServis {
+    kurucu() {
+        oz.kuyruk = yeni OncelikliKuyruk()
+    }
+    
+    fonksiyon hastaEkle(isim, aciliyet) {
+        oz.kuyruk.ekle(isim, aciliyet)
+        değişken durum = ""
+        eğer (aciliyet == 1) {
+            durum = "KRİTİK"
+        } değilse eğer (aciliyet <= 3) {
+            durum = "ACİL"
+        } değilse eğer (aciliyet <= 5) {
+            durum = "ORTA"
+        } değilse {
+            durum = "DÜŞÜK"
+        }
+        yazdır("🏥 " + isim + " - " + durum + " (Öncelik: " + metin(aciliyet) + ")")
+    }
+    
+    fonksiyon sonrakiHasta() {
+        eğer (!oz.kuyruk.bosmu()) {
+            değişken hasta = oz.kuyruk.cikar()
+            yazdır("👨‍⚕️ Muayene: " + hasta)
+        } değilse {
+            yazdır("Bekleyen hasta yok")
+        }
+    }
+}
+
+değişken acil = yeni AcilServis()
+acil.hastaEkle("Ahmet (Baş ağrısı)", 7)
+acil.hastaEkle("Mehmet (Kalp krizi)", 1)
+acil.hastaEkle("Ayşe (Kırık)", 4)
+acil.hastaEkle("Fatma (Grip)", 9)
+acil.hastaEkle("Ali (Kaza)", 2)
+
+yazdır("")
+yazdır("Muayene sırası (önceliğe göre):")
+döngü (!acil.kuyruk.bosmu()) {
+    acil.sonrakiHasta()
+}
+
+yazdır("")
+
+// ============================================
+// ÖRNEK 4: SOSYAL AĞ (Graph/Linked List)
+// ============================================
+
+yazdır("ÖRNEK 4: Sosyal Ağ Arkadaş Listesi")
+yazdır("========================================")
+
+sınıf Kullanici {
+    kurucu(isim) {
+        oz.isim = isim
+        oz.arkadaslar = yeni BagliListe()
+    }
+    
+    fonksiyon arkadasEkle(arkadas) {
+        oz.arkadaslar.sonaEkle(arkadas)
+        yazdır("👥 " + oz.isim + " → " + arkadas + " arkadaş eklendi")
+    }
+    
+    fonksiyon arkadaslariGoster() {
+        yazdır("")
+        yazdır(oz.isim + " adlı kullanıcının arkadaşları:")
+        eğer (oz.arkadaslar.bosmu()) {
+            yazdır("  (Henüz arkadaş yok)")
+        } değilse {
+            oz.arkadaslar.yazdir()
+        }
+    }
+}
+
+değişken ufuk = yeni Kullanici("Ufuk")
+ufuk.arkadasEkle("Ahmet")
+ufuk.arkadasEkle("Mehmet")
+ufuk.arkadasEkle("Ayşe")
+ufuk.arkadaslariGoster()
+
+yazdır("")
+
+// ============================================
+// ÖRNEK 5: ÖNBELLEK SİSTEMİ (Hash Table)
+// ============================================
+
+yazdır("ÖRNEK 5: Web Önbellek Sistemi")
+yazdır("========================================")
+
+sınıf WebOnbellek {
+    kurucu() {
+        oz.onbellek = yeni HashTablosu(20)
+        oz.isabetSayisi = 0
+        oz.kaybetmeSayisi = 0
+    }
+    
+    fonksiyon sayfayiAl(url) {
+        değişken icerik = oz.onbellek.al(url)
+        
+        eğer (icerik != bos) {
+            oz.isabetSayisi = oz.isabetSayisi + 1
+            yazdır("✅ ÖNBELLEK İSABETİ: " + url)
+            yazdır("   → " + icerik)
+        } değilse {
+            oz.kaybetmeSayisi = oz.kaybetmeSayisi + 1
+            yazdır("❌ ÖNBELLEK KAYBETME: " + url)
+            yazdır("   → Sunucudan yükleniyor...")
+            
+            // Simüle: Sunucudan yükle ve önbelleğe ekle
+            değişken yeniIcerik = url + " içeriği"
+            oz.onbellek.ekle(url, yeniIcerik)
+            yazdır("   → Önbelleğe eklendi")
+        }
+    }
+    
+    fonksiyon istatistikler() {
+        değişken toplam = oz.isabetSayisi + oz.kaybetmeSayisi
+        değişken isabet_orani = 0
+        eğer (toplam > 0) {
+            isabet_orani = (oz.isabetSayisi * 100) / toplam
+        }
+        
+        yazdır("")
+        yazdır("📊 Önbellek İstatistikleri:")
+        yazdır("   İsabet: " + metin(oz.isabetSayisi))
+        yazdır("   Kaybetme: " + metin(oz.kaybetmeSayisi))
+        yazdır("   İsabet Oranı: %" + metin(isabet_orani))
+    }
+}
+
+değişken onbellek = yeni WebOnbellek()
+onbellek.sayfayiAl("anasayfa.html")
+onbellek.sayfayiAl("hakkimizda.html")
+onbellek.sayfayiAl("anasayfa.html")  // Önbellekten gelecek
+onbellek.sayfayiAl("iletisim.html")
+onbellek.sayfayiAl("hakkimizda.html")  // Önbellekten gelecek
+onbellek.istatistikler()
+
+yazdır("")
+
+// ============================================
+// ÖRNEK 6: DOSYA SİSTEMİ AĞACI (Binary Tree)
+// ============================================
+
+yazdır("ÖRNEK 6: Sıralı Sayı Veritabanı")
+yazdır("========================================")
+
+sınıf SayiVeritabani {
+    kurucu() {
+        oz.agac = yeni IkiliAramaAgaci()
+    }
+    
+    fonksiyon ekle(sayi) {
+        oz.agac.ekle(sayi)
+        yazdır("➕ Eklendi: " + metin(sayi))
+    }
+    
+    fonksiyon ara(sayi) {
+        değişken bulundu = oz.agac.ara(sayi)
+        eğer (bulundu) {
+            yazdır("🔍 " + metin(sayi) + " → BULUNDU")
+        } değilse {
+            yazdır("🔍 " + metin(sayi) + " → BULUNAMADI")
+        }
+    }
+    
+    fonksiyon siraliListele() {
+        yazdır("")
+        yazdır("📋 Sıralı Liste (Inorder):")
+        oz.agac.inorder()
+    }
+}
+
+değişken veritabani = yeni SayiVeritabani()
+veritabani.ekle(50)
+veritabani.ekle(30)
+veritabani.ekle(70)
+veritabani.ekle(20)
+veritabani.ekle(40)
+veritabani.ekle(60)
+veritabani.ekle(80)
+
+yazdır("")
+veritabani.ara(40)
+veritabani.ara(99)
+veritabani.siraliListele()
+
+yazdır("")
+yazdır("===========================================")
+yazdır("✅ TÜM ÖRNEKLER TAMAMLANDI!")
+yazdır("===========================================")
+

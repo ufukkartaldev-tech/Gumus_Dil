@@ -1,0 +1,64 @@
+// ---------------------------------------------------------
+// VERİ BİLİMİ KÜTÜPHANESİ (veribilimi.tr)
+// Veri Analizi ve Görselleştirme Araçları
+// ---------------------------------------------------------
+
+dahil_et("matematik.tr")
+dahil_et("istatistik_gelismis.tr")
+
+sınıf VeriSeti {
+    kurucu(isim) {
+        öz.isim = isim
+        öz.sütunlar = []
+        öz.veriler = []
+        yazdır("[VERİ] '" + isim + "' veri seti oluşturuldu.")
+    }
+
+    fonksiyon sütun_ekle(sütun_adı) {
+        ekle(öz.sütunlar, sütun_adı)
+    }
+
+    fonksiyon satır_ekle(satır_verisi) {
+        ekle(öz.veriler, satır_verisi)
+    }
+
+    // Ortalama alma
+    fonksiyon sütun_ortalaması(sütun_indeksi) {
+        değişken toplam = 0
+        için (değişken i = 0; i < uzunluk(öz.veriler); i = i + 1) {
+            toplam = toplam + öz.veriler[i][sütun_indeksi]
+        }
+        dön toplam / uzunluk(öz.veriler)
+    }
+
+    // Basit Görselleştirme (IDE Tuvaline komut gönderir)
+    fonksiyon çiz_çizgi() {
+        yazdır("[VERİ] Çizgi grafiği çiziliyor...")
+        // __CANVAS__: komutu simülasyonu
+        için (değişken i = 0; i < uzunluk(öz.veriler); i = i + 1) {
+            yazdır("__CANVAS__:line," + metin(i*10) + "," + metin(öz.veriler[i][0]))
+        }
+    }
+
+    fonksiyon özet_göster() {
+        yazdır("--- " + öz.isim + " ÖZETİ ---")
+        yazdır("Satır Sayısı: " + metin(uzunluk(öz.veriler)))
+        yazdır("Sütun Sayısı: " + metin(uzunluk(öz.sütunlar)))
+        yazdır("------------------------")
+    }
+}
+
+modül VeriAnaliz {
+    fonksiyon normalize_et(liste) {
+        değişken max_değer = max(liste)
+        değişken min_değer = min(liste)
+        değişken yeni_liste = []
+        
+        için (değişken i = 0; i < uzunluk(liste); i = i + 1) {
+            değişken n = (liste[i] - min_değer) / (max_değer - min_değer)
+            ekle(yeni_liste, n)
+        }
+        dön yeni_liste
+    }
+}
+

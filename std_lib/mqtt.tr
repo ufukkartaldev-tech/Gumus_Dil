@@ -1,0 +1,41 @@
+modul mqtt {
+  sinif MqttIstemci {
+    fonksiyon kurucu(url) {
+      ben.url = url;
+      ben.bagli = yanlÄ±ÅŸ;
+      ben.konu = "";
+      ben.isleyici = yanlÄ±ÅŸ; // Varsayilan: isleyici yok
+      // isleyici, abone() cagrilana kadar atanmaz
+    }
+
+    fonksiyon baglan() {
+      ben.bagli = doÄŸru;
+      dÃ¶n doÄŸru;
+    }
+
+    fonksiyon kopar() {
+      ben.bagli = yanlÄ±ÅŸ;
+      dÃ¶n doÄŸru;
+    }
+
+    // Basit mock: tek bir konuya abone ve geri çağırıcı saklanır
+    fonksiyon abone(konu, isleyici) {
+      ben.konu = konu;
+      ben.isleyici = isleyici;
+      dÃ¶n doÄŸru;
+    }
+
+    // Mock yayın: eşleşen konu için kayıtlı işleci çağırır
+    fonksiyon gonder(konu, icerik) {
+      // Gerçek soket/MQTT gelecekte eklenecek; şimdilik yerel çağrı.
+      // Varsayım: önce abone() çağrılmıştır.
+      eÄŸer (ben.isleyici) {
+        ben.isleyici(icerik);
+        dÃ¶n doÄŸru;
+      } degilse {
+        yazdÄ±r("MQTT: isleyici bulunamadi, önce abone() cagirin.");
+        dÃ¶n yanlÄ±ÅŸ;
+      }
+    }
+  }
+}

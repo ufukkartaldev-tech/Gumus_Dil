@@ -1,0 +1,51 @@
+// TUM KUTUPHANELER ENTEGRASYON TESTI (tam_test.tr)
+
+// Sistem Kutuphaneleri
+dahil_et("std_lib/sistem/renk.tr")
+dahil_et("std_lib/zaman.tr")
+
+// Veri Kutuphaneleri
+dahil_et("std_lib/veri/metin.tr")
+dahil_et("std_lib/veri/istatistik.tr")
+dahil_et("std_lib/veri/donusturucu.tr")
+dahil_et("std_lib/rastgele.tr")
+
+// Oyun ve Donanim
+dahil_et("std_lib/oyun/oyun_motoru.tr")
+dahil_et("std_lib/donanim_lojik/sensor.tr")
+
+
+baslik_yaz("GUMUSDIL - LIBRARY TEST SUITE")
+yazdır("")
+
+// 1. Veri ve Metin Testi
+yesil_yaz("[TEST 1] Metin ve Istatistik")
+soz = "merhaba dunya guzel dunya"
+yazdır("Kelime Sayisi: " + metin(kelime_sayisi(soz)))
+
+sayilar = [10, 20, 30, 40, 50]
+yazdır("Ortalama: " + metin(ortalama(sayilar)))
+
+// 2. Oyun Motoru ve Rastgele
+yazdır("")
+yesil_yaz("[TEST 2] Oyun Sistemi")
+can_goster(3)
+tutulan = sayi_tut(1, 10)
+skor_yaz(tutulan * 100)
+eğer (tutulan > 5) {
+    yazi_tura_sonuc = yazi_tura()
+    renkli_yazdir("sari", "Bonus Sans: " + yazi_tura_sonuc)
+}
+
+// 3. Sensor Simulasyonu
+yazdır("")
+yesil_yaz("[TEST 3] Donanim ve Sensor")
+ofis_sicaklik = sicaklik_oku("A1")
+yazdır("Ofis Sicakligi: " + metin(ofis_sicaklik) + " C")
+
+mesafe = mesafe_olc(2, 3)
+yazdır("Engel Mesafesi: " + metin(mesafe) + " cm")
+
+yazdır("")
+baslik_yaz("TEST TAMAMLANDI - HER SEY YOLUNDA")
+

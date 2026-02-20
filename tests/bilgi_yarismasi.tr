@@ -1,0 +1,58 @@
+// Bilgi Yarismasi (Gorsellestirilmis)
+
+// Sorulari ve Cevaplari Hazirla
+sorular = parcala("Turkiye'nin baskenti neresidir?|Hangi gezegen Kizil Gezegen olarak bilinir?|Suyun kimyasal formulu nedir?", "|")
+cevaplar = parcala("Ankara|Mars|H2O", "|")
+
+puan = 0
+toplamSoru = uzunluk(sorular)
+siradaki = 0
+
+// Baslik
+yazdır("")
+renkli_yazdir("sari", "************************************")
+renkli_yazdir("sari", "*      ODULLU BILGI YARISMASI      *")
+renkli_yazdir("sari", "************************************")
+yazdır("Toplam Soru Sayisi: " + metin(toplamSoru))
+renkli_yazdir("mor", "Kural: Her doğru cevap 10 puandir.")
+
+döngü (siradaki < toplamSoru) {
+    yazdır("")
+    renkli_yazdir("mavi", "--- SORU " + metin(siradaki + 1) + " ---")
+    yazdır(sorular[siradaki])
+    yazdır("Cevabin: ")
+    
+    kullaniciCevap = girdi()
+    gercekCevap = cevaplar[siradaki]
+    
+    // Karsilastirma
+    eğer (kucuk(kullaniciCevap) == kucuk(gercekCevap)) {
+        renkli_yazdir("yesil", ">>> TEBRIKLER! doğru Cevap!")
+        puan = puan + 10
+    } degilse {
+        renkli_yazdir("kirmizi", ">>> MAALESEF... yanlış Cevap.")
+        renkli_yazdir("beyaz", "Dogrusu: " + gercekCevap)
+    }
+    
+    siradaki = siradaki + 1
+}
+
+yazdır("")
+yazdır("----------------------------")
+renkli_yazdir("turkuaz", "YARISMA TAMAMLANDI!")
+
+skorMesaji = "TOPLAM PUANIN: " + metin(puan) + " / " + metin(toplamSoru * 10)
+
+eğer (puan == toplamSoru * 10) {
+    renkli_yazdir("yesil", skorMesaji)
+    renkli_yazdir("sari", "MUKEMMEL! Hepsini bildin! Odulu hak ettin!")
+} degilse {
+    eğer (puan > 0) {
+        renkli_yazdir("mavi", skorMesaji)
+        yazdır("Guzel yarisma, bir dahakine daha iyi olabilirsin.")
+    } degilse {
+        renkli_yazdir("kirmizi", skorMesaji)
+        yazdır("Hic sorun degil, tekrar dene!")
+    }
+}
+

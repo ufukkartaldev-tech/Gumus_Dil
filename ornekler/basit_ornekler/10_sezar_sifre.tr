@@ -1,0 +1,66 @@
+// ============================================
+// ÖRNEK PROJE 10: SEZAR ŞİFRELEME
+// ============================================
+
+fonksiyon sezar_şifrele(metin_değeri, kaydırma) {
+    değişken şifreli = "";
+    değişken i = 0;
+    
+    döngü (i < uzunluk(metin_değeri)) {
+        değişken karakter = metin_değeri[i];
+        
+        // Basit ASCII kaydırma (sadece İngilizce harfler için)
+        // Türkçe karakterler için daha gelişmiş bir sistem gerekir
+        
+        eğer (karakter >= "a" ve karakter <= "z") {
+            değişken yeni_kod = ((karakter - "a" + kaydırma) % 26) + "a";
+            şifreli = şifreli + yeni_kod;
+        } değilse eğer (karakter >= "A" ve karakter <= "Z") {
+            değişken yeni_kod = ((karakter - "A" + kaydırma) % 26) + "A";
+            şifreli = şifreli + yeni_kod;
+        } değilse {
+            şifreli = şifreli + karakter;
+        }
+        
+        i = i + 1;
+    }
+    
+    dön şifreli;
+}
+
+fonksiyon sezar_çöz(şifreli_metin, kaydırma) {
+    // Şifre çözmek için negatif kaydırma
+    dön sezar_şifrele(şifreli_metin, 26 - kaydırma);
+}
+
+yazdır("╔════════════════════════════════╗");
+yazdır("║   SEZAR ŞİFRELEME SİSTEMİ     ║");
+yazdır("╚════════════════════════════════╝\n");
+
+yazdır("1. Şifrele");
+yazdır("2. Şifre Çöz");
+yazdır("\nSeçiminiz:");
+
+değişken seçim = girdi();
+
+yazdır("\nMetni girin:");
+değişken metin_değeri = girdi();
+
+yazdır("Kaydırma miktarı (1-25):");
+değişken kaydırma = sayı(girdi());
+
+eğer (seçim == "1") {
+    değişken şifreli = sezar_şifrele(metin_değeri, kaydırma);
+    yazdır("\n🔒 Şifreli Metin: " + şifreli);
+} değilse eğer (seçim == "2") {
+    değişken çözülmüş = sezar_çöz(metin_değeri, kaydırma);
+    yazdır("\n🔓 Çözülmüş Metin: " + çözülmüş);
+} değilse {
+    yazdır("\n❌ Geçersiz seçim!");
+}
+💎 Gümüşdil kodunuzu buraya yazın...
+
+// Örnek:
+değişken x = 10
+yazdır("Merhaba Dünya!")
+

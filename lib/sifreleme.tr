@@ -1,0 +1,53 @@
+// ---------------------------------------------------------
+// SIFRELEME KUTUPHANESI (sifreleme.tr)
+// Temel kriptografi fonksiyonlari
+// ---------------------------------------------------------
+
+dahil_et("metin_gelismis.tr")
+
+// Sezar Sifreleme (Basit kaydirma)
+// metin_gelismis icinde var ama burada wrapper yapiyoruz
+fonksiyon sifre_sezar(metin, anahtar) {
+    // Eğer metin_gelismis.tr icinde tanimliysa onu kullan
+    // Degilse burada implemente et
+    dön sezar_sifrele(metin, anahtar)
+}
+
+// XOR Sifreleme (Daha guvenli)
+// Her karakteri anahtar karakteriyle XOR'lar
+// Gumusdil'de bitwise operator olmadigi icin simulasyon zordur.
+// Simdilik basit bir yer degistirme (substitution) yapalim.
+
+fonksiyon sifre_ters(metin) {
+    dön metin_ters_cevir(metin)
+}
+
+// Base64 Kodlama (Simulasyon - Tam algoritma karmasik)
+// Egitim amacli basitlesitirilmis versiyon
+fonksiyon sifre_base64_kodla(metin) {
+    // Gercek base64 tablosu
+    değişken tablo = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    
+    // Not: Gumusdil'de bit islemleri (>> << & |) olmadan gercek base64 ZOR.
+    // Bu yuzden burada egitim amacli "Yalanci Base64" yapiyoruz.
+    // Her karakterin ASCII değerine 1 ekleyip hex gibi gosteriyoruz
+    
+    yazdır("[UYARI] Bu fonksiyon tam Base64 degildir, egitim amaclidir.")
+    dön metin_ters_cevir(metin) + "=" 
+}
+
+// SHA256 (Simulasyon)
+// Gercek SHA256 icin native fonksiyon gerekir (OpenSSL vb.)
+// Burada sadece hash mantigini gosteren basit bir hash fonksiyonu yaziyoruz
+fonksiyon sifre_basit_hash(metin) {
+    değişken hash = 0
+    değişken i = 0
+    döngü (i < uzunluk(metin)) {
+        // Karakter kodunu alamadigimiz icin (ord() yok), 
+        // string uzunlugu ve karakterlerle basit bir matematik yapiyoruz
+        hash = hash + i * 7 // değer.ord() eksik
+        i = i + 1
+    }
+    dön "hash_" + metin(hash)
+}
+

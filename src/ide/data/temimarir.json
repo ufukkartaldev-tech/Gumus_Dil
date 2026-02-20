@@ -1,0 +1,45 @@
+{
+    "aktif_tema": "karanlik",
+    "temimarir": {
+        "karanlik": {
+            "arka_plan": "#1e1e1e",
+            "font_rengi": "#d4d4d4",
+            "satir_no_arkaplan": "#252526",
+            "satir_no_renk": "#858585",
+            "imlec_renk": "#ffffff",
+            "secim_renk": "#264f78",
+            "hata_cizgisi": "#ff0000",
+            "anahtar_kelime": "#569cd6",
+            "fonksiyon": "#dcdcaa",
+            "metin": "#ce9178",
+            "yorum": "#6a9955"
+        },
+        "aydinlik": {
+            "arka_plan": "#ffffff",
+            "font_rengi": "#000000",
+            "satir_no_arkaplan": "#f3f3f3",
+            "satir_no_renk": "#888888",
+            "imlec_renk": "#000000",
+            "secim_renk": "#add6ff",
+            "hata_cizgisi": "#ff0000",
+            "anahtar_kelime": "#0000ff",
+            "fonksiyon": "#795e26",
+            "metin": "#a31515",
+            "yorum": "#008000"
+        },
+        "matrix": {
+            "arka_plan": "#000000",
+            "font_rengi": "#00ff00",
+            "satir_no_arkaplan": "#0a0a0a",
+            "satir_no_renk": "#004400",
+            "imlec_renk": "#00ff00",
+            "secim_renk": "#003300",
+            "hata_cizgisi": "#ff0000",
+            "anahtar_kelime": "#00cc00",
+            "fonksiyon": "#00cc00",
+            "metin": "#88ff88",
+            "yorum": "#006600"
+        }
+    }
+}
+

@@ -1,0 +1,87 @@
+// ============================================
+// TRY-CATCH KAPSAMLI TEST
+// ============================================
+
+dahil_et("../lib/birim.tr")
+
+değişken t = yeni BirimTest("Try-Catch Testi")
+
+// ============================================
+// 1. BASIT TRY-CATCH
+// ============================================
+t.bolum("Basit Try-Catch")
+
+değişken hata_yakalandi = yanlış
+deneme {
+    yazdır("Try blogu calisiyor")
+    hata_yakalandi = yanlış
+} yakala(e) {
+    yazdır("Catch blogu calisti")
+    hata_yakalandi = doğru
+}
+
+t.dogru_mu(!hata_yakalandi, "Hatasiz kod catch'e girmemeli")
+
+// ============================================
+// 2. SIFIRA BOLME HATASI
+// ============================================
+t.bolum("Sifira Bolme Hatasi")
+
+değişken bolme_hatasi = yanlış
+deneme {
+    değişken sonuc = 10 / 0
+    bolme_hatasi = yanlış
+} yakala(hata) {
+    bolme_hatasi = doğru
+    yazdır("Hata yakalandi: Sifira bolme")
+}
+
+t.dogru_mu(bolme_hatasi, "Sifira bolme hatasi yakalandi")
+
+// ============================================
+// 3. LISTE INDEKS HATASI
+// ============================================
+t.bolum("Liste Indeks Hatasi")
+
+değişken indeks_hatasi = yanlış
+deneme {
+    değişken liste = [1, 2, 3]
+    değişken eleman = liste[10]
+    indeks_hatasi = yanlış
+} yakala(hata) {
+    indeks_hatasi = doğru
+    yazdır("Hata yakalandi: Indeks sinir disi")
+}
+
+t.dogru_mu(indeks_hatasi, "Indeks hatasi yakalandi")
+
+// ============================================
+// 4. IC ICE TRY-CATCH
+// ============================================
+t.bolum("Ic Ice Try-Catch")
+
+değişken dis_hata = yanlış
+değişken ic_hata = yanlış
+
+deneme {
+    yazdır("Dis try blogu")
+    deneme {
+        yazdır("Ic try blogu")
+        değişken x = 5 / 0
+    } yakala(e1) {
+        ic_hata = doğru
+        yazdır("Ic catch blogu")
+    }
+} yakala(e2) {
+    dis_hata = doğru
+    yazdır("Dis catch blogu")
+}
+
+t.dogru_mu(ic_hata, "Ic hata yakalandi")
+t.dogru_mu(!dis_hata, "Dis catch calismamaliydi")
+
+// ============================================
+// RAPOR
+// ============================================
+t.raporla()
+

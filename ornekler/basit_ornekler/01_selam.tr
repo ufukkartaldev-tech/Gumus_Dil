@@ -1,0 +1,21 @@
+// ============================================
+// ÖRNEK PROJE 1: SELAM VEREN PROGRAM
+// ============================================
+
+yazdır("Merhaba! Adınız nedir?");
+değişken isim = girdi()
+
+yazdır("")
+yazdır("Selam " + isim + "!")
+yazdır("Seni tanımaktan mutluluk duydum.");
+💎 Gümüşdil kodunuzu buraya yazın...
+
+// Örnek:
+değişken x = 10
+yazdır("Merhaba Dünya!")
+💎 Gümüşdil kodunuzu buraya yazın...
+
+// Örnek:
+değişken x = 10
+yazdır("Merhaba Dünya!")
+

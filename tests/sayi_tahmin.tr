@@ -1,0 +1,49 @@
+// Sayi Tahmin Oyunu (Konsol Uygulamasi)
+
+yazdır("========================================")
+yazdır("   SAYI TAHMIN OYUNUNA HOS GELDINIZ")
+yazdır("========================================")
+yazdır("")
+
+// Rastgele sayi belirle (1-100 arasi)
+hedef = rastgele(1, 100)
+buldu = yanlış
+deneme = 0
+
+yazdır("Aklimdan 1 ile 100 arasinda bir sayi tuttum.")
+yazdır("Hadi bulmaya calis!")
+
+döngü (buldu == yanlış) {
+    yazdır("") 
+    yazdır("Tahminin nedir? (Cikmak icin 0 yaz)")
+    
+    // Kullanicidan veri al
+    girilen = girdi()
+    tahmin = sayi(girilen)
+    
+    // Cikis kontrolu (Opsiyonel)
+    eğer (tahmin == 0) {
+        yazdır("Oyundan cikiliyor...")
+        buldu = doğru // Donguyu kirmak icin
+    } degilse {
+        deneme = deneme + 1
+        
+        eğer (tahmin == hedef) {
+            yazdır("*********************************")
+            yazdır(" HARIKA! doğru Bildin! ")
+            yazdır(" Tutulan Sayi: " + metin(hedef))
+            yazdır(" Toplam Deneme: " + metin(deneme))
+            yazdır("*********************************")
+            buldu = doğru
+        } degilse {
+            eğer (tahmin < hedef) {
+                yazdır("Daha BUYUK bir sayi soylemelisin ^")
+            } degilse {
+                yazdır("Daha KUCUK bir sayi soylemelisin v")
+            }
+        }
+    }
+}
+
+yazdır("Gorusmek uzere!")
+

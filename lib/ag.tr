@@ -1,0 +1,52 @@
+// ---------------------------------------------------------
+// AG VE ILETISIM KUTUPHANESI (ag.tr)
+// Internet islemleri (Sistemdeki 'curl' komutunu kullanir)
+// ---------------------------------------------------------
+
+dahil_et("dosya.tr")
+
+// Belirtilen URL'den icerik ceker (GET istegi)
+fonksiyon ag_sayfa_getir(url) {
+    // Gecici dosya kullanimi
+    değişken gecici_dosya = "web_cache.txt"
+    
+    // Curl ile indir (Windows/Linux uyumlu parametreler)
+    // -s: Sessiz mod, -L: Yonlendirmeleri takip et
+    değişken komut = "curl -s -L " + url + " -o " + gecici_dosya
+    
+    yazdır("[AG] Baglaniyor: " + url + " ...")
+    değişken sonuc_kodu = sistem(komut)
+    
+    // Hata Kontrolu (0 = Basarili)
+    eğer (sonuc_kodu != 0) {
+        renkli_yazdir("kirmizi", "[HATA] Ag istegi basarisiz oldu! (Kod: " + metin(sonuc_kodu) + ")")
+        renkli_yazdir("sari", "Ipucu: Internet baglantinizi ve 'curl' yuklu oldugunu kontrol edin.")
+        dön ""
+    }
+    
+    // Dosyayi oku
+    değişken icerik = dosya_oku(gecici_dosya)
+    
+    // Dosya bossa hata olabilir
+    eğer (uzunluk(icerik) == 0) {
+        yazdır("[HATA] Veri alinamadi veya baglanti yok.")
+        dön ""
+    }
+    
+    yazdır("[AG] Veri alindi (" + metin(uzunluk(icerik)) + " bayt).")
+    dön icerik
+}
+
+// Bir adrese ping atar
+fonksiyon ag_ping_at(adres) {
+    yazdır("[AG] Ping atiliyor: " + adres)
+    // -n 2: 2 kez ping at (Windows), Linux icin -c 2 gerekebilir
+    // Gumusdil cross-platform olmadigi icin Windows varsayiyoruz
+    sistem("ping -n 2 " + adres)
+}
+
+// IP Bilgimi ogren (Harici servis kullanir)
+fonksiyon ag_ip_ogren() {
+    dön ag_sayfa_getir("http://icanhazip.com")
+}
+

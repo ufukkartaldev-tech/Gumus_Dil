@@ -1,0 +1,16 @@
+// Simple tests (No Unary)
+yazdır("1. Baslangic")
+
+// 2. Logic (Removed Unary)
+eğer (doğru ve doğru) {
+    yazdır("Logic VE calisiyor")
+}
+
+// 3. Try Catch
+deneme {
+    yazdır("Deneme blogu")
+    hata_yap()
+} yakala (h) {
+    yazdır("Hata yakalandi: " + metin(h))
+}
+

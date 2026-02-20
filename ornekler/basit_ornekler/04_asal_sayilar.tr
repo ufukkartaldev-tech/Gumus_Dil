@@ -1,0 +1,47 @@
+// ============================================
+// ÖRNEK PROJE 4: ASAL SAYI BULUCU
+// ============================================
+
+yazdır("Bir sayı girin:")
+değişken n = sayı(girdi())
+
+fonksiyon asal_mı(sayı) {
+    eğer (sayı < 2) {
+        dön yanlış
+    }
+    
+    değişken i = 2
+    döngü (i * i <= sayı) {
+        eğer (sayı % i == 0) {
+            dön yanlış
+        }
+        i = i + 1
+    }
+    
+    dön doğru
+}
+
+eğer (asal_mı(n)) {
+    yazdır(metin(n) + " bir asal sayıdır! ✓")
+} değilse {
+    yazdır(metin(n) + " asal sayı değildir.")
+}
+
+// Bonus: İlk 20 asal sayıyı listele
+yazdır("\nİlk 20 asal sayı:")
+değişken sayaç = 0
+değişken num = 2
+
+döngü (sayaç < 20) {
+    eğer (asal_mı(num)) {
+        yazdır(metin(num))
+        sayaç = sayaç + 1
+    }
+    num = num + 1
+}
+// 💎 Gümüşdil kodunuzu buraya yazın...
+
+// Örnek:
+// değişken x = 10
+// yazdır("Merhaba Dünya!")
+

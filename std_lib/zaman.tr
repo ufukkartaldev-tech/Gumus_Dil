@@ -1,0 +1,25 @@
+// ---------------------------------------------------------
+// ZAMAN KUTUPHANESI (zaman.tr)
+// ---------------------------------------------------------
+
+// Native 'zaman' ve 'bekle' fonksiyonlari uzerine insa edilir.
+// 'zaman' fonksiyonu timestamp (saniye) doner.
+// 'bekle' fonksiyonu milisaniye cinsinden bekler.
+
+fonksiyon saniye_bekle(saniye) {
+    bekle(saniye * 1000)
+}
+
+fonksiyon kronometre_baslat() {
+    dön zaman()
+}
+
+fonksiyon sure_olc(baslangic_zamani) {
+    simdi = zaman()
+    dön simdi - baslangic_zamani
+}
+
+// Tarih formatlama (basitce y-a-g s:d:sn seklinde string doner)
+// Not: Native zaman fonksiyonu sadece unix timestamp dondugu icin
+// tam tarih hesaplama karmasiktir. Ilerde native 'tarih' fonksiyonu eklenebilir.
+

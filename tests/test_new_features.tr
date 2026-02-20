@@ -1,0 +1,24 @@
+// Test && ve || operatorleri
+yazdır("=== && ve || Test ===")
+
+değişken a = doğru
+değişken b = yanlış
+
+yazdır("a && a = " + metin(a && a))
+yazdır("a && b = " + metin(a && b))
+yazdır("b && b = " + metin(b && b))
+
+yazdır("a || a = " + metin(a || a))
+yazdır("a || b = " + metin(a || b))
+yazdır("b || b = " + metin(b || b))
+
+yazdır("=== dur keyword test ===")
+değişken i = 0
+döngü (i < 100) {
+    i = i + 1
+    eğer (i == 5) {
+        dur
+    }
+}
+yazdır("Loop stopped at: " + metin(i))
+

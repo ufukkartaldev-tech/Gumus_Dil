@@ -1,0 +1,84 @@
+// ---------------------------------------------------------
+// GUMUS DENETIM (birim.tr)
+// Birim Test (Unit Testing) Kutuphanesi
+// "Kendi kendini test eden yerli dil"
+// ---------------------------------------------------------
+
+dahil_et("metin.tr")
+
+fonksiyon renkli_yazdir(renk, mesaj) {
+    yazdýr(mesaj)
+}
+
+sýnýf BirimTest {
+    // deðiþken test_sayisi
+    // deðiþken basarili_sayisi
+    // deðiþken hatalar
+    // deðiþken test_adi
+
+    kurucu(ad) {
+        öz.test_adi = ad
+        öz.test_sayisi = 0
+        öz.basarili_sayisi = 0
+        öz.hatalar = []
+        yazdýr("========================================")
+        yazdýr("TEST KOSUSU BASLIYOR: " + ad)
+        yazdýr("========================================")
+    }
+
+    fonksiyon dogru_mu(kosul, mesaj) {
+        öz.test_sayisi = öz.test_sayisi + 1
+        eðer (kosul) {
+            öz.basarili_sayisi = öz.basarili_sayisi + 1
+            renkli_yazdir("yesil", "  [?] " + mesaj)
+        } deðilse {
+            ekle(öz.hatalar, mesaj)
+            renkli_yazdir("kirmizi", "  [X] " + mesaj)
+        }
+    }
+
+    fonksiyon esit_mi(beklenen, gercek, mesaj) {
+        öz.test_sayisi = öz.test_sayisi + 1
+        eðer (beklenen == gercek) {
+            öz.basarili_sayisi = öz.basarili_sayisi + 1
+            renkli_yazdir("yesil", "  [?] " + mesaj)
+        } deðilse {
+            deðiþken hata_metni = mesaj + " (Beklenen: " + metin(beklenen) + ", Gercek: " + metin(gercek) + ")"
+            ekle(öz.hatalar, hata_metni)
+            renkli_yazdir("kirmizi", "  [X] " + hata_metni)
+        }
+    }
+    
+    // Testleri gruplamak icin baslik atar
+    fonksiyon bolum(baslik) {
+        yazdýr("")
+        yazdýr("--- " + baslik + " ---")
+    }
+
+    fonksiyon raporla() {
+        yazdýr("")
+        yazdýr("--------------------------------")
+        yazdýr("SONUC RAPORU: " + öz.test_adi)
+        yazdýr("TOPLAM TEST : " + metin(öz.test_sayisi))
+        yazdýr("BASARILI    : " + metin(öz.basarili_sayisi))
+        yazdýr("HATALI      : " + metin(uzunluk(öz.hatalar)))
+        
+        eðer (öz.basarili_sayisi == öz.test_sayisi ve öz.test_sayisi > 0) {
+            renkli_yazdir("yesil", ">>> MUKEMMEL! TUM TESTLER GECTI. <<<")
+        } deðilse {
+            eðer (öz.test_sayisi == 0) {
+                yazdýr("Hic test kosulmadi.")
+            } deðilse {
+                renkli_yazdir("kirmizi", ">>> BAZI TESTLER BASARISIZ OLDU! <<<")
+                yazdýr("Hatalar:")
+                deðiþken i = 0
+                döngü (i < uzunluk(öz.hatalar)) {
+                    yazdýr(" - " + öz.hatalar[i])
+                    i = i + 1
+                }
+            }
+        }
+        yazdýr("--------------------------------")
+    }
+}
+

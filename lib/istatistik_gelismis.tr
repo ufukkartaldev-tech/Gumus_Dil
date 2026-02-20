@@ -1,0 +1,232 @@
+// ---------------------------------------------------------
+// GELISMIS ISTATISTIK KUTUPHANESI (istatistik_gelismis.tr)
+// ---------------------------------------------------------
+// Veri analizi, siralama, istatistiksel hesaplamimarir
+
+dahil_et("std_lib/matematik.tr")
+dahil_et("std_lib/liste.tr")
+
+// ============ TEMEL ISTATISTIK ============
+
+fonksiyon ortalama(liste) {
+    toplam = 0
+    i = 0
+    l = uzunluk(liste)
+    
+    eğer (l == 0) dön 0
+    
+    döngü (i < l) {
+        toplam = toplam + liste[i]
+        i = i + 1
+    }
+    
+    dön toplam / l
+}
+
+fonksiyon en_buyuk(liste) {
+    eğer (uzunluk(liste) == 0) dön 0
+    
+    maks = liste[0]
+    i = 1
+    l = uzunluk(liste)
+    
+    döngü (i < l) {
+        eğer (liste[i] > maks) {
+            maks = liste[i]
+        }
+        i = i + 1
+    }
+    
+    dön maks
+}
+
+fonksiyon en_kucuk(liste) {
+    eğer (uzunluk(liste) == 0) dön 0
+    
+    mini = liste[0]
+    i = 1
+    l = uzunluk(liste)
+    
+    döngü (i < l) {
+        eğer (liste[i] < mini) {
+            mini = liste[i]
+        }
+        i = i + 1
+    }
+    
+    dön mini
+}
+
+fonksiyon toplam(liste) {
+    sonuc = 0
+    i = 0
+    l = uzunluk(liste)
+    
+    döngü (i < l) {
+        sonuc = sonuc + liste[i]
+        i = i + 1
+    }
+    
+    dön sonuc
+}
+
+// ============ SIRALAMA ALGORITmimariRI ============
+
+fonksiyon bubble_sort(liste) {
+    // Kabarcik siralamasi (Bubble Sort)
+    kopya = listeyi_kopyala(liste)
+    n = uzunluk(kopya)
+    
+    i = 0
+    döngü (i < n - 1) {
+        j = 0
+        döngü (j < n - i - 1) {
+            eğer (kopya[j] > kopya[j + 1]) {
+                // Swap
+                temp = kopya[j]
+                kopya[j] = kopya[j + 1]
+                kopya[j + 1] = temp
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    
+    dön kopya
+}
+
+fonksiyon sirala(liste) {
+    // Varsayilan siralama (bubble sort kullanir)
+    dön bubble_sort(liste)
+}
+
+fonksiyon ters_sirala(liste) {
+    sirali = sirala(liste)
+    dön ters_cevir(sirali)
+}
+
+// ============ MEDYAN VE MOD ============
+
+fonksiyon medyan(liste) {
+    // Medyan (ortanca değer)
+    sirali = sirala(liste)
+    n = uzunluk(sirali)
+    
+    eğer (n == 0) dön 0
+    
+    orta = n / 2
+    
+    // Tek sayi varsa ortadakini al
+    // Cift sayi varsa ortadaki ikisinin ortalamasini al
+    eğer (cift_mi(n)) {
+        dön (sirali[orta - 1] + sirali[orta]) / 2
+    } degilse {
+        dön sirali[orta]
+    }
+}
+
+fonksiyon mod_bul(liste) {
+    // En cok tekrar eden eleman (basit versiyon)
+    // Sadece ilk bulunan modu doner
+    eğer (uzunluk(liste) == 0) dön 0
+    
+    en_cok_tekrar = 0
+    mod_değer = liste[0]
+    
+    i = 0
+    l = uzunluk(liste)
+    
+    döngü (i < l) {
+        eleman = liste[i]
+        tekrar_sayisi = 0
+        
+        j = 0
+        döngü (j < l) {
+            eğer (liste[j] == eleman) {
+                tekrar_sayisi = tekrar_sayisi + 1
+            }
+            j = j + 1
+        }
+        
+        eğer (tekrar_sayisi > en_cok_tekrar) {
+            en_cok_tekrar = tekrar_sayisi
+            mod_değer = eleman
+        }
+        
+        i = i + 1
+    }
+    
+    dön mod_değer
+}
+
+// ============ STANDART SAPMA VE VARYANS ============
+
+fonksiyon varyans(liste) {
+    ort = ortalama(liste)
+    toplam_kare_fark = 0
+    
+    i = 0
+    l = uzunluk(liste)
+    
+    döngü (i < l) {
+        fark = liste[i] - ort
+        toplam_kare_fark = toplam_kare_fark + (fark * fark)
+        i = i + 1
+    }
+    
+    dön toplam_kare_fark / l
+}
+
+fonksiyon standart_sapma(liste) {
+    varyansdeğeri = varyans(liste)
+    dön karekok(varyansdeğeri)
+}
+
+// ============ ARALIK VE YUZDELIK ============
+
+fonksiyon aralik(liste) {
+    // Veri araligi (max - min)
+    maks = en_buyuk(liste)
+    mini = en_kucuk(liste)
+    dön maks - mini
+}
+
+fonksiyon yuzde_hesapla(değer, toplam) {
+    eğer (toplam == 0) dön 0
+    dön (değer * 100) / toplam
+}
+
+// ============ VERI SETI OLUSTURUCU ============
+
+fonksiyon rastgele_veri_seti(boyut, min_değer, max_değer) {
+    veri = []
+    i = 0
+    
+    döngü (i < boyut) {
+        ekle(veri, rastgele(min_değer, max_değer))
+        i = i + 1
+    }
+    
+    dön veri
+}
+
+// ============ ISTATISTIK RAPORU ============
+
+fonksiyon istatistik_raporu(liste) {
+    yazdır("========================================")
+    yazdır("       ISTATISTIK RAPORU")
+    yazdır("========================================")
+    yazdır("Eleman Sayisi: " + metin(uzunluk(liste)))
+    yazdır("Toplam: " + metin(toplam(liste)))
+    yazdır("Ortalama: " + metin(ortalama(liste)))
+    yazdır("En Buyuk: " + metin(en_buyuk(liste)))
+    yazdır("En Kucuk: " + metin(en_kucuk(liste)))
+    yazdır("Medyan: " + metin(medyan(liste)))
+    yazdır("Mod: " + metin(mod_bul(liste)))
+    yazdır("Aralik: " + metin(aralik(liste)))
+    yazdır("Varyans: " + metin(varyans(liste)))
+    yazdır("Standart Sapma: " + metin(standart_sapma(liste)))
+    yazdır("========================================")
+}
+
+

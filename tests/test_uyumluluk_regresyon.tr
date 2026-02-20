@@ -1,0 +1,73 @@
+// ---------------------------------------------------------
+// GUMUS UYUMLULUK TESTI (test_uyumluluk_regresyon.tr)
+// Eski mermilerin yeni namluda patlamadigini dogrular.
+// Gecmise donuk uyumluluk (Regression) kontroludur.
+// ---------------------------------------------------------
+
+dahil_et("../lib/birim.tr")
+
+// Tum temel kutuphaneleri dahil et (Hepsinin hala beraber calistigini gormek icin)
+dahil_et("../std_lib/matematik.tr")
+dahil_et("../std_lib/liste.tr")
+dahil_et("../std_lib/metin.tr")
+// Yeni eklenenler
+dahil_et("../lib/db_yonetimi.tr")
+dahil_et("../lib/guvenlik_pro.tr")
+
+değişken t = yeni BirimTest("Uyumluluk ve Regresyon Testleri")
+
+// ----------------------------------------------------------------
+// 1. BOLUM: TEMEL FONKSIYONLARIN KARARLILIGI
+// ----------------------------------------------------------------
+t.bolum("CEKIRDEK UYUMLULUGU")
+
+// En basit islemler bile bozulabilir. Kontrol edelim.
+t.esit_mi(4, 2 + 2, "Matematik (2+2) hala calisiyor mu?")
+t.esit_mi("merhaba dunya", "merhaba " + "dunya", "Metin birlestirme calisiyor mu?")
+
+// değişken tanimlama ve atama
+değişken a = 10
+a = 20
+t.esit_mi(20, a, "değişken atama mekanizmasi saglam mi?")
+
+// ----------------------------------------------------------------
+// 2. BOLUM: KUTUPHANELER ARASI ETKILESIM
+// ----------------------------------------------------------------
+t.bolum("CAPRAZ AGIRLIK KONTROLU")
+
+// Senaryo: Guvenlik kutuphanesi ile Matematik kutuphanesi cakismasiz calisiyor mu?
+// Ornegin: Guvenlik'teki bir hashing isleminde Matematik kutuphanesini kullanalim.
+
+değişken sifreci = yeni Kripto()
+değişken ham_veri = "GizliSayi:" + metin(mat_üs(2, 10)) // 1024
+
+// Hem mat_üs (matematik.tr) hem de metin() (temel) hem de Kripto (guvenlik_pro.tr) devrede.
+değişken ozet = sifreci.sha256(ham_veri)
+
+t.dogru_mu(uzunluk(ozet) > 0, "Farkli kutuphaneler zincirleme calisabiliyor.")
+
+// ----------------------------------------------------------------
+// 3. BOLUM: ESKI KOD SYNTAX KONTROLU
+// ----------------------------------------------------------------
+t.bolum("ESKI S�ZDIZIMI (SYNTAX)")
+
+// G�m��Dil'de yapilan lexer degisiklikleri (oz vs ben) eski mantigi bozdu mu?
+// Burada native if/döngü yapilarinin hala hatasiz calistigini teyit ederiz.
+
+değişken sayac = 0
+döngü (sayac < 5) {
+    sayac = sayac + 1
+}
+t.esit_mi(5, sayac, "Döngü mantigi korundu mu?")
+
+eğer (doğru) {
+    t.dogru_mu(doğru, "If blogu calisiyor.")
+} degilse {
+    t.dogru_mu(yanlış, "If blogu bozulmus!")
+}
+
+// ----------------------------------------------------------------
+// RAPOR
+// ----------------------------------------------------------------
+t.raporla()
+

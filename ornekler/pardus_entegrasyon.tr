@@ -1,0 +1,204 @@
+// ============================================================================
+// PARDUS SİSTEM YÖNETİMİ - GümüşDil Örneği
+// TEKNOFEST 2026 - Yerli ve Milli Yazılım
+// ============================================================================
+// Bu örnek, Pardus işletim sisteminde sistem bilgilerini gösterir
+
+dahil_et("../lib/sistem.tr")
+dahil_et("../lib/dosya.tr")
+
+// ============================================================================
+// PARDUS SİSTEM BİLGİLERİ
+// ============================================================================
+
+fonksiyon pardus_bilgileri_goster() {
+    yazdır("╔════════════════════════════════════════════════════════════╗")
+    yazdır("║        🇹🇷 PARDUS SİSTEM BİLGİLERİ 🇹🇷                    ║")
+    yazdır("║        GümüşDil - Yerli ve Milli Programlama Dili          ║")
+    yazdır("╚════════════════════════════════════════════════════════════╝")
+    yazdır("")
+    
+    // İşletim Sistemi
+    yazdır("📋 İşletim Sistemi:")
+    yazdır("   Adı: Pardus")
+    yazdır("   Geliştirici: TÜBİTAK ULAKBİM")
+    yazdır("   Lisans: GPL (Özgür Yazılım)")
+    yazdır("   Dil: Türkçe")
+    yazdır("")
+    
+    // Sistem Kaynakları
+    yazdır("💻 Sistem Kaynakları:")
+    değişken bellek_toplam = 8192  // MB (örnek)
+    değişken bellek_kullanilan = 4096
+    değişken bellek_yuzde = (bellek_kullanilan * 100) / bellek_toplam
+    
+    yazdır("   RAM: " + metin(bellek_kullanilan) + " MB / " + metin(bellek_toplam) + " MB")
+    yazdır("   Kullanım: %" + metin(bellek_yuzde))
+    yazdır("")
+    
+    // Disk Bilgisi
+    yazdır("💾 Disk Bilgisi:")
+    değişken disk_toplam = 256  // GB
+    değişken disk_kullanilan = 128
+    değişken disk_bos = disk_toplam - disk_kullanilan
+    
+    yazdır("   Toplam: " + metin(disk_toplam) + " GB")
+    yazdır("   Kullanılan: " + metin(disk_kullanilan) + " GB")
+    yazdır("   Boş: " + metin(disk_bos) + " GB")
+    yazdır("")
+}
+
+// ============================================================================
+// PARDUS PAKET YÖNETİCİSİ SİMÜLASYONU
+// ============================================================================
+
+sınıf PardusAPT {
+    kurucu() {
+        öz.kurulu_paketler = [
+            "gumusdil",
+            "python3",
+            "libreoffice-tr",
+            "firefox-tr",
+            "pardus-yazilim"
+        ]
+        öz.paket_sayisi = 1500
+    }
+    
+    fonksiyon paket_ara(paket_adi) {
+        yazdır("🔍 Paket aranıyor: " + paket_adi)
+        
+        // Kurulu mu kontrol et
+        değişken bulundu = yanlış
+        için (değişken i = 0; i < 5; i = i + 1) {
+            eğer (öz.kurulu_paketler[i] == paket_adi) {
+                bulundu = doğru
+            }
+        }
+        
+        eğer (bulundu) {
+            yazdır("   ✅ " + paket_adi + " zaten kurulu!")
+        } yoksa {
+            yazdır("   ❌ " + paket_adi + " kurulu değil")
+            yazdır("   Kurmak için: sudo apt install " + paket_adi)
+        }
+        yazdır("")
+    }
+    
+    fonksiyon sistem_guncelle() {
+        yazdır("🔄 Pardus sistem güncellemesi başlatılıyor...")
+        yazdır("   sudo apt update")
+        yazdır("   sudo apt upgrade")
+        yazdır("")
+        yazdır("   ✅ Sistem güncel!")
+        yazdır("")
+    }
+}
+
+// ============================================================================
+// PARDUS EĞİTİM PORTALI ENTEGRASYONU
+// ============================================================================
+
+sınıf PardusEgitim {
+    kurucu(ogrenci_ad, sinif) {
+        öz.ad = ogrenci_ad
+        öz.sinif = sinif
+        öz.tamamlanan_dersler = 0
+        öz.toplam_puan = 0
+    }
+    
+    fonksiyon ders_tamamla(ders_adi, puan) {
+        yazdır("📚 Ders Tamamlandı: " + ders_adi)
+        yazdır("   Puan: " + metin(puan) + "/100")
+        
+        öz.tamamlanan_dersler = öz.tamamlanan_dersler + 1
+        öz.toplam_puan = öz.toplam_puan + puan
+        
+        değişken ortalama = öz.toplam_puan / öz.tamamlanan_dersler
+        yazdır("   Ortalama: " + metin(ortalama))
+        yazdır("")
+    }
+    
+    fonksiyon rapor_goster() {
+        yazdır("╔════════════════════════════════════════════════════════════╗")
+        yazdır("║           📊 PARDUS EĞİTİM PORTALI RAPORU                 ║")
+        yazdır("╚════════════════════════════════════════════════════════════╝")
+        yazdır("")
+        yazdır("👤 Öğrenci: " + öz.ad)
+        yazdır("🏫 Sınıf: " + öz.sinif)
+        yazdır("📚 Tamamlanan Dersler: " + metin(öz.tamamlanan_dersler))
+        
+        eğer (öz.tamamlanan_dersler > 0) {
+            değişken ort = öz.toplam_puan / öz.tamamlanan_dersler
+            yazdır("⭐ Genel Ortalama: " + metin(ort))
+            
+            eğer (ort >= 85) {
+                yazdır("🏆 Başarı Durumu: Pekiyi!")
+            } yoksa eğer (ort >= 70) {
+                yazdır("👍 Başarı Durumu: İyi")
+            } yoksa eğer (ort >= 50) {
+                yazdır("📖 Başarı Durumu: Orta")
+            } yoksa {
+                yazdır("💪 Başarı Durumu: Geliştirilmeli")
+            }
+        }
+        yazdır("")
+    }
+}
+
+// ============================================================================
+// ANA PROGRAM
+// ============================================================================
+
+yazdır("╔════════════════════════════════════════════════════════════╗")
+yazdır("║   🇹🇷 GümüşDil + Pardus Entegrasyon Örneği 🇹🇷            ║")
+yazdır("║   TEKNOFEST 2026 - Yerli ve Milli Yazılım                  ║")
+yazdır("╚════════════════════════════════════════════════════════════╝")
+yazdır("")
+
+// 1. Sistem Bilgileri
+pardus_bilgileri_goster()
+
+// 2. Paket Yöneticisi
+yazdır("═══════════════════════════════════════════════════════════════")
+yazdır("📦 PARDUS PAKET YÖNETİCİSİ")
+yazdır("═══════════════════════════════════════════════════════════════")
+yazdır("")
+
+değişken apt = PardusAPT()
+apt.paket_ara("gumusdil")
+apt.paket_ara("python3")
+apt.paket_ara("vscode")
+apt.sistem_guncelle()
+
+// 3. Eğitim Portalı
+yazdır("═══════════════════════════════════════════════════════════════")
+yazdır("🎓 PARDUS EĞİTİM PORTALI")
+yazdır("═══════════════════════════════════════════════════════════════")
+yazdır("")
+
+değişken ogrenci = PardusEgitim("Ahmet Yılmaz", "9-A")
+ogrenci.ders_tamamla("GümüşDil Temelleri", 95)
+ogrenci.ders_tamamla("Döngüler ve Koşullar", 88)
+ogrenci.ders_tamamla("Nesne Yönelimli Programlama", 92)
+ogrenci.rapor_goster()
+
+// 4. Türk Bayrağı ASCII Art
+yazdır("═══════════════════════════════════════════════════════════════")
+yazdır("🇹🇷 TÜRK BAYRAĞI - PARDUS + GÜMÜŞDİL 🇹🇷")
+yazdır("═══════════════════════════════════════════════════════════════")
+yazdır("")
+yazdır("    ████████████████████████████████████████")
+yazdır("    ████████████████████████████████████████")
+yazdır("    ████████████████████████████████████████")
+yazdır("    ████████    ★         ☾    ████████████")
+yazdır("    ████████                   ████████████")
+yazdır("    ████████████████████████████████████████")
+yazdır("    ████████████████████████████████████████")
+yazdır("    ████████████████████████████████████████")
+yazdır("")
+yazdır("    🇹🇷 Yerli ve Milli Yazılım - TEKNOFEST 2026 🇹🇷")
+yazdır("")
+
+yazdır("✅ Pardus entegrasyon örneği tamamlandı!")
+yazdır("📚 Daha fazla örnek için: /usr/share/gumusdil/ornekler/")
+

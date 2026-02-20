@@ -1,0 +1,37 @@
+// TUM STANDART KUTUPHANELERI TEST EDEN DOSYA
+
+// Kutuphaneleri Dahil Et
+dahil_et("std_lib/io.tr")
+dahil_et("std_lib/matematik.tr")
+dahil_et("std_lib/liste.tr")
+dahil_et("std_lib/metin.tr")
+
+sistem("cls")
+renkli_yazdir("yesil", "=== STANDART KUTUPHANE TESTI BASLIYOR ===")
+yazdır("")
+
+// 1. IO Testi
+log_yaz("test_log.txt", "Test basladi.")
+yazdır("[IO] Log dosyasina yazildi.")
+
+// 2. Matematik Testi
+yazdır("[MAT] 2 uzeri 5: " + metin(us(2, 5)))
+yazdır("[MAT] 5 faktoriyel: " + metin(faktoriyel(5)))
+yazdır("[MAT] 7 tek mi?: " + metin(tek_mi(7)))
+
+// 3. Liste Testi
+sayilar = [10, 20, 30, 40]
+yazdır("[LISTE] Orijinal: " + metin(sayilar))
+teras = ters_cevir(sayilar)
+yazdır("[LISTE] Ters: " + metin(teras))
+indeks = eleman_ara(sayilar, 30)
+yazdır("[LISTE] 30 sayisinin indeksi: " + metin(indeks))
+
+// 4. Metin Testi
+kelimeler = ["Merhaba", "Guzel", "Dunya"]
+cumle = birlestir(kelimeler, " ")
+yazdır("[METIN] Birlestirilmis: " + cumle)
+
+yazdır("")
+renkli_yazdir("turkuaz", "=== TEST TAMAMLANDI ===")
+

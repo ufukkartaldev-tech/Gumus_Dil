@@ -1,0 +1,8 @@
+
+sinif Robot {
+    kurucu(isim) {
+        oz.isim = isim;
+    }
+}
+yazdır "Encoding Test";
+

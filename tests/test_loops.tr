@@ -1,0 +1,24 @@
+yazdır("--- WHILE BREAK TESTİ ---");
+değişken i = 0;
+döngü (i < 10) {
+    i = i + 1;
+    eğer (i == 5) {
+        yazdır("5'te Kırdım, çıkıyorum!");
+        kır;
+    }
+    yazdır("Sayı: " + i);
+}
+
+yazdır("\n--- WHILE CONTINUE TESTİ ---");
+i = 0;
+döngü (i < 5) {
+    i = i + 1;
+    eğer (i == 3) {
+        yazdır("3'ü atlıyorum...");
+        devam;
+    }
+    yazdır("Sayı: " + i);
+}
+
+yazdır("\n--- Bitti ---");
+

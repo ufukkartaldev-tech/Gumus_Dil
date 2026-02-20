@@ -1,0 +1,15 @@
+// Metin Islemleri (std_lib/veri/metin.tr)
+
+// Native fonksiyonlar: buyuk(), kucuk(), parcala(), uzunluk()
+
+fonksiyon tersten_yaz(yazi) {
+    // Native string reverse olmadigi icin boş birakiyoruz veya basit döngü
+    // Simdilik sadece wrapper
+    yazdır("Tersten yazma henuz eklenmedi.")
+}
+
+fonksiyon kelime_sayisi(yazi) {
+    parcalar = parcala(yazi, " ")
+    dön uzunluk(parcalar)
+}
+

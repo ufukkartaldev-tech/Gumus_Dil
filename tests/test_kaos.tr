@@ -1,0 +1,67 @@
+yazdır("--- KAOS VE YIKIM TESTLERİ BAŞLIYOR ---");
+
+// SENARYO 1: TİP KARMAŞASI (Interpreter Şaşırtmaca)
+yazdır("\n[TEST 1] Tip Karmaşası:");
+dene {
+    değişken a = "elma";
+    değişken b = 5;
+    yazdır(a - b); // String'den sayı çıkarmak?
+} yakala (hata) {
+    yazdır("✅ Yakalandı: " + hata);
+}
+
+// SENARYO 2: GEÇERSİZ ERİŞİM
+yazdır("\n[TEST 2] Olmayan İndeks:");
+dene {
+    değişken liste = [1, 2];
+    yazdır(liste[999]); // Sınır dışı
+} yakala (hata) {
+    yazdır("✅ Yakalandı: " + hata);
+}
+
+// SENARYO 3: SONSUZ ÖZYİNELEME (Stack Overflow)
+yazdır("\n[TEST 3] Stack Overflow (Dikkat!):");
+fonksiyon kendini_cagir(n) {
+    // yazdır(n); // Çok hızlı yazarsa kilitlenir
+    kendini_cagir(n + 1);
+}
+
+dene {
+    // Bunu çok zorlarsak C++ tarafında 'Segmentation Fault' yiyip kapanabilir.
+    // GümüşDil'in 'MAX_STACK' koruması var mı? Göreceğiz.
+    // kendini_cagir(1); // Yorumu kaldırınca IDE kapanabilir!
+    yazdır("⚠️ Bu test IDE'yi kapatabilir, o yüzden şimdilik pas geçiyorum.");
+} yakala (hata) {
+    yazdır("✅ Yakalandı: " + hata);
+}
+
+// SENARYO 4: VOXEL SPAM (Performans Kırıcı)
+yazdır("\n[TEST 4] Voxel Spam (10.000 Blok):");
+değişken i = 0;
+// dunya_kaydet("spam_oncesi.ghf");
+
+dene {
+    döngü (i < 1000) { // 10.000 çok gelebilir, 1000 ile başlayalım
+        insaa_et(i, 0, i, 1);
+        blok_sil(i-1, 0, i-1); // Hemen silerek Python'u yoralım
+        i = i + 1;
+        // Her 100 blokta bir bilgi ver
+        eğer (i % 100 == 0) { yazdır("Spam: " + i); }
+    }
+    yazdır("✅ Voxel motoru hayatta kaldı.");
+} yakala (hata) {
+    yazdır("❌ Motor patladı: " + hata);
+}
+
+// SENARYO 5: BOZUK DOSYA YÜKLEME
+yazdır("\n[TEST 5] Bozuk Dosya Yükleme:");
+// 'test.tr' bir harita dosyası değildir, kod dosyasıdır. Header tutmaz.
+değişken sonuc = dunya_yukle("test.tr");
+eğer (sonuc == yanlış) {
+    yazdır("✅ Sistem bozuk dosyayı reddetti.");
+} değilse {
+    yazdır("❌ HATA: Sistem kod dosyasını harita sandı!");
+}
+
+yazdır("\n--- TÜM TESTLER TAMAMLANDI (Eğer bunu okuyorsan ölmedik) ---");
+

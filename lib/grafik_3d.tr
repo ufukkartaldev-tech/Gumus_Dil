@@ -1,0 +1,75 @@
+// ---------------------------------------------------------
+// GUMUS GRAFIK PRO (grafik_3d.tr)
+// 3 Boyutlu Sahne, Isik ve Nesne Yonetimi
+// ---------------------------------------------------------
+
+dahil_et("matematik.tr")
+
+// 3 Boyutlu Vektor
+// 3 Boyutlu Vektor
+sýnýf Vektor3 {
+    // deðiþken x = 0
+    // deðiþken y = 0
+    // deðiþken z = 0
+    
+    kurucu(_x, _y, _z) {
+        öz.x = _x
+        öz.y = _y
+        öz.z = _z
+    }
+}
+
+// 3D Nesne
+sýnýf Nesne3D {
+    // deðiþken isim
+    // deðiþken konum
+    // deðiþken model_verisi
+
+    kurucu(ad) {
+        öz.isim = ad
+        öz.konum = yeni Vektor3(0, 0, 0)
+    }
+    
+    fonksiyon tasi(x, y, z) {
+        öz.konum.x = x
+        öz.konum.y = y
+        öz.konum.z = z
+        yazdýr("[3D] " + öz.isim + " tasindi: " + metin(x) + "," + metin(y) + "," + metin(z))
+    }
+}
+
+// Isik Kaynagi
+sýnýf Isik {
+    // deðiþken siddet
+    // deðiþken renk
+    
+    kurucu(s, r) {
+        öz.siddet = s
+        öz.renk = r
+    }
+}
+
+// Sahne Yonetimi
+sýnýf Sahne {
+    // deðiþken nesneler
+    // deðiþken isiklar
+    // deðiþken aktif_kamera
+
+    kurucu() {
+        öz.nesneler = []
+        öz.isiklar = []
+        yazdýr("[3D] Yeni sahne olusturuldu.")
+    }
+
+
+    fonksiyon nesne_ekle(nesne) {
+        ekle(öz.nesneler, nesne)
+        yazdýr("[3D] Sahneye eklendi: " + nesne.isim)
+    }
+    
+    fonksiyon render_al() {
+        yazdýr("[3D] Sahne render aliniyor (" + metin(uzunluk(öz.nesneler)) + " nesne)...")
+        // Raytracing veya Rasterization simulasyonu
+    }
+}
+

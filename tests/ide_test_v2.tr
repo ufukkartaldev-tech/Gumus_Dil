@@ -1,0 +1,6 @@
+// Test V2
+renkli_yazdir("yesil", "Renkli Baslangic");
+bekle(100);
+değişken x = 5;
+yazdır("Sin(0): " + metin(sin(0)));
+

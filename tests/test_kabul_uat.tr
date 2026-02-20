@@ -1,0 +1,103 @@
+// ---------------------------------------------------------
+// GUMUS KABUL TESTI (UAT) (test_kabul_uat.tr)
+// "GumusDrone" Simulasyonu
+// Gercek bir uygulama senaryosu ile dilin genel hissini ve soz dizimini test eder.
+// ---------------------------------------------------------
+
+dahil_et("../lib/birim.tr")
+dahil_et("../std_lib/matematik.tr") 
+
+deðiþken t = yeni BirimTest("Kabul Testi (GumusDrone Simulasyonu)")
+
+t.bolum("SENARYO: GumusDrone Gorev Ucusu")
+
+// Drone Sinifi (Uygulamanin Kalbi)
+sýnýf Drone {
+    deðiþken isim
+    deðiþken batarya
+    deðiþken yukseklik
+    deðiþken hiz
+    deðiþken durum // "PARK", "UCUYOR", "INIYOR"
+
+    kurucu(ad) {
+        öz.isim = ad
+        öz.batarya = 100
+        öz.yukseklik = 0
+        öz.hiz = 0
+        öz.durum = "PARK"
+        yazdýr("[DRONE] " + öz.isim + " aktif. Batarya: %" + metin(öz.batarya))
+    }
+
+    fonksiyon kalkis(hedef_yukseklik) {
+        eðer (öz.batarya < 20) {
+            yazdýr("[UYARI] Batarya kritik! Kalkis iptal.")
+            dön yanlÄ±ÅŸ
+        }
+        
+        yazdýr("Motorlar calisiyor... Kalkis basladi.")
+        öz.durum = "UCUYOR"
+        
+        // Yukselme simulasyonu
+        döngü (öz.yukseklik < hedef_yukseklik) {
+            öz.yukseklik = öz.yukseklik + 10
+            öz.batarya = öz.batarya - 1 // Her 10m icin %1 harca
+            // yazdýr(".. Yukseklik: " + metin(öz.yukseklik) + "m")
+        }
+        
+        yazdýr("Hedef yukseklige ulasildi: " + metin(öz.yukseklik) + "m")
+        dön doÄŸru
+    }
+
+    fonksiyon hareket_et(x, y) {
+        eðer (öz.durum != "UCUYOR") {
+            yazdýr("[HATA] Drone ucmuyor, hareket edemez!")
+            dön yanlÄ±ÅŸ
+        }
+        
+        // Basit mesafe hesabi (Hipotenus - matematik.tr kullanimi)
+        // x^2 + y^2 nin karekoku (mat_Ã¼s yerine basit carpim)
+        deðiþken mesafe_kare = (x * x) + (y * y)
+        // karekok native fonksiyonunu kullanalim
+        deðiþken mesafe = karekok(mesafe_kare)
+        
+        deðiþken harcanan_enerji = mesafe / 2 // Her 2 birim icin %1
+        // Tamsayiya yuvarlama (Cast) simulasyonu
+        // native int() fonksiyonu varsa kullanilir, yoksa oldugu gibi duser
+        
+        öz.batarya = öz.batarya - harcanan_enerji
+        yazdýr("Konuma gidildi (" + metin(x) + ", " + metin(y) + "). Mesafe: " + metin(mesafe))
+        dön doÄŸru
+    }
+
+    fonksiyon durum_raporu() {
+        dön öz.isim + " | " + öz.durum + " | Batarya: %" + metin(öz.batarya)
+    }
+}
+
+// ----------------------------------------------------------------
+// UAT BASLIYOR (Kullanici Senaryosu)
+// ----------------------------------------------------------------
+
+// 1. Drone'u Baslat
+deðiþken ihalar = yeni Drone("GOKTURK-1")
+t.esit_mi("PARK", ihalar.durum, "Drone baslangic durumu PARK olmali")
+
+// 2. Kalkis Yap
+deðiþken kalkti_mi = ihalar.kalkis(50) // 50m yuksel
+t.dogru_mu(kalkti_mi, "Kalkis basarili")
+t.esit_mi(50, ihalar.yukseklik, "Yukseklik 50m olmali")
+t.esit_mi(95, ihalar.batarya, "Batarya %95'e dusmeli (50m yukselis = 5 birim)")
+
+// 3. Gorev Ucusu Yap
+ihalar.hareket_et(30, 40) // 3-4-5 ucgeni -> 30-40-50 metre mesafe
+// Mesafe = 50. Harcanan = 25 birim.
+// Kalan Batarya = 95 - 25 = 70
+t.esit_mi(70, ihalar.batarya, "Hareket sonrasi batarya doÄŸru hesaplanmali")
+
+// 4. Rapor Al
+deðiþken rapor = ihalar.durum_raporu()
+yazdýr("SON RAPOR: " + rapor)
+t.dogru_mu(uzunluk(rapor) > 10, "Rapor metni olusturuldu") // Basit kontrol
+
+t.raporla()
+

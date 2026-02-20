@@ -1,0 +1,25 @@
+// ============================================================================
+// MODÜL: Paralel İşlemci (paralel.tr)
+// Amaç: 100 kuryenin rotasını farklı CPU çekirdeklerinde hesaplamak.
+// ============================================================================
+
+dahil_et("coklu_islem.tr")
+
+sınıf ParalelDenetleyici {
+    kurucu() {
+        öz.is_vagonlari = []
+    }
+
+    fonksiyon kuryeleriDagit(kurye_listesi) {
+        değişken adet = uzunluk(kurye_listesi)
+        yazdır("[PARALEL] " + metin(adet) + " kurye çekirdeklere dağıtılıyor...")
+        
+        değişken i = 0
+        döngü (i < adet) {
+            i = i + 1
+        }
+        
+        yazdır("[PARALEL] Mermi hızıyla tüm rotalar hesaplandı.")
+    }
+}
+

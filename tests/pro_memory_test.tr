@@ -1,0 +1,21 @@
+
+sınıf Robot {
+    kurucu(isim) {
+        öz.isim = isim;
+        öz.pil = 100;
+    }
+
+    sarjEt() {
+        öz.pil = öz.pil + 10;
+        yazdır öz.isim + " şarj edildi. Yeni pil: " + metin(öz.pil);
+    }
+}
+
+fonksiyon testSüreci(r) {
+    yazdır "Test süreci başlıyor...";
+    r.sarjEt();
+}
+
+değişken benimRobot = Robot("Gümüş-1");
+testSüreci(benimRobot);
+

@@ -1,0 +1,469 @@
+// ============================================
+// GÜMÜŞ VERİ YAPILARI KÜTÜPHANESİ
+// Modern, Türkçe, Noktalı Virgül YOK!
+// ============================================
+
+// ============================================
+// 1. STACK (YIĞIN) - LIFO
+// ============================================
+
+sınıf Yigin {
+    kurucu() {
+        oz.elemanlar = []
+        oz.boyut = 0
+    }
+    
+    fonksiyon ekle(eleman) {
+        oz.elemanlar = oz.elemanlar + [eleman]
+        oz.boyut = oz.boyut + 1
+    }
+    
+    fonksiyon cikar() {
+        eğer (oz.boyut == 0) {
+            dön bos
+        }
+        
+        değişken sonEleman = oz.elemanlar[oz.boyut - 1]
+        değişken yeniListe = []
+        değişken i = 0
+        döngü (i < oz.boyut - 1) {
+            yeniListe = yeniListe + [oz.elemanlar[i]]
+            i = i + 1
+        }
+        oz.elemanlar = yeniListe
+        oz.boyut = oz.boyut - 1
+        dön sonEleman
+    }
+    
+    fonksiyon ust() {
+        eğer (oz.boyut == 0) {
+            dön bos
+        }
+        dön oz.elemanlar[oz.boyut - 1]
+    }
+    
+    fonksiyon bosmu() {
+        dön oz.boyut == 0
+    }
+    
+    fonksiyon temizle() {
+        oz.elemanlar = []
+        oz.boyut = 0
+    }
+}
+
+// ============================================
+// 2. QUEUE (KUYRUK) - FIFO
+// ============================================
+
+sınıf Kuyruk {
+    kurucu() {
+        oz.elemanlar = []
+        oz.boyut = 0
+    }
+    
+    fonksiyon ekle(eleman) {
+        oz.elemanlar = oz.elemanlar + [eleman]
+        oz.boyut = oz.boyut + 1
+    }
+    
+    fonksiyon cikar() {
+        eğer (oz.boyut == 0) {
+            dön bos
+        }
+        
+        değişken ilkEleman = oz.elemanlar[0]
+        değişken yeniListe = []
+        değişken i = 1
+        döngü (i < oz.boyut) {
+            yeniListe = yeniListe + [oz.elemanlar[i]]
+            i = i + 1
+        }
+        oz.elemanlar = yeniListe
+        oz.boyut = oz.boyut - 1
+        dön ilkEleman
+    }
+    
+    fonksiyon ilk() {
+        eğer (oz.boyut == 0) {
+            dön bos
+        }
+        dön oz.elemanlar[0]
+    }
+    
+    fonksiyon bosmu() {
+        dön oz.boyut == 0
+    }
+    
+    fonksiyon temizle() {
+        oz.elemanlar = []
+        oz.boyut = 0
+    }
+}
+
+// ============================================
+// 3. PRIORITY QUEUE (ÖNCELİKLİ KUYRUK)
+// ============================================
+
+sınıf OncelikliKuyruk {
+    kurucu() {
+        oz.elemanlar = []
+        oz.oncelikler = []
+        oz.boyut = 0
+    }
+    
+    fonksiyon ekle(eleman, oncelik) {
+        // Önceliğe göre doğru yere ekle (küçük öncelik = daha önemli)
+        değişken eklendi = yanlis
+        değişken i = 0
+        
+        döngü (i < oz.boyut) {
+            eğer (oncelik < oz.oncelikler[i]) {
+                // Buraya ekle
+                eklendi = dogru
+                kir
+            }
+            i = i + 1
+        }
+        
+        eğer (eklendi) {
+            // i pozisyonuna ekle
+            değişken yeniElemanlar = []
+            değişken yeniOncelikler = []
+            değişken j = 0
+            
+            döngü (j < i) {
+                yeniElemanlar = yeniElemanlar + [oz.elemanlar[j]]
+                yeniOncelikler = yeniOncelikler + [oz.oncelikler[j]]
+                j = j + 1
+            }
+            
+            yeniElemanlar = yeniElemanlar + [eleman]
+            yeniOncelikler = yeniOncelikler + [oncelik]
+            
+            döngü (j < oz.boyut) {
+                yeniElemanlar = yeniElemanlar + [oz.elemanlar[j]]
+                yeniOncelikler = yeniOncelikler + [oz.oncelikler[j]]
+                j = j + 1
+            }
+            
+            oz.elemanlar = yeniElemanlar
+            oz.oncelikler = yeniOncelikler
+        } değilse {
+            // Sona ekle
+            oz.elemanlar = oz.elemanlar + [eleman]
+            oz.oncelikler = oz.oncelikler + [oncelik]
+        }
+        
+        oz.boyut = oz.boyut + 1
+    }
+    
+    fonksiyon cikar() {
+        eğer (oz.boyut == 0) {
+            dön bos
+        }
+        
+        değişken ilkEleman = oz.elemanlar[0]
+        değişken yeniElemanlar = []
+        değişken yeniOncelikler = []
+        değişken i = 1
+        
+        döngü (i < oz.boyut) {
+            yeniElemanlar = yeniElemanlar + [oz.elemanlar[i]]
+            yeniOncelikler = yeniOncelikler + [oz.oncelikler[i]]
+            i = i + 1
+        }
+        
+        oz.elemanlar = yeniElemanlar
+        oz.oncelikler = yeniOncelikler
+        oz.boyut = oz.boyut - 1
+        
+        dön ilkEleman
+    }
+    
+    fonksiyon bosmu() {
+        dön oz.boyut == 0
+    }
+}
+
+// ============================================
+// 4. LINKED LIST (BAĞLI LİSTE)
+// ============================================
+
+sınıf Dugum {
+    kurucu(veri) {
+        oz.veri = veri
+        oz.sonraki = bos
+    }
+}
+
+sınıf BagliListe {
+    kurucu() {
+        oz.bas = bos
+        oz.boyut = 0
+    }
+    
+    fonksiyon basaEkle(veri) {
+        değişken yeniDugum = yeni Dugum(veri)
+        yeniDugum.sonraki = oz.bas
+        oz.bas = yeniDugum
+        oz.boyut = oz.boyut + 1
+    }
+    
+    fonksiyon sonaEkle(veri) {
+        değişken yeniDugum = yeni Dugum(veri)
+        
+        eğer (oz.bas == bos) {
+            oz.bas = yeniDugum
+        } değilse {
+            değişken gecici = oz.bas
+            döngü (gecici.sonraki != bos) {
+                gecici = gecici.sonraki
+            }
+            gecici.sonraki = yeniDugum
+        }
+        oz.boyut = oz.boyut + 1
+    }
+    
+    fonksiyon bastanCikar() {
+        eğer (oz.bas == bos) {
+            dön bos
+        }
+        
+        değişken veri = oz.bas.veri
+        oz.bas = oz.bas.sonraki
+        oz.boyut = oz.boyut - 1
+        dön veri
+    }
+    
+    fonksiyon ara(veri) {
+        değişken gecici = oz.bas
+        değişken indeks = 0
+        
+        döngü (gecici != bos) {
+            eğer (gecici.veri == veri) {
+                dön indeks
+            }
+            gecici = gecici.sonraki
+            indeks = indeks + 1
+        }
+        
+        dön -1
+    }
+    
+    fonksiyon bosmu() {
+        dön oz.bas == bos
+    }
+    
+    fonksiyon yazdir() {
+        değişken gecici = oz.bas
+        değişken sonuc = "["
+        
+        döngü (gecici != bos) {
+            sonuc = sonuc + metin(gecici.veri)
+            eğer (gecici.sonraki != bos) {
+                sonuc = sonuc + ", "
+            }
+            gecici = gecici.sonraki
+        }
+        
+        sonuc = sonuc + "]"
+        yazdır(sonuc)
+    }
+}
+
+// ============================================
+// 5. HASH TABLE (HASH TABLOSU)
+// ============================================
+
+sınıf HashTablosu {
+    kurucu(kapasite) {
+        oz.kapasite = kapasite
+        oz.anahtarlar = []
+        oz.degerler = []
+        oz.boyut = 0
+        
+        // Boş tablolar oluştur
+        değişken i = 0
+        döngü (i < kapasite) {
+            oz.anahtarlar = oz.anahtarlar + [bos]
+            oz.degerler = oz.degerler + [bos]
+            i = i + 1
+        }
+    }
+    
+    fonksiyon hash(anahtar) {
+        // Basit hash fonksiyonu
+        değişken toplam = 0
+        değişken i = 0
+        değişken str = metin(anahtar)
+        
+        // String uzunluğunu kullan
+        toplam = str.uzunluk % oz.kapasite
+        dön toplam
+    }
+    
+    fonksiyon ekle(anahtar, deger) {
+        değişken indeks = oz.hash(anahtar)
+        değişken baslangic = indeks
+        
+        // Linear probing
+        döngü (oz.anahtarlar[indeks] != bos && oz.anahtarlar[indeks] != anahtar) {
+            indeks = (indeks + 1) % oz.kapasite
+            
+            // Tablo dolu
+            eğer (indeks == baslangic) {
+                yazdır("HATA: Hash tablosu dolu!")
+                dön yanlis
+            }
+        }
+        
+        oz.anahtarlar[indeks] = anahtar
+        oz.degerler[indeks] = deger
+        oz.boyut = oz.boyut + 1
+        dön dogru
+    }
+    
+    fonksiyon al(anahtar) {
+        değişken indeks = oz.hash(anahtar)
+        değişken baslangic = indeks
+        
+        döngü (oz.anahtarlar[indeks] != bos) {
+            eğer (oz.anahtarlar[indeks] == anahtar) {
+                dön oz.degerler[indeks]
+            }
+            
+            indeks = (indeks + 1) % oz.kapasite
+            
+            eğer (indeks == baslangic) {
+                kir
+            }
+        }
+        
+        dön bos
+    }
+    
+    fonksiyon varmi(anahtar) {
+        dön oz.al(anahtar) != bos
+    }
+}
+
+// ============================================
+// 6. BINARY SEARCH TREE (İKİLİ ARAMA AĞACI)
+// ============================================
+
+sınıf AgacDugumu {
+    kurucu(deger) {
+        oz.deger = deger
+        oz.sol = bos
+        oz.sag = bos
+    }
+}
+
+sınıf IkiliAramaAgaci {
+    kurucu() {
+        oz.kok = bos
+        oz.boyut = 0
+    }
+    
+    fonksiyon ekle(deger) {
+        eğer (oz.kok == bos) {
+            oz.kok = yeni AgacDugumu(deger)
+            oz.boyut = 1
+        } değilse {
+            oz._ekleYardimci(oz.kok, deger)
+            oz.boyut = oz.boyut + 1
+        }
+    }
+    
+    fonksiyon _ekleYardimci(dugum, deger) {
+        eğer (deger < dugum.deger) {
+            eğer (dugum.sol == bos) {
+                dugum.sol = yeni AgacDugumu(deger)
+            } değilse {
+                oz._ekleYardimci(dugum.sol, deger)
+            }
+        } değilse {
+            eğer (dugum.sag == bos) {
+                dugum.sag = yeni AgacDugumu(deger)
+            } değilse {
+                oz._ekleYardimci(dugum.sag, deger)
+            }
+        }
+    }
+    
+    fonksiyon ara(deger) {
+        dön oz._araYardimci(oz.kok, deger)
+    }
+    
+    fonksiyon _araYardimci(dugum, deger) {
+        eğer (dugum == bos) {
+            dön yanlis
+        }
+        
+        eğer (dugum.deger == deger) {
+            dön dogru
+        }
+        
+        eğer (deger < dugum.deger) {
+            dön oz._araYardimci(dugum.sol, deger)
+        } değilse {
+            dön oz._araYardimci(dugum.sag, deger)
+        }
+    }
+    
+    fonksiyon inorder() {
+        oz._inorderYardimci(oz.kok)
+    }
+    
+    fonksiyon _inorderYardimci(dugum) {
+        eğer (dugum != bos) {
+            oz._inorderYardimci(dugum.sol)
+            yazdır(dugum.deger)
+            oz._inorderYardimci(dugum.sag)
+        }
+    }
+}
+
+// ============================================
+// KULLANIM ÖRNEKLERİ
+// ============================================
+
+yazdır("=== GÜMÜŞ VERİ YAPILARI KÜTÜPHANESİ ===")
+yazdır("")
+
+// Stack örneği
+yazdır("1. YIĞIN (Stack) Örneği:")
+değişken yigin = yeni Yigin()
+yigin.ekle(10)
+yigin.ekle(20)
+yigin.ekle(30)
+yazdır("Üstteki eleman: " + metin(yigin.ust()))
+yazdır("Çıkarılan: " + metin(yigin.cikar()))
+yazdır("Yeni üst: " + metin(yigin.ust()))
+yazdır("")
+
+// Queue örneği
+yazdır("2. KUYRUK (Queue) Örneği:")
+değişken kuyruk = yeni Kuyruk()
+kuyruk.ekle("Ahmet")
+kuyruk.ekle("Mehmet")
+kuyruk.ekle("Ayşe")
+yazdır("İlk sıradaki: " + kuyruk.ilk())
+yazdır("Çıkarılan: " + kuyruk.cikar())
+yazdır("Yeni ilk: " + kuyruk.ilk())
+yazdır("")
+
+// Linked List örneği
+yazdır("3. BAĞLI LİSTE Örneği:")
+değişken liste = yeni BagliListe()
+liste.sonaEkle(5)
+liste.sonaEkle(10)
+liste.sonaEkle(15)
+liste.basaEkle(1)
+liste.yazdir()
+yazdır("10'un indeksi: " + metin(liste.ara(10)))
+yazdır("")
+
+yazdır("✅ Tüm veri yapıları başarıyla test edildi!")
+

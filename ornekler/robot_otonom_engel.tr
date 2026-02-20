@@ -1,0 +1,32 @@
+// ---------------------------------------------------------
+// ROBOT OTONOM ENGEL KAÇINMA (robot_otonom_engel.tr)
+// Robotik Kütüphanesi ile Akıllı Hareket
+// ---------------------------------------------------------
+
+dahil_et("robotik.tr")
+
+yazdır("🤖 GümüşRobot Otonom Sistem Başlatılıyor...")
+
+// 1. Donanım Tanımla
+değişken sol_motor = yeni Motor(5, 6)
+değişken sag_motor = yeni Motor(7, 8)
+değişken goz = yeni MesafeSensörü(2, 3)
+
+yazdır("⛓️ Robot bağlantıları kontrol ediliyor...")
+
+// 2. Kontrol Döngüsü
+değişken sayac = 0
+döngü (sayac < 10) {
+    yazdır("\n--- Adım " + metin(sayac + 1) + " ---")
+    
+    // Robot otonom hareket kütüphanesini kullan
+    Robot.otonom_hareket(sol_motor, sag_motor, goz)
+    
+    // Simülasyon hızı
+    sayac = sayac + 1
+}
+
+yazdır("\n✅ Otonom test sürüşü başarıyla tamamlandı.")
+sol_motor.dur()
+sag_motor.dur()
+

@@ -1,0 +1,6 @@
+deneme {
+    yazdır("Deneme")
+} yakala(h) {
+    yazdır("Hata")
+}
+

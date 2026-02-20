@@ -1,0 +1,38 @@
+// ============================================
+// ÖRNEK PROJE 8: METİN TERS ÇEVİRME
+// ============================================
+
+fonksiyon metin_ters_çevir(metin_değeri) {
+    değişken uzunluk_değeri = uzunluk(metin_değeri);
+    değişken ters = "";
+    değişken i = uzunluk_değeri - 1;
+    
+    döngü (i >= 0) {
+        ters = ters + metin_değeri[i];
+        i = i - 1;
+    }
+    
+    dön ters;
+}
+
+fonksiyon palindrom_mu(metin_değeri) {
+    değişken ters = metin_ters_çevir(metin_değeri);
+    dön metin_değeri == ters;
+}
+
+yazdır("=== METİN TERS ÇEVİRME ===\n");
+
+yazdır("Bir metin girin:");
+değişken girilen = girdi();
+
+değişken ters_metin = metin_ters_çevir(girilen);
+
+yazdır("\nOrijinal: " + girilen);
+yazdır("Ters Hali: " + ters_metin);
+
+eğer (palindrom_mu(girilen)) {
+    yazdır("\n✓ Bu bir palindrom!");
+} değilse {
+    yazdır("\n✗ Bu bir palindrom değil.");
+}
+

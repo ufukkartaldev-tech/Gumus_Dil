@@ -1,0 +1,279 @@
+// ---------------------------------------------------------
+// GELISMIS OYUN KUTUPHANESI (oyun_gelismis.tr)
+// ---------------------------------------------------------
+// Oyun mekanikleri, skor yonetimi, karakter sistemi
+
+dahil_et("std_lib/rastgele.tr")
+dahil_et("std_lib/liste.tr")
+
+// ============ TAS-KAGIT-MAKAS ============
+
+fonksiyon tas_kagit_makas() {
+    secenekler = ["tas", "kagit", "makas"]
+    
+    yazdır("========================================")
+    yazdır("      TAS-KAGIT-MAKAS OYUNU")
+    yazdır("========================================")
+    yazdır("1. Tas")
+    yazdır("2. Kagit")
+    yazdır("3. Makas")
+    yazdır("========================================")
+    
+    yazdır("Seciminizi yapin (1-3):")
+    oyuncu_secim = sayi(girdi())
+    
+    eğer (oyuncu_secim < 1) dön "Gecersiz secim!"
+    eğer (oyuncu_secim > 3) dön "Gecersiz secim!"
+    
+    bilgisayar_secim = rastgele(1, 3)
+    
+    yazdır("Sizin seciminiz: " + secenekler[oyuncu_secim - 1])
+    yazdır("Bilgisayarin secimi: " + secenekler[bilgisayar_secim - 1])
+    
+    eğer (oyuncu_secim == bilgisayar_secim) {
+        dön "BERABERE!"
+    }
+    
+    // Kazanma kosullari
+    eğer (oyuncu_secim == 1) { // Tas
+        eğer (bilgisayar_secim == 3) dön "KAZANDINIZ! (Tas makasi kirar)"
+        dön "KAYBETTINIZ! (Kagit tasi sarar)"
+    }
+    
+    eğer (oyuncu_secim == 2) { // Kagit
+        eğer (bilgisayar_secim == 1) dön "KAZANDINIZ! (Kagit tasi sarar)"
+        dön "KAYBETTINIZ! (Makas kagidi keser)"
+    }
+    
+    eğer (oyuncu_secim == 3) { // Makas
+        eğer (bilgisayar_secim == 2) dön "KAZANDINIZ! (Makas kagidi keser)"
+        dön "KAYBETTINIZ! (Tas makasi kirar)"
+    }
+}
+
+// ============ YAZI-TURA ============
+
+fonksiyon yazi_tura_oyna() {
+    yazdır("========================================")
+    yazdır("         YAZI-TURA OYUNU")
+    yazdır("========================================")
+    yazdır("1. Yazi")
+    yazdır("2. Tura")
+    yazdır("========================================")
+    
+    yazdır("Tahmininiz (1-2):")
+    tahmin = sayi(girdi())
+    
+    sonuc = rastgele(1, 2)
+    
+    eğer (sonuc == 1) {
+        yazdır("Sonuc: YAZI")
+    } degilse {
+        yazdır("Sonuc: TURA")
+    }
+    
+    eğer (tahmin == sonuc) {
+        yazdır("KAZANDINIZ!")
+        dön doğru
+    } degilse {
+        yazdır("KAYBETTINIZ!")
+        dön yanlış
+    }
+}
+
+// ============ ZAR ATMA ============
+
+fonksiyon zar_at() {
+    dön rastgele(1, 6)
+}
+
+fonksiyon cift_zar_at() {
+    zar1 = zar_at()
+    zar2 = zar_at()
+    
+    yazdır("Zar 1: " + metin(zar1))
+    yazdır("Zar 2: " + metin(zar2))
+    yazdır("Toplam: " + metin(zar1 + zar2))
+    
+    dön zar1 + zar2
+}
+
+// ============ SKOR YONETIMI ============
+
+// Global skor tablosu (basit liste)
+skor_tablosu = []
+isim_tablosu = []
+
+fonksiyon skor_ekle(isim, skor) {
+    ekle(isim_tablosu, isim)
+    ekle(skor_tablosu, skor)
+    yazdır("Skor eklendi: " + isim + " - " + metin(skor))
+}
+
+fonksiyon en_yuksek_skor() {
+    eğer (uzunluk(skor_tablosu) == 0) {
+        yazdır("Henuz skor yok!")
+        dön 0
+    }
+    
+    maks = skor_tablosu[0]
+    maks_indeks = 0
+    
+    i = 1
+    l = uzunluk(skor_tablosu)
+    
+    döngü (i < l) {
+        eğer (skor_tablosu[i] > maks) {
+            maks = skor_tablosu[i]
+            maks_indeks = i
+        }
+        i = i + 1
+    }
+    
+    yazdır("En Yuksek Skor: " + isim_tablosu[maks_indeks] + " - " + metin(maks))
+    dön maks
+}
+
+fonksiyon skor_tablosu_goster() {
+    yazdır("========================================")
+    yazdır("         SKOR TABLOSU")
+    yazdır("========================================")
+    
+    eğer (uzunluk(skor_tablosu) == 0) {
+        yazdır("Henuz skor yok!")
+        dön yanlış
+    }
+    
+    i = 0
+    l = uzunluk(skor_tablosu)
+    
+    döngü (i < l) {
+        yazdır(metin(i + 1) + ". " + isim_tablosu[i] + " - " + metin(skor_tablosu[i]))
+        i = i + 1
+    }
+    
+    yazdır("========================================")
+}
+
+// ============ KARAKTER OLUSTURUCU (RPG) ============
+
+fonksiyon karakter_olustur(isim) {
+    yazdır("========================================")
+    yazdır("   KARAKTER OLUSTURULUYOR: " + isim)
+    yazdır("========================================")
+    
+    guc = rastgele(5, 20)
+    ceviklik = rastgele(5, 20)
+    zeka = rastgele(5, 20)
+    dayaniklilik = rastgele(5, 20)
+    sans = rastgele(1, 10)
+    
+    yazdır("Guc: " + metin(guc))
+    yazdır("Ceviklik: " + metin(ceviklik))
+    yazdır("Zeka: " + metin(zeka))
+    yazdır("Dayaniklilik: " + metin(dayaniklilik))
+    yazdır("Sans: " + metin(sans))
+    
+    toplam = guc + ceviklik + zeka + dayaniklilik + sans
+    yazdır("----------------------------------------")
+    yazdır("Toplam Puan: " + metin(toplam))
+    yazdır("========================================")
+    
+    dön toplam
+}
+
+// ============ ADAM ASMACA YARDIMCI ============
+
+fonksiyon kelime_maskele(kelime, bulunan_harfler) {
+    // Kelimeyi maskeler, bulunan harfleri gosterir
+    karakterler = parcala(kelime, "")
+    maskelenmis = []
+    
+    i = 0
+    l = uzunluk(karakterler)
+    
+    döngü (i < l) {
+        harf = karakterler[i]
+        bulundu = yanlış
+        
+        j = 0
+        bl = uzunluk(bulunan_harfler)
+        
+        döngü (j < bl) {
+            eğer (bulunan_harfler[j] == harf) {
+                bulundu = doğru
+            }
+            j = j + 1
+        }
+        
+        eğer (bulundu) {
+            ekle(maskelenmis, harf)
+        } degilse {
+            ekle(maskelenmis, "_")
+        }
+        
+        i = i + 1
+    }
+    
+    dön birlestir(maskelenmis, " ")
+}
+
+// ============ BILGI YARISMASI MOTORU ============
+
+fonksiyon bilgi_yarismasi_soru(soru, dogru_cevap, secenekler) {
+    yazdır("========================================")
+    yazdır("SORU: " + soru)
+    yazdır("========================================")
+    
+    i = 0
+    l = uzunluk(secenekler)
+    
+    döngü (i < l) {
+        yazdır(metin(i + 1) + ". " + secenekler[i])
+        i = i + 1
+    }
+    
+    yazdır("========================================")
+    yazdır("Cevabiniz (1-" + metin(l) + "):")
+    
+    cevap = sayi(girdi())
+    
+    eğer (cevap == dogru_cevap) {
+        yazdır("doğru! +10 puan")
+        dön 10
+    } degilse {
+        yazdır("YANLIS! doğru cevap: " + metin(dogru_cevap))
+        dön 0
+    }
+}
+
+// ============ SLOT MAKINESI ============
+
+fonksiyon slot_makinesi() {
+    meyveler = ["Cilek", "Kiraz", "Portakal", "Limon", "Uzum", "Karpuz"]
+    
+    yazdır("========================================")
+    yazdır("       SLOT MAKINESI")
+    yazdır("========================================")
+    
+    slot1 = rastgele(0, 5)
+    slot2 = rastgele(0, 5)
+    slot3 = rastgele(0, 5)
+    
+    yazdır("[ " + meyveler[slot1] + " | " + meyveler[slot2] + " | " + meyveler[slot3] + " ]")
+    yazdır("========================================")
+    
+    eğer (slot1 == slot2) {
+        eğer (slot2 == slot3) {
+            yazdır("JACKPOT! Uc eslesme! +1000 puan")
+            dön 1000
+        } degilse {
+            yazdır("Iki eslesme! +100 puan")
+            dön 100
+        }
+    } degilse {
+        yazdır("Kaybettiniz!")
+        dön 0
+    }
+}
+

@@ -1,0 +1,7 @@
+fonksiyon if_test(n) {
+    eğer (n > 0) {
+        yazdır("Pozitif")
+    }
+}
+if_test(5)
+

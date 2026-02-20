@@ -1,0 +1,359 @@
+// ============================================
+// GÜMÜŞ VOXEL MOTORU - ÖRNEK PROGRAMLAR
+// İzometrik 3D Dünya İnşaası
+// ============================================
+
+// ============================================
+// ÖRNEK 1: BASİT KULE
+// ============================================
+
+yazdır("=== ÖRNEK 1: Basit Kule ===")
+
+// 5 katlı taş kule
+değişken i = 0
+döngü (i < 5) {
+    insaa_et(0, i, 0, 2)  // (x, y, z, tip) - Tip 2 = Taş
+    i = i + 1
+}
+
+yazdır("Kule inşa edildi!")
+
+// ============================================
+// ÖRNEK 2: PLATFORM
+// ============================================
+
+yazdır("\n=== ÖRNEK 2: Çimen Platform ===")
+
+// 5x5 çimen platform
+değişken x = -2
+döngü (x <= 2) {
+    değişken z = -2
+    döngü (z <= 2) {
+        insaa_et(x, 0, z, 1)  // Tip 1 = Çimen
+        z = z + 1
+    }
+    x = x + 1
+}
+
+yazdır("Platform hazır!")
+
+// ============================================
+// ÖRNEK 3: PİRAMİT
+// ============================================
+
+yazdır("\n=== ÖRNEK 3: Piramit ===")
+
+// Piramit inşaası (alttan üste daralan)
+değişken kat = 0
+döngü (kat < 5) {
+    değişken boyut = 5 - kat
+    değişken baslangic = 0 - (boyut / 2)
+    
+    değişken px = baslangic
+    döngü (px < baslangic + boyut) {
+        değişken pz = baslangic
+        döngü (pz < baslangic + boyut) {
+            insaa_et(px, kat, pz, 5)  // Tip 5 = Tuğla
+            pz = pz + 1
+        }
+        px = px + 1
+    }
+    
+    kat = kat + 1
+}
+
+yazdır("Piramit tamamlandı!")
+
+// ============================================
+// ÖRNEK 4: DUVAR
+// ============================================
+
+yazdır("\n=== ÖRNEK 4: Taş Duvar ===")
+
+// 10 blok uzunluğunda, 3 blok yüksekliğinde duvar
+değişken dx = 0
+döngü (dx < 10) {
+    değişken dy = 0
+    döngü (dy < 3) {
+        insaa_et(dx, dy, 5, 2)  // Z=5'te duvar
+        dy = dy + 1
+    }
+    dx = dx + 1
+}
+
+yazdır("Duvar örüldü!")
+
+// ============================================
+// ÖRNEK 5: KARE EV
+// ============================================
+
+yazdır("\n=== ÖRNEK 5: Basit Ev ===")
+
+// Zemin (4x4)
+değişken ex = 0
+döngü (ex < 4) {
+    değişken ez = 0
+    döngü (ez < 4) {
+        insaa_et(ex, 0, ez, 4)  // Tip 4 = Tahta
+        ez = ez + 1
+    }
+    ex = ex + 1
+}
+
+// Duvarlar (2 blok yükseklik)
+// Ön duvar
+değişken wx = 0
+döngü (wx < 4) {
+    insaa_et(wx, 1, 0, 4)
+    insaa_et(wx, 2, 0, 4)
+    wx = wx + 1
+}
+
+// Arka duvar
+wx = 0
+döngü (wx < 4) {
+    insaa_et(wx, 1, 3, 4)
+    insaa_et(wx, 2, 3, 4)
+    wx = wx + 1
+}
+
+// Sol duvar
+değişken wz = 1
+döngü (wz < 3) {
+    insaa_et(0, 1, wz, 4)
+    insaa_et(0, 2, wz, 4)
+    wz = wz + 1
+}
+
+// Sağ duvar
+wz = 1
+döngü (wz < 3) {
+    insaa_et(3, 1, wz, 4)
+    insaa_et(3, 2, wz, 4)
+    wz = wz + 1
+}
+
+// Çatı (düz)
+değişken cx = 0
+döngü (cx < 4) {
+    değişken cz = 0
+    döngü (cz < 4) {
+        insaa_et(cx, 3, cz, 5)  // Tip 5 = Tuğla (kırmızı çatı)
+        cz = cz + 1
+    }
+    cx = cx + 1
+}
+
+yazdır("Ev inşa edildi!")
+
+// ============================================
+// ÖRNEK 6: MERDIVEN
+// ============================================
+
+yazdır("\n=== ÖRNEK 6: Merdiven ===")
+
+// Her basamak 1 blok yükseliyor
+değişken basamak = 0
+döngü (basamak < 5) {
+    insaa_et(basamak, basamak, 0, 2)  // Taş basamaklar
+    basamak = basamak + 1
+}
+
+yazdır("Merdiven hazır!")
+
+// ============================================
+// ÖRNEK 7: KULE + BAYRAK
+// ============================================
+
+yazdır("\n=== ÖRNEK 7: Bayraklı Kule ===")
+
+// Kule gövdesi (3x3 taban, 10 blok yükseklik)
+değişken ty = 0
+döngü (ty < 10) {
+    değişken tx = -1
+    döngü (tx <= 1) {
+        değişken tz = -1
+        döngü (tz <= 1) {
+            insaa_et(tx, ty, tz, 2)  // Taş
+            tz = tz + 1
+        }
+        tx = tx + 1
+    }
+    ty = ty + 1
+}
+
+// Bayrak direği (tek blok, 5 blok yükseklik)
+değişken by = 10
+döngü (by < 15) {
+    insaa_et(0, by, 0, 4)  // Tahta direk
+    by = by + 1
+}
+
+// Bayrak (kırmızı tuğla)
+insaa_et(1, 14, 0, 5)
+insaa_et(2, 14, 0, 5)
+insaa_et(1, 13, 0, 5)
+insaa_et(2, 13, 0, 5)
+
+yazdır("Bayraklı kule tamamlandı!")
+
+// ============================================
+// ÖRNEK 8: KÖPRÜ
+// ============================================
+
+yazdır("\n=== ÖRNEK 8: Nehir Köprüsü ===")
+
+// Köprü (10 blok uzunluk, 2 blok genişlik)
+değişken kx = 0
+döngü (kx < 10) {
+    insaa_et(kx, 2, 0, 4)  // Tahta köprü
+    insaa_et(kx, 2, 1, 4)
+    kx = kx + 1
+}
+
+// Korkuluklar
+kx = 0
+döngü (kx < 10) {
+    insaa_et(kx, 3, -1, 4)  // Sol korkuluk
+    insaa_et(kx, 3, 2, 4)   // Sağ korkuluk
+    kx = kx + 1
+}
+
+yazdır("Köprü kuruldu!")
+
+// ============================================
+// ÖRNEK 9: KALE BURCU
+// ============================================
+
+yazdır("\n=== ÖRNEK 9: Kale Burcu ===")
+
+// Burç temeli (5x5)
+değişken bx = 0
+döngü (bx < 5) {
+    değişken bz = 0
+    döngü (bz < 5) {
+        insaa_et(bx, 0, bz, 2)  // Taş
+        bz = bz + 1
+    }
+    bx = bx + 1
+}
+
+// Burç duvarları (sadece kenarlar, 8 blok yükseklik)
+değişken bh = 1
+döngü (bh < 8) {
+    // Ön ve arka
+    değişken bw = 0
+    döngü (bw < 5) {
+        insaa_et(bw, bh, 0, 2)
+        insaa_et(bw, bh, 4, 2)
+        bw = bw + 1
+    }
+    
+    // Sol ve sağ (köşeler hariç, zaten ön/arka'da var)
+    bw = 1
+    döngü (bw < 4) {
+        insaa_et(0, bh, bw, 2)
+        insaa_et(4, bh, bw, 2)
+        bw = bw + 1
+    }
+    
+    bh = bh + 1
+}
+
+// Burç tepesi (dişli)
+insaa_et(0, 8, 0, 2)
+insaa_et(2, 8, 0, 2)
+insaa_et(4, 8, 0, 2)
+insaa_et(0, 8, 2, 2)
+insaa_et(4, 8, 2, 2)
+insaa_et(0, 8, 4, 2)
+insaa_et(2, 8, 4, 2)
+insaa_et(4, 8, 4, 2)
+
+yazdır("Kale burcu yükseldi!")
+
+// ============================================
+// ÖRNEK 10: FİZİK SİMÜLASYONU (KUM DÜŞMESI)
+// ============================================
+
+yazdır("\n=== ÖRNEK 10: Fizik - Kum Düşmesi ===")
+
+// Havada asılı kum blokları (Tip 6 = Kum, düşer!)
+insaa_et(0, 10, 0, 6)
+insaa_et(1, 10, 0, 6)
+insaa_et(2, 10, 0, 6)
+
+yazdır("Kum blokları yerleştirildi. Fizik güncellemesi için fizik_guncelle() çağırın!")
+
+// Fizik güncelleme döngüsü (10 adım)
+değişken adim = 0
+döngü (adim < 10) {
+    değişken dusme = fizik_guncelle(0, 0, 50)  // Merkez (0,0), Menzil 50
+    
+    eğer (dusme > 0) {
+        yazdır("Adım " + metin(adim) + ": " + metin(dusme) + " blok düştü")
+    } değilse {
+        yazdır("Adım " + metin(adim) + ": Fizik dengede")
+    }
+    
+    bekle(100)  // 100ms bekle (animasyon için)
+    adim = adim + 1
+}
+
+yazdır("Fizik simülasyonu tamamlandı!")
+
+// ============================================
+// ÖRNEK 11: DÜNYA KAYDET/YÜKLE
+// ============================================
+
+yazdır("\n=== ÖRNEK 11: Dünya Kaydet ===")
+
+// Mevcut dünyayı kaydet
+değişken kayit_basarili = dunya_kaydet("benim_dunyam.ghf")
+
+eğer (kayit_basarili) {
+    yazdır("✅ Dünya 'benim_dunyam.ghf' dosyasına kaydedildi!")
+} değilse {
+    yazdır("❌ Kayıt başarısız!")
+}
+
+// Dünyayı yükle (başka bir dosyadan)
+// değişken yukle_basarili = dunya_yukle("benim_dunyam.ghf")
+// eğer (yukle_basarili) {
+//     yazdır("✅ Dünya yüklendi!")
+// }
+
+// ============================================
+// ÖRNEK 12: BLOK KONTROLÜ
+// ============================================
+
+yazdır("\n=== ÖRNEK 12: Blok Kontrolü ===")
+
+// Belirli bir konumda blok var mı?
+değişken blok_tipi = blok_ne(0, 0, 0)
+
+eğer (blok_tipi > 0) {
+    yazdır("(0,0,0) konumunda Tip " + metin(blok_tipi) + " blok var")
+} değilse {
+    yazdır("(0,0,0) konumu boş (hava)")
+}
+
+// Blok silme
+blok_sil(0, 0, 0)
+yazdır("(0,0,0) konumundaki blok silindi")
+
+// ============================================
+// BLOK TİPLERİ REFERANSI
+// ============================================
+
+yazdır("\n=== BLOK TİPLERİ ===")
+yazdır("1 = Çimen (Yeşil)")
+yazdır("2 = Taş (Gri)")
+yazdır("3 = Su (Mavi)")
+yazdır("4 = Tahta (Turuncu)")
+yazdır("5 = Tuğla (Kırmızı)")
+yazdır("6 = Kum (Sarı - Düşer!)")
+
+yazdır("\n✅ Tüm örnekler tamamlandı!")
+yazdır("💡 İpucu: WASD veya Ok tuşları ile kamerayı hareket ettirin!")
+

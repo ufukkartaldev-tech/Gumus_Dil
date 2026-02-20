@@ -1,0 +1,111 @@
+// ============================================
+// GÜMÜŞDIL PRO IDE - DEMO PROGRAMI
+// ============================================
+// Bu program IDE'nin tüm özelliklerini gösterir
+
+yazdÄ±r("========================================")
+yazdÄ±r("   GÜMÜŞDIL PRO IDE DEMO")
+yazdÄ±r("========================================")
+yazdÄ±r("")
+
+// 1. Basit Değişkenler
+isim = "Ahmet"
+yas = 25
+yazdÄ±r("Merhaba " + isim + "!")
+yazdÄ±r("Yaşınız: " + metin(yas))
+yazdÄ±r("")
+
+// 2. Koşullar (eÄŸer/degilse)
+yazdÄ±r("--- KOŞUL TESTİ ---")
+eÄŸer (yas >= 18) {
+    yazdÄ±r("? Yetişkinsiniz")
+} degilse {
+    yazdÄ±r("? Çocuksunuz")
+}
+yazdÄ±r("")
+
+// 3. Döngü (dÃ¶ngÃ¼)
+yazdÄ±r("--- DÖNGÜ TESTİ ---")
+yazdÄ±r("1'den 5'e kadar sayılar:")
+sayac = 1
+dÃ¶ngÃ¼ (sayac <= 5) {
+    yazdÄ±r("  " + metin(sayac))
+    sayac = sayac + 1
+}
+yazdÄ±r("")
+
+// 4. Fonksiyon Tanımlama
+fonksiyon topla(a, b) {
+    dÃ¶n a + b
+}
+
+fonksiyon carpim_tablosu(sayi) {
+    yazdÄ±r("--- " + metin(sayi) + " ÇARPIM TABLOSU ---")
+    i = 1
+    dÃ¶ngÃ¼ (i <= 5) {
+        sonuc = sayi * i
+        yazdÄ±r(metin(sayi) + " x " + metin(i) + " = " + metin(sonuc))
+        i = i + 1
+    }
+}
+
+// 5. Fonksiyonları Kullan
+yazdÄ±r("--- FONKSİYON TESTİ ---")
+toplam = topla(15, 27)
+yazdÄ±r("15 + 27 = " + metin(toplam))
+yazdÄ±r("")
+
+carpim_tablosu(7)
+yazdÄ±r("")
+
+// 6. Liste İşlemleri
+yazdÄ±r("--- LİSTE TESTİ ---")
+sayilar = [10, 20, 30, 40, 50]
+yazdÄ±r("Liste: [10, 20, 30, 40, 50]")
+yazdÄ±r("Liste uzunluğu: " + metin(uzunluk(sayilar)))
+yazdÄ±r("İlk eleman: " + metin(sayilar[0]))
+yazdÄ±r("Son eleman: " + metin(sayilar[4]))
+yazdÄ±r("")
+
+// 7. Matematiksel İşlemler
+yazdÄ±r("--- MATEMATİK TESTİ ---")
+a = 100
+b = 7
+yazdÄ±r("Toplama: " + metin(a) + " + " + metin(b) + " = " + metin(a + b))
+yazdÄ±r("Çıkarma: " + metin(a) + " - " + metin(b) + " = " + metin(a - b))
+yazdÄ±r("Çarpma: " + metin(a) + " * " + metin(b) + " = " + metin(a * b))
+yazdÄ±r("Bölme: " + metin(a) + " / " + metin(b) + " = " + metin(a / b))
+yazdÄ±r("")
+
+// 8. Mantıksal İşlemler
+yazdÄ±r("--- MANTIKSAL İŞLEMLER ---")
+dogru_mu = doÄŸru
+yanlis_mi = yanlÄ±ÅŸ
+yazdÄ±r("Doğru değeri: " + metin(dogru_mu))
+yazdÄ±r("Yanlış değeri: " + metin(yanlis_mi))
+yazdÄ±r("")
+
+// 9. Karşılaştırmimarir
+x = 50
+y = 30
+yazdÄ±r("--- KARŞILAŞTIRMA ---")
+yazdÄ±r(metin(x) + " > " + metin(y) + " = " + metin(x > y))
+yazdÄ±r(metin(x) + " < " + metin(y) + " = " + metin(x < y))
+yazdÄ±r(metin(x) + " == " + metin(y) + " = " + metin(x == y))
+yazdÄ±r("")
+
+// 10. Final Mesajı
+yazdÄ±r("========================================")
+yazdÄ±r("   DEMO TAMAMLANDI!")
+yazdÄ±r("========================================")
+yazdÄ±r("")
+yazdÄ±r("?? Gümüşdil PRO IDE Özellikleri:")
+yazdÄ±r("  ? Syntax Highlighting")
+yazdÄ±r("  ? IntelliSense (Ctrl+Space)")
+yazdÄ±r("  ? Smart Debugger")
+yazdÄ±r("  ? Auto-Indent")
+yazdÄ±r("  ? AST Visualizer (F6)")
+yazdÄ±r("")
+yazdÄ±r("Mutlu kodlamimarir! ??")
+
+

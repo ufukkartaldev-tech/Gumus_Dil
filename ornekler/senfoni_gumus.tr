@@ -1,0 +1,31 @@
+// ---------------------------------------------------------
+// GÜMÜŞ SENFONİ (senfoni_gumus.tr)
+// Müzik Kütüphanesi ile Algoritmik Beste
+// ---------------------------------------------------------
+
+dahil_et("muzik.tr")
+
+yazdır("🎵 Gümüş Senfoni Orkestrası Hoş Geldiniz!")
+
+// 1. Enstrüman Tanımla
+değişken piyano = yeni Enstrüman("Gümüş Piyano")
+piyano.akort_et()
+
+// 2. Basit Bir Melodi Oluştur (İstiklal Marşı Başlangıç veya Rastgele)
+yazdır("\n🎶 Beste çalınıyor...")
+
+değişken notalar = [
+    Müzik.NOTA_DO, Müzik.NOTA_RE, Müzik.NOTA_MI, 
+    Müzik.NOTA_FA, Müzik.NOTA_SOL, Müzik.NOTA_LA, 
+    Müzik.NOTA_SI, Müzik.NOTA_DO
+]
+
+değişken sureler = [300, 300, 300, 300, 300, 300, 300, 600]
+
+Müzik.melodi_çal(notalar, sureler)
+
+// 3. Özel Bip Sesi
+Müzik.bip()
+
+yazdır("\n🎹 Konser sona erdi. GümüşDil ile sanat yazılımda başlar!")
+

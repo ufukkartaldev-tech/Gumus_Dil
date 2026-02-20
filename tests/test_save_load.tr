@@ -1,0 +1,46 @@
+yazdır("--- KAYDET VE YÜKLE TESTİ ---");
+
+// 1. DÜNYAYI İNŞA ET
+yazdır("Şehir inşa ediliyor...");
+
+// 4 adet köşe kule (Sur gibi)
+insaa_et(0, 1, 0, 2); insaa_et(0, 2, 0, 2);
+insaa_et(0, 1, 5, 2); insaa_et(0, 2, 5, 2);
+insaa_et(5, 1, 0, 2); insaa_et(5, 2, 0, 2);
+insaa_et(5, 1, 5, 2); insaa_et(5, 2, 5, 2);
+
+// Ortaya Çeşme (Su)
+insaa_et(2, 1, 2, 2); insaa_et(3, 1, 2, 2);
+insaa_et(2, 1, 3, 2); insaa_et(3, 1, 3, 2);
+insaa_et(2, 2, 2, 3); // Su (Tip 3)
+
+yazdır("İnşaat bitti. Kaydediliyor...");
+
+// 2. KAYDET
+değişken sonuc = dunya_kaydet("sehir_plani.ghf");
+eğer (sonuc) {
+    yazdır("✅ Kayıt BAŞARILI: sehir_plani.ghf");
+} değilse {
+    yazdır("❌ Kayıt BAŞARISIZ!");
+}
+
+bekle(2000); // Kullanıcı görsün diye bekle
+
+// 3. YIKIM (Dünyayı Temizle - Manuel olarak boş harita yükleyebiliriz veya yeni özellik eklemeyle uğraşmayalım, C++ zaten yüklerken temizliyor)
+yazdır("Dünya belleği temizleniyor... (Simülasyon)");
+// Aslında burada belleği sıfırlayan bir komut yok, ama dunya_yukle zaten sıfırlıyor.
+// Görsel efekt için rastgele bir şeyler silelim
+blok_sil(2, 2, 2);
+blok_sil(0, 2, 0);
+yazdır("Bazı binalar yıkıldı. Geri yükleniyor...");
+
+bekle(1000);
+
+// 4. YÜKLE
+yazdır("Yedekten dönülüyor...");
+dunya_yukle("sehir_plani.ghf");
+
+yazdır("✅ Dünya geri yüklendi! Çeşme yerinde mi?");
+değişken su = blok_ne(2, 2, 2);
+yazdır("Çeşmedeki blok tipi: " + su + " (3 olmalı)");
+

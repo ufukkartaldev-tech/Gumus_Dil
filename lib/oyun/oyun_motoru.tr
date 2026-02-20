@@ -1,0 +1,22 @@
+// Oyun Motoru (std_lib/oyun/oyun_motoru.tr)
+dahil_et("std_lib/sistem/renk.tr")
+
+fonksiyon skor_yaz(skor) {
+    renkli_yazdir("sari", "SKOR: " + metin(skor))
+}
+
+fonksiyon can_goster(can) {
+    kalp = ""
+    i = 0
+    döngü (i < can) {
+        kalp = kalp + "<3 "
+        i = i + 1
+    }
+    renkli_yazdir("kirmizi", "CAN: " + kalp)
+}
+
+fonksiyon oyun_bitti(mesaj) {
+    baslik_yaz("OYUN BITTI")
+    kirmizi_yaz(mesaj)
+}
+

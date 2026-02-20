@@ -1,0 +1,40 @@
+// ---------------------------------------------------------
+// PARDUS SİSTEM REHBERİ (pardus_sistem_rehberi.tr)
+// GümüşDil Pardus Kütüphanesi Örnek Kullanımı
+// ---------------------------------------------------------
+
+dahil_et("pardus_sistem.tr")
+
+yazdır("========================================")
+yazdır("   🐆 PARDUS SİSTEM YÖNETİCİSİ 🐆   ")
+yazdır("========================================")
+
+// 1. Sistem Bilgilerini Oku
+değişken surum = Pardus.sürüm_oku()
+değişken kullanıcı = Pardus.kullanıcı_adı()
+
+yazdır("📍 Sistem Sürümü: " + surum)
+yazdır("👤 Mevcut Kullanıcı: " + kullanıcı)
+
+// 2. ETAP Modu Kontrolü
+eğer (Pardus.etap_modu_aktifmi()) {
+    yazdır("🖥️ ETAP (Akıllı Tahta) modu aktif. Görsel ayarlar optimize ediliyor...")
+} yoksa {
+    yazdır("💻 Standart Pardus masaüstü algılandı.")
+}
+
+// 3. Paket Kontrolü
+değişken paket = "g++"
+eğer (Pardus.paket_varmı(paket)) {
+    yazdır("✅ " + paket + " paketi kurulu. Derleme yapılabilir.")
+} yoksa {
+    yazdır("❌ " + paket + " bulunamadı! Lütfen kurun.")
+}
+
+// 4. Güncelleme Sorgusu
+değişken guncelleme_sayisi = Pardus.güncelleme_kontrol_et()
+yazdır("🔄 Toplam " + metin(guncelleme_sayisi) + " adet güncelleme mevcut.")
+
+yazdır("\n[BİLGİ] Pardus kütüphanesi ile sisteminizi GümüşDil üzerinden yönetebilirsiniz.")
+yazdır("========================================")
+

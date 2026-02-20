@@ -1,0 +1,20 @@
+// ============================================================================
+// MODÜL: Grafik (grafik.tr)
+// Amaç: Şehri ve araçları 3D render almak.
+// ============================================================================
+
+dahil_et("grafik_3d.tr")
+
+sınıf SehirGrafik {
+    kurucu() {
+        öz.sahne = yeni Sahne()
+        yazdır("[GRAFİK] 3D Şehir paneli hazırlandı.")
+    }
+
+    fonksiyon sehriCiz(binalar, araclar) {
+        yazdır("[GRAFİK] " + metin(binalar) + " bina ve " + metin(araclar) + " araç render alınıyor...")
+        öz.sahne.render_al()
+        yazdır("[GRAFİK] Şehir mermi hızıyla ekrana yansıtıldı.")
+    }
+}
+

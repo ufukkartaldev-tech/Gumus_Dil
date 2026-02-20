@@ -1,0 +1,39 @@
+// Temel test
+değişken ad = "GümüşDil"
+değişken yas = 25
+yazdır($"Merhaba {ad}, yaşınız: {yas}")
+
+// Fonksiyon testi
+fonksiyon topla(a, b) {
+    dön a + b
+}
+
+değişken sonuc = topla(10, 20)
+yazdır($"Toplam: {sonuc}")
+
+// Döngü testi
+değişken i = 0
+döngü (i < 5) {
+    yazdır($"Sayı: {i}")
+    i = i + 1
+}
+
+// Koşul testi
+eğer (yas >= 18) {
+    yazdır("Reşitsiniz")
+} değilse {
+    yazdır("Reşit değilsiniz")
+}
+
+// Liste testi
+değişken liste = [1, 2, 3, 4, 5]
+yazdır($"Liste uzunluğu: {uzunluk(liste)}")
+
+// Hata yakalama testi
+deneme {
+    yazdır("Hata testi")
+    // Bilerek hata yap
+    değişken hatali = 10 / 0
+} yakala (hata) {
+    yazdır($"Hata yakalandı: {hata}")
+}

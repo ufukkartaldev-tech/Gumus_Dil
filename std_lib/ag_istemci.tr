@@ -1,0 +1,40 @@
+// ag_istemci.tr - Ag Istemci Kutuphanesi
+yazdır "[DEBUG] ag_istemci.tr YUKLENIYOR...";
+
+sinif AgIstemci {
+    fonksiyon kurucu() {
+        yazdır "[DEBUG] AgIstemci Nesnesi Olusturuluyor...";
+    }
+
+    fonksiyon istek_yap(adres) {
+        yazdır "[AG] Istek gonderiliyor: " + adres
+        değişken cevap = http_get(adres)
+        
+        eğer (cevap == "") {
+            yazdır "[AG] Hata: boş cevap veya baglanti hatasi."
+        } degilse {
+            yazdır "[AG] Veri alindi (" + metin(uzunluk(cevap)) + " byte)"
+        }
+        
+        dön cevap
+    }
+    
+    fonksiyon veri_bul(kaynak, anahtar) {
+        değişken aranan = "\"" + anahtar + "\":"
+        değişken parcalar = parcala(kaynak, aranan)
+        
+        eğer (uzunluk(parcalar) > 1) {
+            değişken kalan = parcalar[1]
+            değişken bitis_virgul = parcala(kalan, ",")[0]
+            değişken bitis_suslu = parcala(bitis_virgul, "}")[0]
+            dön yer_degistir(bitis_suslu, "\"", "")
+        }
+        
+        dön ""
+    }
+}
+
+yazdır "[DEBUG] Ag degiskeni tanimlaniyor...";
+değişken Ag = AgIstemci()
+yazdır "[DEBUG] Ag degiskeni tanimlandi.";
+

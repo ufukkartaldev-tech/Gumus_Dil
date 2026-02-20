@@ -1,0 +1,36 @@
+// ============================================
+// ÖRNEK PROJE 2: VÜCUT KİTLE İNDEKSİ
+// ============================================
+
+yazdır("========================================")
+yazdır("   VÜCUT KİTLE İNDEKSİ HESAPLAYICI")
+yazdır("========================================")
+
+yazdır("Kilonuzu girin (kg):")
+değişken kilo = sayı(girdi())
+
+yazdır("Boyunuzu girin (metre, örnek: 1.75):")
+değişken boy = sayı(girdi())
+
+// VKİ = Kilo / (Boy * Boy)
+// VKİ = Kilo / (Boy * Boy)
+değişken vki = kilo / (boy * boy)
+
+yazdır("")
+yazdır("========================================")
+yazdır("Vücut Kitle İndeksiniz: " + metin(vki))
+yazdır("========================================")
+
+// Değerlendirme
+eğer (vki < 18) {
+    yazdır("Durum: Zayıf")
+} değilse eğer (vki < 25) {
+    yazdır("Durum: Normal")
+} değilse eğer (vki < 30) {
+    yazdır("Durum: Fazla Kilolu")
+} değilse {
+    yazdır("Durum: Obez")
+}
+
+yazdır("========================================")
+

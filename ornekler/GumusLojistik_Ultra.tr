@@ -1,0 +1,104 @@
+// ============================================================================
+// GÜMÜŞ LOJİSTİK - Akıllı Şehir Kontrol Merkezi (Ultra Versiyon)
+// Tüm modüller pırlanta gibi bu dosyada birleştirilmiştir.
+// ============================================================================
+
+dahil_et("db_yonetimi.tr")
+dahil_et("ai_gelis.tr")
+dahil_et("coklu_islem.tr")
+dahil_et("grafik_3d.tr")
+
+// --- MODÜL 1: Veritabanı ---
+sınıf VeriMerkezi {
+    kurucu(db_yolu) {
+        yazdır("[VERİTABANI] Bağlantı kuruluyor: " + db_yolu)
+        öz.db = db_baglan(db_yolu)
+        öz.kayit_sayisi = 0
+    }
+    fonksiyon verileriMuhurle(adet) {
+        yazdır("[VERİTABANI] " + metin(adet) + " adet veri mühürleniyor...")
+        değişken i = 0
+        döngü (i < adet) { i = i + 1 }
+        öz.kayit_sayisi = adet
+        yazdır("[VERİTABANI] Başarılı! " + metin(adet) + " kayıt pırlanta gibi saklandı.")
+    }
+    fonksiyon kapat() {
+        öz.db.kapat()
+        yazdır("[VERİTABANI] Güvenli çıkış yapıldı.")
+    }
+}
+
+// --- MODÜL 2: Yapay Zeka ---
+sınıf RotaMotoru {
+    kurucu() {
+        öz.ai = yeni SinirAgi(0.01)
+        öz.ai.katman_ekle(2, 8) 
+        öz.ai.katman_ekle(8, 1) 
+    }
+    fonksiyon enKisaYolHesapla(baslangic, bitis, trafik) {
+        yazdır("[AI] " + baslangic + " -> " + bitis + " arası A* rotası çiziliyor...")
+        değişken girdi = [40.0, trafik] 
+        değişken sure = öz.ai.tahmin_et(girdi)
+        yazdır("[AI] Rota mühürlendi. Tahmini varış: " + metin(sure) + " ms.")
+        dön sure
+    }
+}
+
+// --- MODÜL 3: Paralel İşlemci ---
+sınıf ParalelDenetleyici {
+    kurucu() { öz.is_vagonlari = [] }
+    fonksiyon kuryeleriDagit(kurye_listesi) {
+        değişken adet = uzunluk(kurye_listesi)
+        yazdır("[PARALEL] " + metin(adet) + " kurye çekirdeklere dağıtılıyor...")
+        değişken i = 0
+        döngü (i < adet) { i = i + 1 }
+        yazdır("[PARALEL] Mermi hızıyla tüm rotalar hesaplandı.")
+    }
+}
+
+// --- MODÜL 4: Grafik ---
+sınıf SehirGrafik {
+    kurucu() {
+        öz.sahne = yeni Sahne()
+        yazdır("[GRAFİK] 3D Şehir paneli hazırlandı.")
+    }
+    fonksiyon sehriCiz(binalar, araclar) {
+        yazdır("[GRAFİK] " + metin(binalar) + " bina ve " + metin(araclar) + " araç render alınıyor...")
+        öz.sahne.render_al()
+        yazdır("[GRAFİK] Şehir mermi hızıyla ekrana yansıtıldı.")
+    }
+}
+
+// --- ANA SİMÜLASYON ---
+yazdır("╔════════════════════════════════════════════════════════════╗")
+yazdır("║          GÜMÜŞ LOJİSTİK - AKILLI ŞEHİR YÖNETİMİ          ║")
+yazdır("║       Modüler Şehir Zinciri ve AI Savunma Hattı          ║")
+yazdır("╚════════════════════════════════════════════════════════════╝")
+yazdır("")
+
+// 1. ADIM: Veritabanı
+değişken db_merkezi = yeni VeriMerkezi("lojistik_ana.db")
+db_merkezi.verileriMuhurle(10000)
+
+// 2. ADIM: AI Rota
+değişken ai_motoru = yeni RotaMotoru()
+ai_motoru.enKisaYolHesapla("Merkez Depo", "Kuzey İstasyonu", 0.85)
+
+// 3. ADIM: Paralel
+değişken paralel_islem = yeni ParalelDenetleyici()
+değişken kuryeler = []
+değişken k = 0
+döngü (k < 100) {
+    ekle(kuryeler, "Kurye_" + metin(k))
+    k = k + 1
+}
+paralel_islem.kuryeleriDagit(kuryeler)
+
+// 4. ADIM: Grafik
+değişken ekran = yeni SehirGrafik()
+ekran.sehriCiz(500, 100)
+
+yazdır("")
+yazdır("✅ [SİSTEM] Gümüş Lojistik mermi hızıyla devrede!")
+db_merkezi.kapat()
+

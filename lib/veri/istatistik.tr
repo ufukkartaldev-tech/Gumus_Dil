@@ -1,0 +1,32 @@
+// Istatistik Kutuphanesi (std_lib/veri/istatistik.tr)
+
+fonksiyon ortalama(liste) {
+    toplam = 0
+    n = uzunluk(liste)
+    eğer (n == 0) dön 0
+    
+    i = 0
+    döngü (i < n) {
+        toplam = toplam + liste[i]
+        i = i + 1
+    }
+    dön toplam / n
+}
+
+fonksiyon medyan(liste) {
+    // Siralama native olarak eklenene kadar manuel veya basit yontem
+    // Not: Su an 'sirala' fonksiyonumuz native olarak yok (veri kutuphanesinde yapmak lazim)
+    // Basitlik adina simdilik ilk elemani donelim veya boş birakabiliriz
+    // Ama kullaniciya gosterilecekse basit bir 'bubble sort' yazalim buraya
+    n = uzunluk(liste)
+    eğer (n == 0) dön 0
+    
+    // Basit Bubble Sort (Kopya uzerinde calismasi icin listeyi kopyalamak gerek ama ref geciyoruz, dikkat)
+    // Dilimizde 'konum' veya 'index' erisimi oldugu icin yapabiliriz.
+    
+    // Bubble sort Cok yavas olacagi icin 'sirala' native destegi onemli.
+    // Simdilik sadece ortalama fonksiyonu aktif kalsin.
+    yazdır("Uyari: Medyan icin siralama destegi bekleniyor.")
+    dön 0
+}
+

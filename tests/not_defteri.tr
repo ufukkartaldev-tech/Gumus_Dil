@@ -1,0 +1,49 @@
+yazdır("=== Basit Not Defteri Uygulamasi ===")
+yazdır("1. Notlari Oku")
+yazdır("2. Yeni Not Ekle")
+yazdır("3. Notlari Temizle")
+yazdır("4. Cikis")
+
+dosya = "notlar.txt"
+
+devam = doğru
+döngü (devam) {
+    yazdır("")
+    yazdır("Seciminiz (1-4): ")
+    secim = girdi()
+
+    eğer (secim == "1") {
+        yazdır("--- Notlariniz ---")
+        icerik = dosya_oku(dosya)
+        eğer (icerik == boş) {
+            yazdır("(Henuz not yok)")
+        } degilse {
+            yazdır(icerik)
+        }
+    } degilse {
+        eğer (secim == "2") {
+            yazdır("Notunuzu girin:")
+            not_icerigi = girdi()
+            tarih_damgasi = "[" + metin(zaman()) + "] "
+            dosya_ekle(dosya, tarih_damgasi + not_icerigi + "\n")
+            yazdır("Not kaydedildi!")
+        } degilse {
+            eğer (secim == "3") {
+                yazdır("Tum notlar silinecek. Emin misiniz? (e/h)")
+                onay = girdi()
+                eğer (onay == "e") {
+                    dosya_yaz(dosya, "")
+                    yazdır("Notlar temizlendi.")
+                }
+            } degilse {
+                eğer (secim == "4") {
+                    yazdır("Cikis yapiliyor...")
+                    devam = yanlış
+                } degilse {
+                    yazdır("Gecersiz secim!")
+                }
+            }
+        }
+    }
+}
+

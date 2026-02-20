@@ -1,0 +1,139 @@
+// 🎯 GümüşDil Syntax Test - TEKNOFEST 2026
+// Bu dosya güncel syntax'ı gösterir
+
+// ============================================================================
+// 1. DEĞİŞKENLER VE VERİ TİPLERİ
+// ============================================================================
+
+değişken sayi = 42
+değişken metin = "Merhaba TEKNOFEST"
+değişken ondalik = 3.14
+değişken mantiksal = doğru
+
+yazdır("=== Değişkenler ===")
+yazdır("Sayı: " + metin(sayi))
+yazdır("Metin: " + metin)
+yazdır("Ondalık: " + metin(ondalik))
+
+// ============================================================================
+// 2. KOŞULLAR (IF-ELSE)
+// ============================================================================
+
+yazdır("\n=== Koşullar ===")
+eğer (sayi > 40) {
+    yazdır("Sayı 40'tan büyük!")
+} yoksa {
+    yazdır("Sayı 40'tan küçük veya eşit")
+}
+
+// ============================================================================
+// 3. DÖNGÜLER
+// ============================================================================
+
+yazdır("\n=== Döngüler ===")
+
+// For döngüsü
+yazdır("For döngüsü:")
+değişken i = 1
+döngü (i <= 5) {
+    yazdır("  Sayı: " + metin(i))
+    i = i + 1
+}
+
+// While döngüsü
+yazdır("\nWhile döngüsü:")
+değişken sayac = 0
+döngü (sayac < 3) {
+    yazdır("  Sayaç: " + metin(sayac))
+    sayac = sayac + 1
+}
+
+// ============================================================================
+// 4. FONKSİYONLAR
+// ============================================================================
+
+yazdır("\n=== Fonksiyonlar ===")
+
+fonksiyon topla(a, b) {
+    dön a + b
+}
+
+fonksiyon selamla(isim) {
+    yazdır("Merhaba " + isim + "!")
+}
+
+değişken sonuc = topla(10, 20)
+yazdır("10 + 20 = " + metin(sonuc))
+selamla("TEKNOFEST")
+
+// ============================================================================
+// 5. SINIFLAR VE NESNELER
+// ============================================================================
+
+yazdır("\n=== Sınıflar ===")
+
+sınıf Ogrenci {
+    kurucu(ad, yas) {
+        öz.ad = ad
+        öz.yas = yas
+    }
+    
+    fonksiyon tanit() {
+        yazdır("Ben " + öz.ad + ", " + metin(öz.yas) + " yaşındayım")
+    }
+}
+
+değişken ali = Ogrenci("Ali", 16)
+ali.tanit()
+
+// ============================================================================
+// 6. DİZİLER (ARRAYS)
+// ============================================================================
+
+yazdır("\n=== Diziler ===")
+
+değişken sayilar = [10, 20, 30, 40, 50]
+yazdır("İlk eleman: " + metin(sayilar[0]))
+yazdır("Son eleman: " + metin(sayilar[4]))
+
+// Dizi üzerinde döngü
+yazdır("Tüm elemanlar:")
+değişken j = 0
+döngü (j < 5) {
+    yazdır("  sayilar[" + metin(j) + "] = " + metin(sayilar[j]))
+    j = j + 1
+}
+
+// ============================================================================
+// 7. SÖZLÜKLER (DICTIONARIES)
+// ============================================================================
+
+yazdır("\n=== Sözlükler ===")
+
+değişken kisi = {
+    "isim": "Ayşe",
+    "yas": 17,
+    "sehir": "Ankara"
+}
+
+yazdır("İsim: " + kisi["isim"])
+yazdır("Yaş: " + metin(kisi["yas"]))
+yazdır("Şehir: " + kisi["sehir"])
+
+// ============================================================================
+// 8. MATEMATİK İŞLEMLERİ
+// ============================================================================
+
+yazdır("\n=== Matematik ===")
+
+değişken x = 10
+değişken y = 3
+
+yazdır("x + y = " + metin(x + y))
+yazdır("x - y = " + metin(x - y))
+yazdır("x * y = " + metin(x * y))
+yazdır("x / y = " + metin(x / y))
+yazdır("x % y = " + metin(x % y))
+
+yazdır("\n✅ Syntax testi tamamlandı!")
+

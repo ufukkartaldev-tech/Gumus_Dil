@@ -1,0 +1,36 @@
+// 🎓 Gümüşdil: Veri Yapıları 101 - Bağlı Liste (Linked List)
+// Bu kod GümüşHafıza'daki okları (pointers) görmek için tasarlanmıştır.
+
+sınıf Düğüm {
+    kurucu(v) {
+        öz.veri = v;
+        öz.sonraki = boş;
+    }
+}
+
+yazdır("💎 GümüşHafıza: Bağlı Liste Operasyonu Başlatılıyor...");
+
+// 1. Düğümleri (vagonları) oluşturuyoruz
+değişken düğüm1 = Düğüm(10);
+değişken düğüm2 = Düğüm(20);
+değişken düğüm3 = Düğüm(30);
+
+yazdır("📦 Düğümler oluşturuldu. Şimdi aradaki bağları kuruyoruz...");
+
+// 2. Aradaki bağları (okları) kuruyoruz
+// Buraya dikkat: Bu satırlar çalıştığında GümüşHafıza'da OKLAR çıkacak! 🏹
+düğüm1.sonraki = düğüm2;
+düğüm2.sonraki = düğüm3;
+
+yazdır("🔗 Bağlı liste kuruldu! Şimdi listede geziyoruz...");
+
+// 3. Listede gezme (Traversal)
+değişken geçici = düğüm1;
+döngü (geçici != boş) {
+    yazdır("🏠 Şu anki düğüm verisi: " + metin(geçici.veri));
+    geçici = geçici.sonraki;
+}
+
+yazdır("✨ İşlem Bitti. Hafıza Odaları (Heap) sekmesine bakmayı unutma!");
+
+

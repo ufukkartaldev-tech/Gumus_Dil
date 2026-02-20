@@ -1,0 +1,19 @@
+// Sensor Kutuphanesi (std_lib/donanim_lojik/sensor.tr)
+dahil_et("std_lib/donanim.tr")
+
+fonksiyon sicaklik_oku(pin) {
+    // Analog değeri (0-1023) santigrata cevir (ornek formul)
+    // float olmadigi icin * 10 yapiyoruz hassasiyet icin
+    ham_değer = değer_oku(pin)
+    voltaj_x10 = (ham_değer * 50) / 1023
+    sicaklik = (voltaj_x10 - 5) * 10
+    dön sicaklik
+}
+
+fonksiyon mesafe_olc(trig_pin, echo_pin) {
+    // Simule edilmis mesafe
+    // Gercek hayatta pulseIn gerekir
+    sans = rastgele(10, 400) // 10cm - 400cm arasi
+    dön sans
+}
+

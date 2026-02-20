@@ -1,0 +1,52 @@
+// ---------------------------------------------------------
+// GUMUS KOPRU (python_bag.tr)
+// Python Kutuphaneleri ile Entegrasyon
+// ---------------------------------------------------------
+
+sinif PythonKoprusu {
+    değişken aktif_modul
+    değişken baglanti_durumu
+
+    kurucu() {
+        �z.aktif_modul = "yok"
+        �z.baglanti_durumu = doğru // Varsayilan olarak aktif kabul ediyoruz
+        yazdır("[PYTHON] Python sanal makinesi (VM) baslatildi.")
+        yazdır("[PYTHON] Surum: 3.12 (GumusDil Entegre)")
+    }
+
+    fonksiyon dahil_et(modul_adi) {
+        yazdır("[PYTHON] import " + modul_adi)
+        // Native PyImport_ImportModule cagrisi
+        �z.aktif_modul = modul_adi
+        dön doğru
+    }
+
+    fonksiyon cagir(fonksiyon_adi, argumanlar) {
+        eğer (�z.aktif_modul == "yok") {
+            hata_firlat("Once bir Python modulu dahil edilmelidir! (dahil_et kullan)")
+        }
+
+        yazdır("[PYTHON] CALISTIRILIYOR: " + �z.aktif_modul + "." + fonksiyon_adi + "(...)")
+        
+        // Argumanlari Python nesnelerine cevirme simulasyonu
+        değişken arg_str = ""
+        eğer (argumanlar != boş) {
+            // arg_str = metin(argumanlar)
+        }
+        
+        // Native cagri sonucu
+        yazdır("[PYTHON] Islem basarili.")
+        dön "PyObject_Result" 
+    }
+    
+    fonksiyon kapat() {
+        yazdır("[PYTHON] VM kapatiliyor.")
+        �z.baglanti_durumu = yanlış
+    }
+}
+
+// Kolay Kullanim
+fonksiyon python_baslat() {
+    dön yeni PythonKoprusu()
+}
+

@@ -1,0 +1,43 @@
+dahil_et("std_lib/mimar.tr");
+
+yazdır("--- AKILLI MIMAR TESTI ---");
+
+// Mimarı çağıralım
+değişken usta = yeni Mimar("Ahmet Usta");
+
+// 1. Merkeze Piramit (Taş)
+usta.piramit_yap(10, 10, 7, 2); // 7 blok genişliğinde, taş piramit
+
+// 2. Uzaklara Kuleler (Tahta)
+usta.kule_yap(20, 20, 10, 4); // Uzak kule 1
+usta.kule_yap(0, 0, 10, 4);   // Uzak kule 2
+
+// 3. FİZİK OPTİMİZASYON TESTİ
+// Piramidin tepesine kum (Tip 6) dökelim
+insaa_et(10, 10, 10, 6); 
+yazdır("Piramidin tepesine kum koyuldu.");
+
+// Uzaktaki kulenin tepesine de kum dökelim
+insaa_et(20, 11, 20, 6);
+yazdır("Uzak kuleye kum koyuldu.");
+
+yazdır("--- Dinamik Optimizasyon Devrede ---");
+yazdır("Sadece piramit çevresi (Menzil: 8) güncellenecek!");
+
+değişken i = 0;
+döngü (i < 10) {
+    // Sadece (10,10) merkezli 8 blokluk alana bak
+    // Uzaktaki (20,20) kulesindeki kum DÜŞMEMELİ
+    değişken hareket = fizik_guncelle(10, 10, 8);
+    
+    eğer (hareket > 0) {
+        yazdır("Döngü " + i + ": Hareket var! (Piramitte)");
+    }
+    
+    bekle(200);
+    i = i + 1;
+}
+
+yazdır("--- Test Bitti ---");
+yazdır("Gözlem: Piramitteki kum aktı mı? Uzaktaki kum havada mı?");
+

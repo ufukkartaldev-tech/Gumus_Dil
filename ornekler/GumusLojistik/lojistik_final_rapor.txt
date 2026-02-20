@@ -1,0 +1,59 @@
+..\..\gumus.exe : {"type": "
+import_error", "line": 0, "m
+essage": "Modul bulunamadi: 
+dosya.tr"}
+At line:1 char:28
++ ... usLojistik; ..\..\gumu
+s.exe baslat.tr > lojistik_f
+inal_rapor.txt 2>&1 ...
++                 ~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: ({"typ  
+  e": "impor...adi: dosya   
+ .tr"}:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+{"type": "import_error", "li
+ne": 0, "message": "Modul bu
+lunamadi: metin.tr"}
+{"type": "import_error", "li
+ne": 0, "message": "Modul bu
+lunamadi: matematik.tr"}
+{"type": "import_error", "li
+ne": 0, "message": "Modul yu
+klenirken hata: ../../lib/co
+klu_islem.tr"}
+{"type": "import_error", "li
+ne": 0, "message": "Modul bu
+lunamadi: matematik.tr"}
+ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
+Ôòæ          G+£M+£+Þ LOJ¦-ST¦-K - AKILLI +ÞEH¦-R Y+ûNET¦-M¦-          Ôòæ
+Ôòæ       Mod+-ler Lojistik Zinciri ve AI Savunma Hatt¦-       Ôòæ
+ÔòÜÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòØ
+
+[VER¦-TABANI] Ba¦þlant¦- kuruluyor: lojistik_ana.db
+DEBUG: db_baglan cagrildi, yol=lojistik_ana.db
+[DB] Baglanti kuruluyor: lojistik_ana.db (sqlite)
+[VER¦-TABANI] 10000 adet veri m+-h+-rleniyor...
+[VER¦-TABANI] Ba+þar¦-l¦-! 10000 kay¦-t p¦-rlanta gibi sakland¦-.
+[AI] Katman olusturuldu: 2 -> 8
+[AI] Katman olusturuldu: 8 -> 1
+[AI] Merkez Depo -> Kuzey ¦-stasyonu aras¦- A* rotas¦- +ðiziliyor...
+[AI] Tahmin yurutuluyor...
+[AI] Rota m+-h+-rlendi. Tahmini var¦-+þ: 0 ms.
+[PARALEL] 100 kurye +ðekirdeklere da¦þ¦-t¦-l¦-yor...
+[PARALEL] Mermi h¦-z¦-yla t+-m rotalar hesapland¦-.
+[3D] Yeni sahne olusturuldu.
+[GRAF¦-K] 3D +Þehir paneli haz¦-rland¦-.
+[GRAF¦-K] 500 bina ve 100 ara+ð render al¦-n¦-yor...
+[3D] Sahne render aliniyor (0 nesne)...
+[GRAF¦-K] +Þehir mermi h¦-z¦-yla ekrana yans¦-t¦-ld¦-.
+
+Ô£à [S¦-STEM] G+-m+-+þ Lojistik mermi h¦-z¦-yla devrede!
+[DB] Baglanti kapatildi.
+[VER¦-TABANI] G+-venli +ð¦-k¦-+þ yap¦-ld¦-.
+

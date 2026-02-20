@@ -1,0 +1,420 @@
+#include "parser.h"
+#include <stdexcept>
+
+Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), current(0) {}
+
+std::vector<std::shared_ptr<Stmt>> Parser::parse() {
+    std::vector<std::shared_ptr<Stmt>> statements;
+    while (!isAtEnd()) {
+        try {
+            if (match({TokenType::NEW_LINE})) continue;
+
+            if (match({TokenType::KW_VAR})) {
+                statements.push_back(varDeclaration());
+            } else if (match({TokenType::KW_SINIF})) {
+                statements.push_back(classDeclaration());
+            } else if (match({TokenType::KW_FONKSIYON})) {
+                statements.push_back(function("function"));
+            } else {
+                statements.push_back(statement());
+            }
+        } catch (const std::runtime_error& error) {
+            std::cerr << "Parse Error: " << error.what() << "\n";
+            advance(); 
+        }
+    }
+    return statements;
+}
+
+
+
+
+std::shared_ptr<Stmt> Parser::varDeclaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Degisken adi bekleniyor.");
+
+    std::shared_ptr<Expr> initializer = nullptr;
+    if (match({TokenType::EQUAL})) {
+        initializer = expression();
+    }
+
+    consumeStatementEnd();
+    return std::make_shared<VarStmt>(name, initializer);
+}
+
+std::shared_ptr<Stmt> Parser::classDeclaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Sinif adi bekleniyor.");
+    
+    std::shared_ptr<VariableExpr> superclass = nullptr;
+    if (match({TokenType::LESS})) {
+        consume(TokenType::IDENTIFIER, "Ust sinif adi bekleniyor.");
+        superclass = std::make_shared<VariableExpr>(previous());
+    }
+
+    consume(TokenType::LBRACE, "Sinif govdesi icin '{' bekleniyor.");
+
+    std::vector<std::shared_ptr<FunctionStmt>> methods;
+    while (!check(TokenType::RBRACE) && !isAtEnd()) {
+        consume(TokenType::KW_FONKSIYON, "Metot tanimi 'fonksiyon' ile baslamali.");
+        
+        std::shared_ptr<Stmt> methodStmt = function("metot");
+        if (auto func = std::dynamic_pointer_cast<FunctionStmt>(methodStmt)) {
+            methods.push_back(func);
+        }
+    }
+
+    consume(TokenType::RBRACE, "Sinif govdesinden sonra '}' bekleniyor.");
+    return std::make_shared<ClassStmt>(name, superclass, methods);
+}
+
+std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
+    Token name;
+    if (check(TokenType::KW_KURUCU)) {
+        name = advance();
+    } else {
+        name = consume(TokenType::IDENTIFIER, kind + " adi bekleniyor.");
+    }
+    consume(TokenType::LPAREN, kind + " adindan sonra '(' bekleniyor.");
+    std::vector<Token> parameters;
+    if (!check(TokenType::RPAREN)) {
+        do {
+            if (parameters.size() >= 255) {
+                // error "Can't have more than 255 parameters."
+            }
+            parameters.push_back(consume(TokenType::IDENTIFIER, "Parametre adi bekleniyor."));
+        } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RPAREN, "Parametrelerden sonra ')' bekleniyor.");
+    consume(TokenType::LBRACE, kind + " govdesi icin '{' bekleniyor.");
+    std::vector<std::shared_ptr<Stmt>> body = block();
+    return std::make_shared<FunctionStmt>(name, parameters, body);
+}
+
+std::shared_ptr<Stmt> Parser::statement() {
+    if (match({TokenType::KW_EGER})) return ifStatement();
+    if (match({TokenType::KW_DONGU})) return whileStatement();
+    if (match({TokenType::KW_DON})) return returnStatement();
+    if (match({TokenType::KW_YAZDIR})) return printStatement();
+    if (match({TokenType::KW_DENEME})) return tryCatchStatement();
+    if (match({TokenType::LBRACE})) return std::make_shared<BlockStmt>(block());
+    return expressionStatement();
+}
+
+std::shared_ptr<Stmt> Parser::returnStatement() {
+    Token keyword = previous();
+    std::shared_ptr<Expr> value = nullptr;
+    // Eger sonraki token ';' degilse ve ayni satirda ise, bir ifade donuyor demektir.
+    if (!check(TokenType::SEMICOLON) && !check(TokenType::RBRACE) && peek().line == keyword.line) {
+        value = expression();
+    }
+    consumeStatementEnd();
+    return std::make_shared<ReturnStmt>(keyword, value);
+}
+
+std::shared_ptr<Stmt> Parser::ifStatement() {
+    bool parantezli = match({TokenType::LPAREN});
+    
+    std::shared_ptr<Expr> condition = expression();
+    
+    if (parantezli) {
+        consume(TokenType::RPAREN, "Kosuldan sonra ')' bekleniyor.");
+    }
+
+    std::shared_ptr<Stmt> thenBranch = statement();
+    std::shared_ptr<Stmt> elseBranch = nullptr;
+
+    if (match({TokenType::KW_DEGILSE})) {
+        elseBranch = statement();
+    }
+
+    return std::make_shared<IfStmt>(condition, thenBranch, elseBranch);
+}
+
+std::shared_ptr<Stmt> Parser::whileStatement() {
+    bool parantezli = match({TokenType::LPAREN});
+    std::shared_ptr<Expr> condition = expression();
+    if (parantezli) {
+        consume(TokenType::RPAREN, "Kosuldan sonra ')' bekleniyor.");
+    }
+
+    std::shared_ptr<Stmt> body = statement();
+
+    return std::make_shared<WhileStmt>(condition, body);
+}
+
+std::shared_ptr<Stmt> Parser::tryCatchStatement() {
+    consume(TokenType::LBRACE, "'deneme' blogu '{' ile baslamali.");
+    std::vector<std::shared_ptr<Stmt>> tryBody = block();
+    std::shared_ptr<Stmt> tryBlock = std::make_shared<BlockStmt>(tryBody);
+
+    consume(TokenType::KW_YAKALA, "'deneme' blogundan sonra 'yakala' bekleniyor.");
+    consume(TokenType::LPAREN, "'yakala' sonrasinda '(' bekleniyor.");
+    Token errorName = consume(TokenType::IDENTIFIER, "Hata degisken adi bekleniyor.");
+    consume(TokenType::RPAREN, "Degisken adindan sonra ')' bekleniyor.");
+
+    consume(TokenType::LBRACE, "'yakala' blogu '{' ile baslamali.");
+    std::vector<std::shared_ptr<Stmt>> catchBody = block();
+    std::shared_ptr<Stmt> catchBlock = std::make_shared<BlockStmt>(catchBody);
+
+    return std::make_shared<TryCatchStmt>(tryBlock, errorName, catchBlock);
+}
+
+
+std::vector<std::shared_ptr<Stmt>> Parser::block() {
+    std::vector<std::shared_ptr<Stmt>> statements;
+
+    while (!check(TokenType::RBRACE) && !isAtEnd()) {
+        statements.push_back(statement());
+    }
+
+    consume(TokenType::RBRACE, "Blok sonrasinda '}' bekleniyor.");
+    return statements;
+}
+
+std::shared_ptr<Stmt> Parser::printStatement() {
+    bool parantezli = match({TokenType::LPAREN});
+    std::shared_ptr<Expr> value = expression();
+    
+    if (parantezli) {
+        consume(TokenType::RPAREN, "Ifadeden sonra ')' bekleniyor.");
+    }
+    
+    consumeStatementEnd();
+    return std::make_shared<PrintStmt>(value);
+}
+
+std::shared_ptr<Stmt> Parser::expressionStatement() {
+    std::shared_ptr<Expr> expr = expression();
+    consumeStatementEnd();
+    return std::make_shared<ExpressionStmt>(expr);
+}
+
+std::shared_ptr<Expr> Parser::expression() {
+    return assignment();
+}
+
+std::shared_ptr<Expr> Parser::assignment() {
+    std::shared_ptr<Expr> expr = logicOr();
+
+
+    if (match({TokenType::EQUAL})) {
+        std::shared_ptr<Expr> value = assignment();
+        if (auto varExpr = std::dynamic_pointer_cast<VariableExpr>(expr)) {
+            return std::make_shared<AssignExpr>(varExpr->name, value);
+        } else if (auto propExpr = std::dynamic_pointer_cast<PropertyExpr>(expr)) {
+            return std::make_shared<SetExpr>(propExpr->object, propExpr->name, value);
+        }
+        throw std::runtime_error("Hatali atama hedefi (gecersiz l-degeri).");
+    }
+
+    return expr;
+}
+
+void Parser::consumeStatementEnd() {
+    if (match({TokenType::SEMICOLON})) {
+        // Opsiyonel: Noktali virgulden sonra gelen yeni satiri da yut (temizlik icin)
+        match({TokenType::NEW_LINE});
+        return;
+    }
+    if (match({TokenType::NEW_LINE})) return;
+    
+    if (check(TokenType::RBRACE)) return;
+    if (isAtEnd()) return;
+
+    throw std::runtime_error("Ifade sonunda satir sonu veya ';' bekleniyor. (Satir: " + std::to_string(peek().line) + ")");
+}
+
+std::shared_ptr<Expr> Parser::logicOr() {
+    std::shared_ptr<Expr> expr = logicAnd();
+
+    while (match({TokenType::LOGIC_OR})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = logicAnd();
+        expr = std::make_shared<LogicalExpr>(expr, op, right);
+    }
+
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::logicAnd() {
+    std::shared_ptr<Expr> expr = equality();
+
+    while (match({TokenType::LOGIC_AND})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = equality();
+        expr = std::make_shared<LogicalExpr>(expr, op, right);
+    }
+
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::equality() {
+
+    std::shared_ptr<Expr> expr = comparison();
+    while (match({TokenType::EQUAL_EQUAL, TokenType::BANG_EQUAL})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = comparison();
+        expr = std::make_shared<BinaryExpr>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::comparison() {
+    std::shared_ptr<Expr> expr = term();
+    while (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = term();
+        expr = std::make_shared<BinaryExpr>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::term() {
+    std::shared_ptr<Expr> expr = factor();
+    while (match({TokenType::PLUS, TokenType::MINUS})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = factor();
+        expr = std::make_shared<BinaryExpr>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::factor() {
+    std::shared_ptr<Expr> expr = unary();
+    while (match({TokenType::MULTIPLY, TokenType::DIVIDE})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = unary();
+        expr = std::make_shared<BinaryExpr>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::unary() {
+    if (match({TokenType::BANG, TokenType::MINUS})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = unary();
+        return std::make_shared<UnaryExpr>(op, right);
+    }
+    return call();
+}
+
+std::shared_ptr<Expr> Parser::call() {
+    std::shared_ptr<Expr> expr = primary();
+
+    while (true) {
+        if (match({TokenType::LPAREN})) {
+            expr = finishCall(expr);
+        } else if (match({TokenType::LBRACKET})) {
+            expr = finishIndex(expr);
+        } else if (match({TokenType::DOT})) {
+            Token name = consume(TokenType::IDENTIFIER, "'. ' sonrasinda ozellik adi bekleniyor.");
+            expr = std::make_shared<PropertyExpr>(expr, name);
+        } else {
+            break;
+        }
+    }
+
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::finishIndex(std::shared_ptr<Expr> callee) {
+    std::shared_ptr<Expr> index = expression();
+    consume(TokenType::RBRACKET, "indeks sonrasi ']' bekleniyor.");
+    return std::make_shared<GetExpr>(callee, index);
+}
+
+std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
+    std::vector<std::shared_ptr<Expr>> arguments;
+    if (!check(TokenType::RPAREN)) {
+        do {
+            if (arguments.size() >= 255) {
+                // Error limit
+            }
+            arguments.push_back(expression());
+        } while (match({TokenType::COMMA}));
+    }
+    Token paren = consume(TokenType::RPAREN, "Argumanlardan sonra ')' bekleniyor.");
+
+    return std::make_shared<CallExpr>(callee, paren, arguments);
+}
+
+std::shared_ptr<Expr> Parser::primary() {
+    if (match({TokenType::INTEGER})) {
+        return std::make_shared<LiteralExpr>(previous());
+    }
+    if (match({TokenType::STRING})) {
+        return std::make_shared<LiteralExpr>(previous());
+    }
+
+    if (match({TokenType::KW_DOGRU})) {
+        return std::make_shared<LiteralExpr>(previous());
+    }
+    if (match({TokenType::KW_YANLIS})) {
+        return std::make_shared<LiteralExpr>(previous());
+    }
+
+    
+    // Arrays [1, 2]
+    if (match({TokenType::LBRACKET})) {
+        std::vector<std::shared_ptr<Expr>> elements;
+        if (!check(TokenType::RBRACKET)) {
+            do {
+                elements.push_back(expression());
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RBRACKET, "Listeden sonra ']' bekleniyor.");
+        return std::make_shared<ListExpr>(elements);
+    }
+
+    if (match({TokenType::IDENTIFIER})) {
+        return std::make_shared<VariableExpr>(previous());
+    }
+
+    if (match({TokenType::KW_BEN})) {
+        return std::make_shared<ThisExpr>(previous());
+    }
+
+    if (match({TokenType::LPAREN})) {
+        std::shared_ptr<Expr> expr = expression();
+        consume(TokenType::RPAREN, "Ifadeden sonra ')' bekleniyor.");
+        return expr;
+    }
+
+    throw std::runtime_error("Ifade bekleniyor.");
+}
+
+Token Parser::peek() const {
+    return tokens[current];
+}
+
+Token Parser::previous() const {
+    return tokens[current - 1];
+}
+
+Token Parser::advance() {
+    if (!isAtEnd()) current++;
+    return previous();
+}
+
+bool Parser::isAtEnd() const {
+    return peek().type == TokenType::END_OF_FILE;
+}
+
+bool Parser::check(TokenType type) const {
+    if (isAtEnd()) return false;
+    return peek().type == type;
+}
+
+bool Parser::match(const std::vector<TokenType>& types) {
+    for (TokenType type : types) {
+        if (check(type)) {
+            advance();
+            return true;
+        }
+    }
+    return false;
+}
+
+Token Parser::consume(TokenType type, const std::string& message) {
+    if (check(type)) return advance();
+    throw std::runtime_error(message);
+}

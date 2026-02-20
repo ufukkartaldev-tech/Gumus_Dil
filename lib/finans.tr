@@ -1,0 +1,142 @@
+// ---------------------------------------------------------
+// FINANSAL HESAPLAmimariR KUTUPHANESI (finans.tr)
+// ---------------------------------------------------------
+// KDV, taksit, faiz, yatirim hesaplamimariri
+
+dahil_et("std_lib/matematik.tr")
+
+// ============ KDV HESAPLAmimariRI ============
+
+fonksiyon kdv_hesapla(tutar, kdv_orani) {
+    // KDV tutarini hesapla (ornek: %18 icin 18 gir)
+    kdv = (tutar * kdv_orani) / 100
+    dön kdv
+}
+
+fonksiyon kdv_dahil_fiyat(tutar, kdv_orani) {
+    kdv = kdv_hesapla(tutar, kdv_orani)
+    dön tutar + kdv
+}
+
+fonksiyon kdv_haric_fiyat(kdv_dahil_tutar, kdv_orani) {
+    // KDV dahil fiyattan KDV haric fiyati bul
+    carpan = 1 + (kdv_orani / 100)
+    dön kdv_dahil_tutar / carpan
+}
+
+// ============ TAKSIT HESAPLAmimariRI ============
+
+fonksiyon taksit_hesapla(ana_para, taksit_sayisi, faiz_orani) {
+    // Basit taksit hesaplama (faiz orani aylik)
+    toplam_faiz = (ana_para * faiz_orani * taksit_sayisi) / 100
+    toplam_odeme = ana_para + toplam_faiz
+    aylik_taksit = toplam_odeme / taksit_sayisi
+    
+    dön aylik_taksit
+}
+
+fonksiyon toplam_odeme_hesapla(ana_para, taksit_sayisi, faiz_orani) {
+    aylik = taksit_hesapla(ana_para, taksit_sayisi, faiz_orani)
+    dön aylik * taksit_sayisi
+}
+
+// ============ FAIZ HESAPLAmimariRI ============
+
+fonksiyon basit_faiz(ana_para, faiz_orani, sure_yil) {
+    // Basit faiz hesaplama
+    faiz = (ana_para * faiz_orani * sure_yil) / 100
+    dön faiz
+}
+
+fonksiyon bilesik_faiz(ana_para, faiz_orani, sure_yil) {
+    // Bilesik faiz (yillik bilesik)
+    // Formul: A = P * (1 + r)^n
+    carpan = 1 + (faiz_orani / 100)
+    sonuc = ana_para
+    
+    i = 0
+    döngü (i < sure_yil) {
+        sonuc = sonuc * carpan
+        i = i + 1
+    }
+    
+    dön sonuc
+}
+
+fonksiyon yatirim_getirisi(baslangic, bitis) {
+    // Yatirim getirisi yuzdesi
+    kazanc = bitis - baslangic
+    getiri_yuzdesi = (kazanc * 100) / baslangic
+    dön getiri_yuzdesi
+}
+
+// ============ INDIRIM HESAPLAmimariRI ============
+
+fonksiyon indirim_hesapla(fiyat, indirim_yuzdesi) {
+    indirim_tutari = (fiyat * indirim_yuzdesi) / 100
+    dön indirim_tutari
+}
+
+fonksiyon indirimli_fiyat(fiyat, indirim_yuzdesi) {
+    indirim = indirim_hesapla(fiyat, indirim_yuzdesi)
+    dön fiyat - indirim
+}
+
+// ============ BUTCE YONETIMI ============
+
+fonksiyon butce_analizi(gelir_listesi, gider_listesi) {
+    toplam_gelir = 0
+    toplam_gider = 0
+    
+    i = 0
+    l = uzunluk(gelir_listesi)
+    döngü (i < l) {
+        toplam_gelir = toplam_gelir + gelir_listesi[i]
+        i = i + 1
+    }
+    
+    i = 0
+    l = uzunluk(gider_listesi)
+    döngü (i < l) {
+        toplam_gider = toplam_gider + gider_listesi[i]
+        i = i + 1
+    }
+    
+    net_durum = toplam_gelir - toplam_gider
+    
+    yazdır("========================================")
+    yazdır("         BUTCE ANALIZI")
+    yazdır("========================================")
+    yazdır("Toplam Gelir: " + metin(toplam_gelir) + " TL")
+    yazdır("Toplam Gider: " + metin(toplam_gider) + " TL")
+    yazdır("----------------------------------------")
+    
+    eğer (net_durum >= 0) {
+        yazdır("Net Durum: +" + metin(net_durum) + " TL (FAZLA)")
+    } degilse {
+        yazdır("Net Durum: " + metin(net_durum) + " TL (ACIK)")
+    }
+    
+    yazdır("========================================")
+    dön net_durum
+}
+
+// ============ BIRIM DONUSTURUCULER ============
+
+fonksiyon dolar_tl(dolar, kur) {
+    dön dolar * kur
+}
+
+fonksiyon tl_dolar(tl, kur) {
+    dön tl / kur
+}
+
+fonksiyon euro_tl(euro, kur) {
+    dön euro * kur
+}
+
+fonksiyon tl_euro(tl, kur) {
+    dön tl / kur
+}
+
+

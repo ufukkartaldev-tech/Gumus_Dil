@@ -1,0 +1,45 @@
+// ---------------------------------------------------------
+// MÜZİK VE SES KÜTÜPHANESİ (muzik.tr)
+// Ses Sentezleme ve Nota Çalma
+// ---------------------------------------------------------
+
+modül Müzik {
+    // Nota Frekansları
+    değişken NOTA_DO = 261
+    değişken NOTA_RE = 293
+    değişken NOTA_MI = 329
+    değişken NOTA_FA = 349
+    değişken NOTA_SOL = 392
+    değişken NOTA_LA = 440
+    değişken NOTA_SI = 493
+
+    fonksiyon nota_çal(frekans, süre) {
+        yazdır("[MÜZİK] Frekans çalınıyor: " + metin(frekans) + " Hz, Süre: " + metin(süre) + "ms")
+        // Gerçek implementasyonda sistem sesi veya bir kütüphane tetiklenir
+        dön doğru
+    }
+
+    fonksiyon bip() {
+        nota_çal(1000, 100)
+    }
+
+    fonksiyon melodi_çal(notalar, süreler) {
+        yazdır("[MÜZİK] Melodi başlatılıyor...")
+        için (değişken i = 0; i < uzunluk(notalar); i = i + 1) {
+            nota_çal(notalar[i], süreler[i])
+        }
+        yazdır("[MÜZİK] Melodi bitti.")
+    }
+}
+
+sınıf Enstrüman {
+    kurucu(isim) {
+        öz.isim = isim
+        yazdır("[MÜZİK] Enstrüman tanımlandı: " + isim)
+    }
+
+    fonksiyon akort_et() {
+        yazdır("[MÜZİK] " + öz.isim + " akort ediliyor...")
+    }
+}
+

@@ -1,0 +1,31 @@
+// Standart Kütüphane Testi
+
+// 1. Matematik Modülü (Normal dahil_et kullanıyoruz, çünkü dosya içinde 'modül Matematik' var)
+dahil_et("matematik.tr")
+
+yazdır("--- Matematik Testi ---")
+yazdır("PI Sayısı: " + metin(Matematik::PI))
+yazdır("Mutlak(-5): " + metin(Matematik::mutlak(-5)))
+yazdır("Kare(4): " + metin(Matematik::kare(4)))
+yazdır("Max(10, 20): " + metin(Matematik::max(10, 20)))
+
+// 2. Dosya Modülü
+dahil_et("dosya.tr")
+
+yazdır("\n--- Dosya Testi ---")
+değişken dosya_adi = "test_dosyasi.txt"
+Dosya::yaz(dosya_adi, "Merhaba Standart Kutuphane!")
+
+eğer (Dosya::varmi(dosya_adi)) {
+    yazdır("Dosya oluşturuldu.")
+    değişken oku = Dosya::oku(dosya_adi)
+    yazdır("Okunan: " + oku)
+    
+    Dosya::sil(dosya_adi)
+    yazdır("Dosya silindi.")
+} değilse {
+    yazdır("Dosya oluşturulamadı!")
+}
+
+yazdır("\n>>> Test Tamamlandı ✓")
+

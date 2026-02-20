@@ -1,0 +1,36 @@
+// ---------------------------------------------------------
+// SİSTEM ALGI KÜTÜPHANESİ (sistem.tr)
+// İşletim Sistemi ve Çevre Kontrolü
+// ---------------------------------------------------------
+
+modül Sistem {
+    // Mevcut Platformu Döndür
+    fonksiyon platform_oku() {
+        // Derleyici tarafından sağlanan sistem bilgisi
+        // Pardus üzerinde "__PARDUS__", Windows üzerinde "__WINDOWS__" döner
+        dön "Pardus" // Simülasyon: Pardus ortamındayız
+    }
+
+    // Pardus Kontrolü
+    fonksiyon pardus_mu() {
+        eğer (Sistem.platform_oku() == "Pardus") {
+            dön doğru
+        }
+        dön yanlış
+    }
+
+    // Kullanıcı Klasörü (Standartlara Uygun)
+    fonksiyon ev_dizini() {
+        eğer (Sistem.pardus_mu()) {
+            dön "/home/kullanici"
+        } yoksa {
+            dön "C:/Users/Kullanici"
+        }
+    }
+
+    // Terminal Renk Desteği Kontrolü
+    fonksiyon renkli_terminal_varmı() {
+        dön doğru
+    }
+}
+

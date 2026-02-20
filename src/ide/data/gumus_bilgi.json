@@ -1,0 +1,255 @@
+[
+    {
+        "keywords": [
+            "sözlük",
+            "dictionary",
+            "map",
+            "harita"
+        ],
+        "answer": "Sözlükler, anahtar-değer ikililerini saklamak içindir yeğenim. Süslü parantez ile tanımlanır.\n\nÖrnek:\n```\ndeğişken kişi = { \"isim\": \"Ahmet\", \"yaş\": 25 };\nyazdır(kişi[\"isim\"]); // Ahmet\n```"
+    },
+    {
+        "keywords": [
+            "dosya",
+            "oku",
+            "yaz",
+            "kaydet",
+            "file"
+        ],
+        "answer": "Dosya işlemleri için native fonksiyonlar emrine amade!\n\n**Okuma:**\n`değişken içerik = dosya_oku(\"veri.txt\");`\n\n**Yazma (Üzerine yazar):**\n`dosya_yaz(\"log.txt\", \"İşlem tamam.\");`\n\n**Ekleme (Sonuna ekler):**\n`dosya_ekle(\"log.txt\", \"\\nYeni satır.\");`"
+    },
+    {
+        "keywords": [
+            "liste",
+            "dizi",
+            "array",
+            "ekle",
+            "sil"
+        ],
+        "answer": "Listeler köşeli parantez kullanır.\n\nÖrnek:\n```\ndeğişken sayılar = [10, 20];\nekle(sayılar, 30); // [10, 20, 30]\nsil(sayılar, 0);   // [20, 30] (0. indeksi siler)\nyazdır(uzunluk(sayılar)); // 2\n```"
+    },
+    {
+        "keywords": [
+            "dizge",
+            "string",
+            "metin",
+            "parçala",
+            "büyük",
+            "küçük",
+            "uppercase",
+            "lowercase",
+            "split"
+        ],
+        "answer": "Metinlerle oynamak çocuk oyuncağı:\n\n*   `buyuk(\"merhaba\")` -> \"MERHABA\"\n*   `kucuk(\"GÜMÜŞ\")` -> \"gümüş\"\n*   `parcala(\"elma,armut\", \",\")` -> [\"elma\", \"armut\"]\n*   `metin(123)` -> \"123\""
+    },
+    {
+        "keywords": [
+            "girdi",
+            "input",
+            "kullanıcı"
+        ],
+        "answer": "Kullanıcıdan veri almak için `girdi()` fonksiyonunu kullan.\n\nÖrnek:\n`değişken ad = girdi(\"Adın ne? \");`"
+    },
+    {
+        "keywords": [
+            "zaman",
+            "saat",
+            "time",
+            "clock"
+        ],
+        "answer": "Şu anki zamanı (timestamp) almak için `zaman()` kullan.\n\nPerformans ölçmek için:\n```\ndeğişken baş = zaman();\n// ...işlemler...\nyazdır(\"Geçen süre: \" + metin(zaman() - baş));\n```"
+    },
+    {
+        "keywords": [
+            "sınıf",
+            "nesne",
+            "class",
+            "oop",
+            "kurucu",
+            "constructor",
+            "miras",
+            "kalıtım"
+        ],
+        "answer": "Sınıflar nesnelerin kalıbıdır. `öz` (this) anahtarı önemlidir.\n\n```\nsınıf Kedi {\n    kurucu(ad) {\n        öz.ad = ad;\n    }\n    miyavla() {\n        yazdır(öz.ad + \" miyavladı!\");\n    }\n}\n\ndeğişken boncuk = yeni Kedi(\"Boncuk\");\nboncuk.miyavla();\n```"
+    },
+    {
+        "keywords": [
+            "matematik",
+            "sayı",
+            "rastgele",
+            "random",
+            "karekok",
+            "sin",
+            "cos"
+        ],
+        "answer": "Matematik kütüphanesi henüz tam yüklenmedi ama temel işlemler hazır.\n*   `sayi(\"123\")` -> 123 (Metni sayıya çevirir)\n*   Daha fazlası için C++ `native_functions.cpp` dosyasına bakabilirsin."
+    },
+    {
+        "keywords": [
+            "modül",
+            "dahil_et",
+            "import",
+            "include"
+        ],
+        "answer": "Başka bir dosyayı çağırmak için `dahil_et(\"dosya_adi.tr\")` kullan. O dosyadaki kodlar sanki buraya yapıştırılmış gibi çalışır.\nDikkat: Dosya yolu tırnak içinde olmalı!"
+    },
+    {
+        "keywords": [
+            "hata",
+            "debug",
+            "ayıklama"
+        ],
+        "answer": "Hata ayıklamak için `F7` ile Gümüş Zeka panelini aç veya koduna 'Variables' panelinden bak. Unutma, 'yazdır()' en kadim debug aracıdır."
+    },
+    {
+        "keywords": [
+            "bellek",
+            "hafıza",
+            "memory",
+            "stack",
+            "heap"
+        ],
+        "answer": "Bellek yönetimi GümüşHafıza ile güvende! Basit değişkenler Stack'te, nesneler ve listeler Heap'te yaşar. Memory panelini açıp pointer oklarını takip et."
+    },
+    {
+        "keywords": [
+            "döngü",
+            "while",
+            "tekrar",
+            "loop"
+        ],
+        "answer": "Döngüler bir işi tekrar tekrar yapmak içindir.\n\n```\ndeğişken i = 0;\ndöngü (i < 5) {\n    yazdır(i);\n    i = i + 1;\n}\n```\nUnutma: Sonsuz döngüye girersen 'Ctrl+C' (veya Durdur butonu) cankurtaranındır."
+    },
+    {
+        "keywords": [
+            "her",
+            "for",
+            "döngü",
+            "sayaç"
+        ],
+        "answer": "Belirli sayıda dönmek için 'her' döngüsü yerine şimdilik while (döngü) kullanabilirsin:\n\n```\ndeğişken x = 0;\ndöngü (x < 10) {\n    // İşlemler\n    x++;\n}\n```"
+    },
+    {
+        "keywords": [
+            "eğer",
+            "if",
+            "koşul",
+            "karar",
+            "değilse",
+            "else"
+        ],
+        "answer": "Karar vermek için `eğer` ve `değilse` kullanılır. Blokları `{ }` ile sarmayı unutma.\n\n```\neğer (puan > 50) {\n    yazdır(\"Geçtin!\");\n} değilse {\n    yazdır(\"Kaldın...\");\n}\n```"
+    },
+    {
+        "keywords": [
+            "fonksiyon",
+            "metod",
+            "function",
+            "def",
+            "dön",
+            "return"
+        ],
+        "answer": "Fonksiyonlar kod tekrarını önler. `fonksiyon` ile tanımla, `dön` ile değer ver.\n\n```\nfonksiyon topla(a, b) {\n    dön a + b;\n}\nyazdır(topla(5, 3)); // 8\n```"
+    },
+    {
+        "keywords": [
+            "değişken",
+            "var",
+            "let",
+            "veri",
+            "tür"
+        ],
+        "answer": "Değişken tanımlamak için `değişken` anahtar kelimesi kullanılır. Tür belirtmene gerek yok, GümüşDil anlar (Dinamik Tip).\n\n`değişken ad = \"Ahmet\";`\n`değişken yas = 25;`"
+    },
+    {
+        "keywords": [
+            "operatör",
+            "işlem",
+            "artı",
+            "eksi",
+            "çarpı",
+            "bölü",
+            "mod"
+        ],
+        "answer": "Matematik her yerde!\n`+` (Topla), `-` (Çıkar), `*` (Çarp), `/` (Böl), `%` (Kalan/Mod).\n\nArtırma: `i++` veya `++i`\nAzaltma: `i--` veya `--i`"
+    },
+    {
+        "keywords": [
+            "mantık",
+            "ve",
+            "veya",
+            "değil",
+            "and",
+            "or",
+            "not"
+        ],
+        "answer": "Mantıksal operatörler:\n*   `ve` (&&): İkisi de doğruysa çalışır.\n*   `veya` (||): Biri bile doğruysa çalışır.\n*   `değil` (!): Tersi (Doğru -> Yanlış)."
+    },
+    {
+        "keywords": [
+            "yorum",
+            "açıklama",
+            "comment",
+            "satır"
+        ],
+        "answer": "Koduna not düşmek için `//` kullan. Derleyici bunları görmezden gelir ama gelecekteki sen sana teşekkür eder.\n\n`// Bu satır bir yorumdur.`"
+    },
+    {
+        "keywords": [
+            "adres",
+            "pointer",
+            "işaretçi",
+            "bellek adresi"
+        ],
+        "answer": "GümüşDil'de değişkenlerin bellekteki adresine `&` ile ulaşabilirsin (C++ gibi).\n\n`yazdır(&degisken); // 0x7ffee...`"
+    },
+    {
+        "keywords": [
+            "bug",
+            "böcek",
+            "hata",
+            "bozuk"
+        ],
+        "answer": "İlk bilgisayar hatası (bug) gerçekten bir böcekti (güve)! 1947'de Grace Hopper'ın ekibi rölenin içine sıkışmış bir güve buldu. O gün bugündür hatalara 'bug' diyoruz. 🐞"
+    },
+    {
+        "keywords": [
+            "clean code",
+            "temiz kod",
+            "refactoring"
+        ],
+        "answer": "Temiz Kod (Clean Code), sadece çalışan değil, okunan koddur. Bir başkası kodunu okuduğunda küfür etmiyorsa temizdir. Refactoring ise 'kodu bozmadan iyileştirme' sanatıdır. 🧹"
+    },
+    {
+        "keywords": [
+            "voxel",
+            "oyun",
+            "blok",
+            "3d",
+            "maden",
+            "minecraft"
+        ],
+        "answer": "GümüşVoxel motoru ile kendi 3D dünyanı kurabilirsin!\n\n**Blok Ekle:** `blok_ekle(x, y, z, tip);` (tip: 1: Taş, 2: Toprak...)\n**Blok Sil:** `blok_sil(x, y, z);` \n**Kamerayı Oynat:** `kamera_bak(x, y, z);`"
+    },
+    {
+        "keywords": [
+            "fabrika",
+            "mimari",
+            "üretim",
+            "robot",
+            "simülasyon"
+        ],
+        "answer": "GümüşFabrika (__FABRIKA__ protokolü) ile endüstriyel süreçleri simüle et.\n\n`yazdır(\"__FABRIKA__:produce widget 100\");` komutu fabrikada 100 adet 'widget' üretilmesini tetikler. Bu, gerçek bir PLC kontrol sistemi simülasyonudur."
+    },
+    {
+        "keywords": [
+            "pardus",
+            "yerli",
+            "linux",
+            "paket",
+            "kurulum"
+        ],
+        "answer": "GümüşDil, TÜBİTAK Pardus ile tam uyumludur. 'Leopar' teması ve '.deb' paketleme araçları ile yerli ekosisteme tam destek veriyoruz. Pardus panelinden sistem bilgilerini anlık izleyebilirsin."
+    }
+]
+

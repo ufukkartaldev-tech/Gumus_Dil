@@ -1,0 +1,4 @@
+modül X {
+    yazdır("Modül çalıştı")
+}
+

@@ -1,0 +1,45 @@
+// GUMUSDIL - girdi() Kullanimi Ornegi
+// Bu dosya girdi() fonksiyonunun doğru kullan�m�n� g�sterir
+
+yazdır("=== YANLIS KULLANIM ===")
+yazdır("(Bu ornegi calistirmayin, sadece okuyun)")
+yazdır("")
+yazdır("// YANLIS:")
+yazdır("// değişken x = girdi()  // \"5\" (metin)")
+yazdır("// değişken y = girdi()  // \"10\" (metin)")
+yazdır("// yazdır(x + y)         // \"510\" (metin birlestirme)")
+yazdır("")
+
+yazdır("=== doğru KULLANIM ===")
+yazdır("")
+
+// Ornek 1: Basit toplama
+yazdır("Birinci sayiyi gir:")
+değişken sayi1 = sayi(girdi())
+
+yazdır("Ikinci sayiyi gir:")
+değişken sayi2 = sayi(girdi())
+
+değişken toplam = sayi1 + sayi2
+yazdır("Toplam: " + metin(toplam))
+yazdır("")
+
+// Ornek 2: Yas hesaplama
+yazdır("Dogum yilini gir:")
+değişken dogum_yili = sayi(girdi())
+değişken su_an = 2026
+değişken yas = su_an - dogum_yili
+yazdır("Yasin: " + metin(yas))
+yazdır("")
+
+// Ornek 3: Metin olarak kullanim (sayi() GEREKSIZ)
+yazdır("Adin ne?")
+değişken isim = girdi()  // Metin olarak kalsin
+yazdır("Merhaba " + isim + "!")
+yazdır("")
+
+yazdır("=== OZET ===")
+yazdır("1. Sayi islemi yapacaksan: sayi(girdi())")
+yazdır("2. Metin olarak kullanacaksan: girdi()")
+yazdır("3. Unutma: girdi() HER ZAMAN metin dondurur!")
+

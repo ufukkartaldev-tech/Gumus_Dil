@@ -1,0 +1,65 @@
+// ---------------------------------------------------------
+// ROBOTİK KÜTÜPHANESİ (robotik.tr)
+// Robot Kontrol, Sensör ve Motor Yönetimi
+// ---------------------------------------------------------
+
+dahil_et("donanim.tr")
+
+sınıf Motor {
+    kurucu(pin_a, pin_b) {
+        öz.pin_a = pin_a
+        öz.pin_b = pin_b
+        öz.hız = 0
+        yazdır("[ROBOTİK] Motor tanımlandı. Pinler: " + metin(pin_a) + ", " + metin(pin_b))
+    }
+
+    fonksiyon ileri(hız) {
+        öz.hız = hız
+        isik_yak(öz.pin_a)
+        isik_sondur(öz.pin_b)
+        yazdır("[ROBOTİK] Motor İLERİ. Hız: " + metin(hız))
+    }
+
+    fonksiyon geri(hız) {
+        öz.hız = hız
+        isik_sondur(öz.pin_a)
+        isik_yak(öz.pin_b)
+        yazdır("[ROBOTİK] Motor GERİ. Hız: " + metin(hız))
+    }
+
+    fonksiyon dur() {
+        öz.hız = 0
+        isik_sondur(öz.pin_a)
+        isik_sondur(öz.pin_b)
+        yazdır("[ROBOTİK] Motor DURDU.")
+    }
+}
+
+sınıf MesafeSensörü {
+    kurucu(trig, echo) {
+        öz.trig = trig
+        öz.echo = echo
+    }
+
+    fonksiyon mesafe_oku() {
+        // HC-SR04 simülasyonu
+        değişken d = rastgele() * 100
+        yazdır("[ROBOTİK] Mesafe okundu: " + metin(d) + " cm")
+        dön d
+    }
+}
+
+modül Robot {
+    fonksiyon otonom_hareket(motor_sol, motor_sağ, sensör) {
+        değişken mesafe = sensör.mesafe_oku()
+        eğer (mesafe < 20) {
+            motor_sol.geri(50)
+            motor_sağ.geri(50)
+            yazdır("[ROBOTİK] Engel tespit edildi! Geri kaçılıyor.")
+        } yoksa {
+            motor_sol.ileri(70)
+            motor_sağ.ileri(70)
+        }
+    }
+}
+

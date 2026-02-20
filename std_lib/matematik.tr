@@ -1,0 +1,52 @@
+// ---------------------------------------------------------
+// MATEMATIK KUTUPHANESI (matematik.tr)
+// ---------------------------------------------------------
+// NOT: Namespace cakismasini onlemek icin fonksiyonlar mat_ prefix'i ile baslar
+
+// Temel Sabitler
+deðiþken mat_PI = 3
+deðiþken mat_E = 2
+
+// Temel Fonksiyonlar (Native 'karekok' ve 'rastgele' zaten var)
+
+fonksiyon mat_mutlak_deðer(n) {
+    eðer (n < 0) { dön 0 - n }
+    dön n
+}
+
+fonksiyon mat_üs(taban, kuvvet) {
+    deðiþken sonuc = 1
+    deðiþken i = 0
+    döngü (i < kuvvet) {
+        sonuc = sonuc * taban
+        i = i + 1
+    }
+    dön sonuc
+}
+
+fonksiyon mat_faktoriyel(n) {
+    eðer (n <= 1) { dön 1 }
+    dön n * mat_faktoriyel(n - 1)
+}
+
+fonksiyon mat_min(a, b) {
+    eðer (a < b) { dön a }
+    dön b
+}
+
+fonksiyon mat_max(a, b) {
+    eðer (a > b) { dön a }
+    dön b
+}
+
+fonksiyon mat_cift_mi(n) {
+    deðiþken yarisi = n / 2
+    deðiþken kontrol = yarisi * 2
+    eðer (kontrol == n) { dön doðru }
+    dön yanlýþ
+}
+
+fonksiyon mat_tek_mi(n) {
+    dön !mat_cift_mi(n)
+}
+

@@ -1,0 +1,37 @@
+// ---------------------------------------------------------
+// STANDART GIRIS / CIKIS KUTUPHANES� (io.tr)
+// ---------------------------------------------------------
+
+// Ekrana formatli yazdirma ornegi (Zaten 'yazdır' ve 'renkli_yazdir' native olarak var)
+// Ama biz daha kullanisli sarmimariyici fonksiyonlar yazabiliriz.
+
+fonksiyon yaz(mesaj) {
+    yazdır(mesaj)
+}
+
+fonksiyon girdi_al(mesaj) {
+    yazdır(mesaj)
+    dön girdi()
+}
+
+// Dosya islemleri icin yardimci fonksiyonlar
+// dosya_oku, dosya_yaz native fonksiyonlarini kullanan guvenli sarmimariyicilar
+
+fonksiyon satir_satir_oku(dosya_yolu) {
+    icerik = dosya_oku(dosya_yolu)
+    eğer (icerik == boş) {
+        yazdır("Hata: Dosya okunamadi -> " + dosya_yolu)
+        dön []
+    }
+    // Her satiri ayirmak icin basit bir "parcala" islemi
+    // Native parcala fonksiyonu suan tek karakter calisiyor olabilir, kontrol edilecek.
+    // Simdilik tum icerigi donelim.
+    dön icerik
+}
+
+fonksiyon log_yaz(dosya_yolu, mesaj) {
+    zaman_damgasi = "[" + metin(zaman()) + "] "
+    dosya_ekle(dosya_yolu, zaman_damgasi + mesaj + "\n")
+}
+
+

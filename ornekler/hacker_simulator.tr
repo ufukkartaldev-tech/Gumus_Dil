@@ -1,0 +1,94 @@
+// ---------------------------------------------------------
+// PROJE: GUMUS HACKER SIMULATOR (ornekler/hacker_simulator.tr)
+// Ag, Sifreleme ve Grafik kutuphanelerini kullanan eglenceli ornek
+// ---------------------------------------------------------
+
+dahil_et("ag.tr")
+dahil_et("sifreleme.tr")
+dahil_et("grafik_basit.tr")
+dahil_et("zaman_yonetimi.tr")
+dahil_et("io.tr")
+
+fonksiyon siber_saldiri_baslat(hedef) {
+    grf_temizle()
+    renkli_yazdir("yesil", "==================================================")
+    renkli_yazdir("yesil", "   GUMUS SIBER GUVENLIK KONSOLU v2.0 (GUMUS-SEC)   ")
+    renkli_yazdir("yesil", "==================================================")
+    yazdýr("")
+    
+    renkli_yazdir("sari", "[*] Hedef Analiz Ediliyor: " + hedef)
+    bekle(1000)
+    
+    // IP Cozumleme (Ag kutuphanesi)
+    // ag_ping_at(hedef) // Gercek ping atmayalim, ses cikarabilir
+    yazdýr("[+] Hedef Cevap Verdi (Ping: 24ms)")
+    
+    // Port Tarama Simulasyonu (Grafik)
+    yazdýr("[*] Port Taramasi Baslatiliyor...")
+    deðiþken i = 0
+    döngü (i <= 100) {
+        grf_ilerleme(i)
+        bekle(20) // Hizli gecsin
+        i = i + 5
+    }
+    yazdýr("")
+    yazdýr("[+] Acik Port Bulundu: 80 (HTTP)")
+    yazdýr("[+] Acik Port Bulundu: 443 (HTTPS)")
+    
+    // Sifre Kirma
+    renkli_yazdir("kirmizi", "[!] Sifreli Veri Tespit Edildi!")
+    deðiþken gizli_mesaj = "BunuCozemezsin"
+    deðiþken hash = sifre_basit_hash(gizli_mesaj)
+    yazdýr("    HASH: " + hash)
+    
+    yazdýr("[*] Brute-Force Saldirisi Baslatiliyor...")
+    bekle(1000)
+    
+    // Matriks efekti gibi rastgele sayilar
+    deðiþken j = 0
+    döngü (j < 10) {
+        renkli_yazdir("yesil", metin(rastgele()) + " " + metin(rastgele()) + " " + metin(rastgele()))
+        bekle(100)
+        j = j + 1
+    }
+    
+    // Sonuc
+    renkli_yazdir("turkuaz", "[!!!] SIFRE KIRILDI: " + gizli_mesaj)
+    
+    // Base64 kodla arsive at
+    deðiþken arsiv = sifre_base64_kodla(gizli_mesaj)
+    yazdýr("[+] Veri Arsivlendi (Base64): " + arsiv)
+    
+    yazdýr("")
+    renkli_yazdir("yesil", "ISLEM BASARIYLA TAMAMLANDI.")
+}
+
+// Ana Menu
+io_temizle()
+yazdýr("1. Hedef IP'ye Saldir")
+yazdýr("2. Kendi IP Adresimi Ogren")
+yazdýr("3. Cikis")
+
+yazdýr("Seciminiz:")
+deðiþken secim = sayý(girdi())
+
+eðer (secim == 1) {
+    yazdýr("Hedef IP veya Domain girin (Ornek: google.com):")
+    deðiþken hedef = girdi()
+    siber_saldiri_baslat(hedef)
+}
+
+eðer (secim == 2) {
+    grf_temizle()
+    yazdýr("IP Adresiniz Sorgulaniyor...")
+    deðiþken ip = ag_ip_ogren()
+    renkli_yazdir("yesil", "IP ADRESINIZ: " + ip)
+}
+
+yazdýr("Program sonlandi.")
+// ?? Gümüþdil kodunuzu buraya yazýn...
+
+// Örnek:
+// deðiþken x = 10
+// yazdýr("Merhaba Dünya!")
+

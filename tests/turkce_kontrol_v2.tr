@@ -1,0 +1,30 @@
+sınıf Selamlayıcı {
+    öz() {
+        yazdır "Selamlayıcı başlatıldı!";
+    }
+
+    selamla() {
+        yazdır "Adınız nedir? (Türkçe karakter kullanabilirsiniz)";
+        değişken isim = girdi();
+        
+        eğer (isim == "Çiğdem") {
+            yazdır "Merhaba Çiğdem, hoş geldin!";
+        } değilse {
+            yazdır "Merhaba " + isim + "!";
+        }
+    }
+
+    say() {
+        yazdır "Saymaya başlıyorum...";
+        değişken s = 0;
+        döngü (s < 5) {
+            yazdır "Sayı: " + s;
+            s = s + 1;
+        }
+    }
+}
+
+değişken s = yeni Selamlayıcı();
+s.selamla();
+s.say();
+

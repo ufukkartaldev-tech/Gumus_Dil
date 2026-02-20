@@ -1,0 +1,18 @@
+// Donusturucu (std_lib/veri/donusturucu.tr)
+
+fonksiyon sayiya_cevir(deðer) {
+    // Native 'sayi()' fonksiyonu zaten var
+    dön sayi(deðer)
+}
+
+fonksiyon metne_cevir(deðer) {
+    // Native 'metin()' fonksiyonu zaten var
+    dön metin(deðer)
+}
+
+fonksiyon mantiksal_cevir(deðer) {
+    // Basit bir wrapper
+    eðer (deðer == "doÄŸru" veya deðer == 1 veya deðer == doðru) { dön doðru }
+    dön yanlýþ
+}
+

@@ -1,0 +1,37 @@
+// Gümüşdil Pro - Tam Türkçe Mimari Testi (v2)
+
+sınıf Organizasyon {
+    kurucu(isim) {
+        öz.isim = isim;
+    }
+
+    fonksiyon bilgi() {
+        yazdır "Bu bir organizasyondur: " + öz.isim;
+    }
+}
+
+sınıf Ordu < Organizasyon {
+    kurucu(isim, asker_sayisi) {
+        ata.kurucu(isim); // Üst sınıf kurucusunu çağır
+        öz.asker_sayısı = asker_sayisi;
+    }
+
+    fonksiyon bilgi() {
+        ata.bilgi(); // Üst sınıf bilgisini yazdır
+        yazdır "Asker Sayısı: " + öz.asker_sayısı;
+        yazdır "Durum: SAVUNMAYA HAZIR!";
+    }
+}
+
+// Nesne oluşturma ve çalıştırma
+değişken kumandanlık = Ordu("Gümüşdil Komutanlığı", 1000000);
+kumandanlık.bilgi();
+
+// Scope (Kapsam) testi
+değişken x = "Global";
+{
+    değişken x = "Yerel";
+    yazdır "Scope içindeki x: " + x; // Yerel olmalı
+}
+yazdır "Scope dışındaki x: " + x; // Global olmalı
+

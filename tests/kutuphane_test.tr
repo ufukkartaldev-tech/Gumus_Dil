@@ -1,0 +1,34 @@
+// Kutuphane Testi
+
+yazdır("Ana program baslatiliyor...")
+
+// Matematik kutuphanesini yukle
+basari = dahil_et("matematik.tr")
+
+eğer (basari) {
+    renkli_yazdir("yesil", "Kutuphane basariyla yuklendi!")
+    
+    yazdır("")
+    yazdır("--- Testler ---")
+    
+    // Kutuphaneden fonksiyonlari kullan
+    r = 5
+    alan = daire_alani(r)
+    yazdır("Yaricapi " + metin(r) + " olan dairenin alani: " + metin(alan))
+    
+    sayi = 5
+    fakt = faktoriyel(sayi)
+    yazdır(metin(sayi) + "! = " + metin(fakt))
+    
+    taban = 2
+    kuvvet = 10
+    us = us_al(taban, kuvvet)
+    yazdır(metin(taban) + " uzeri " + metin(kuvvet) + " = " + metin(us))
+
+} degilse {
+    renkli_yazdir("kirmizi", "Kutuphane yuklenirken hata olustu!")
+}
+
+yazdır("")
+renkli_yazdir("turkuaz", "Program sonlandi.")
+

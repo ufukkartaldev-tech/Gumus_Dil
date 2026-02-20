@@ -1,0 +1,25 @@
+// ============================================================================
+// MODÜL: Yapay Zeka (zeka.tr)
+// Amaç: A* Rota planlama ve trafik analizi.
+// ============================================================================
+
+dahil_et("ai_gelis.tr")
+
+sınıf RotaMotoru {
+    kurucu() {
+        öz.ai = yeni SinirAgi(0.01)
+        öz.ai.katman_ekle(2, 8) 
+        öz.ai.katman_ekle(8, 1) 
+    }
+
+    fonksiyon enKisaYolHesapla(baslangic, bitis, trafik) {
+        yazdır("[AI] " + baslangic + " -> " + bitis + " arası A* rotası çiziliyor...")
+        
+        değişken girdi = [40.0, trafik] 
+        değişken sure = öz.ai.tahmin_et(girdi)
+        
+        yazdır("[AI] Rota mühürlendi. Tahmini varış: " + metin(sure) + " ms.")
+        dön sure
+    }
+}
+

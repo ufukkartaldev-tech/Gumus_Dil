@@ -1,0 +1,34 @@
+// HATA YAKALAMA TESTİ
+
+yazdır("Test 1: Basit Hata Yakalama")
+yazdır("---------------------------")
+
+dene {
+    yazdır("Bölme işlemi yapılıyor...")
+    değişken x = 10 / 0
+    yazdır("Burası çalışmamalı!")
+} yakala(hata) {
+    yazdır("HATA YAKALANDI: " + hata)
+}
+
+yazdır("\nTest 2: Normal Akış")
+yazdır("-------------------")
+
+dene {
+    değişken y = 10 / 2
+    yazdır("İşlem Başarılı: " + metin(y))
+} yakala(hata) {
+    yazdır("Bu kısım çalışmamalı!")
+}
+
+yazdır("\nTest 3: Tanımsız Değişken")
+yazdır("-------------------------")
+
+dene {
+    yazdır(olmayan_degisken)
+} yakala(h) {
+    yazdır("Yakalanan: " + h)
+}
+
+yazdır("\n>>> Test Tamamlandı ✓")
+

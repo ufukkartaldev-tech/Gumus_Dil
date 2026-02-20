@@ -1,0 +1,24 @@
+// Renk Kutuphanesi (std_lib/sistem/renk.tr)
+
+fonksiyon kirmizi_yaz(mesaj) {
+    renkli_yazdir("kirmizi", mesaj)
+}
+
+fonksiyon yesil_yaz(mesaj) {
+    renkli_yazdir("yesil", mesaj)
+}
+
+fonksiyon mavi_yaz(mesaj) {
+    renkli_yazdir("mavi", mesaj)
+}
+
+fonksiyon sari_yaz(mesaj) {
+    renkli_yazdir("sari", mesaj)
+}
+
+fonksiyon baslik_yaz(mesaj) {
+    yazdır("----------------------------------------")
+    renkli_yazdir("turkuaz", mesaj)
+    yazdır("----------------------------------------")
+}
+

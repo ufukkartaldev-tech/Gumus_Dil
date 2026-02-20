@@ -1,0 +1,82 @@
+// ============================================
+// ÖRNEK PROJE 7: ÖĞRENCİ NOT SİSTEMİ
+// ============================================
+
+sınıf Öğrenci {
+    kurucu(ad, numara) {
+        öz.ad = ad;
+        öz.numara = numara;
+        öz.notlar = [];
+    }
+    
+    not_ekle(not_değeri) {
+        ekle(öz.notlar, not_değeri);
+    }
+    
+    ortalama_hesapla() {
+        eğer (uzunluk(öz.notlar) == 0) {
+            dön 0;
+        }
+        
+        değişken toplam = 0;
+        değişken i = 0;
+        döngü (i < uzunluk(öz.notlar)) {
+            toplam = toplam + öz.notlar[i];
+            i = i + 1;
+        }
+        
+        dön toplam / uzunluk(öz.notlar);
+    }
+    
+    durum_belirle() {
+        değişken ort = öz.ortalama_hesapla();
+        
+        eğer (ort >= 85) {
+            dön "Pekiyi";
+        } değilse eğer (ort >= 70) {
+            dön "İyi";
+        } değilse eğer (ort >= 60) {
+            dön "Orta";
+        } değilse eğer (ort >= 50) {
+            dön "Geçer";
+        } değilse {
+            dön "Kaldı";
+        }
+    }
+    
+    bilgileri_göster() {
+        yazdır("\n╔════════════════════════════════╗");
+        yazdır("║   ÖĞRENCİ BİLGİLERİ           ║");
+        yazdır("╠════════════════════════════════╣");
+        yazdır("║ Ad: " + öz.ad);
+        yazdır("║ Numara: " + metin(öz.numara));
+        yazdır("║ Ortalama: " + metin(öz.ortalama_hesapla()));
+        yazdır("║ Durum: " + öz.durum_belirle());
+        yazdır("╚════════════════════════════════╝");
+    }
+}
+
+// Ana Program
+yazdır("=== ÖĞRENCİ NOT SİSTEMİ ===\n");
+
+yazdır("Öğrenci adı:");
+değişken ad = girdi();
+
+yazdır("Öğrenci numarası:");
+değişken numara = sayı(girdi());
+
+değişken öğrenci = Öğrenci(ad, numara);
+
+yazdır("\nKaç ders notu gireceksiniz?");
+değişken ders_sayısı = sayı(girdi());
+
+değişken i = 0;
+döngü (i < ders_sayısı) {
+    yazdır("\n" + metin(i + 1) + ". ders notu:");
+    değişken not_değeri = sayı(girdi());
+    öğrenci.not_ekle(not_değeri);
+    i = i + 1;
+}
+
+öğrenci.bilgileri_göster();
+

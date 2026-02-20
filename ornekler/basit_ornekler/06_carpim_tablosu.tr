@@ -1,0 +1,35 @@
+// ============================================
+// ÖRNEK PROJE 6: ÇARPIM TABLOSU
+// ============================================
+
+yazdır("Çarpım tablosu oluşturmak için bir sayı girin:");
+değişken n = sayı(girdi());
+
+yazdır("\n" + metin(n) + " Çarpım Tablosu");
+yazdır("==================");
+
+değişken i = 1;
+döngü (i <= 10) {
+    değişken sonuç = n * i;
+    yazdır(metin(n) + " x " + metin(i) + " = " + metin(sonuç));
+    i = i + 1;
+}
+
+// Bonus: Tüm çarpım tablosu (1-10)
+yazdır("\n\n=== TAM ÇARPIM TABLOSU (1-10) ===\n");
+
+değişken satır = 1;
+döngü (satır <= 10) {
+    değişken sütun = 1;
+    değişken satır_metni = "";
+    
+    döngü (sütun <= 10) {
+        değişken çarpım = satır * sütun;
+        satır_metni = satır_metni + metin(çarpım) + "\t";
+        sütun = sütun + 1;
+    }
+    
+    yazdır(satır_metni);
+    satır = satır + 1;
+}
+

@@ -1,0 +1,23 @@
+# Gümüşdil IDE Gereksinimleri
+
+# Temel gereksinimler (Python 3.7+)
+# Tkinter genellikle Python ile birlikte gelir
+
+# Opsiyonel: Gelişmiş özellikler için
+# pip install -r requirements.txt
+
+# Syntax highlighting için
+pygments>=2.10.0
+
+# Gelişmiş terminal için (opsiyonel)
+# pyserial>=3.5
+
+# Tema desteği için (opsiyonel)
+# ttkthemes>=3.2.0
+
+# Modern UI için
+customtkinter>=5.0.0
+
+# HTTP istekleri ve API entegrasyonu için
+requests>=2.31.0
+

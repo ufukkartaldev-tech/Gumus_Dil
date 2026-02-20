@@ -1,0 +1,13 @@
+// ============================================
+// ÖRNEK PROJE 3: TEK-ÇİFT KONTROLÜ
+// ============================================
+
+yazdır("Bir sayı girin:")
+değişken sayı_değeri = sayı(girdi())
+
+eğer (sayı_değeri % 2 == 0) {
+    yazdır(metin(sayı_değeri) + " çift bir sayıdır.")
+} değilse {
+    yazdır(metin(sayı_değeri) + " tek bir sayıdır.")
+}
+

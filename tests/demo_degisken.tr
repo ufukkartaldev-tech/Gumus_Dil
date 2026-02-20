@@ -1,0 +1,59 @@
+// GUMUSDIL - Tamamen Turkce Programlama Dili
+// değişken Tanimlama Ornekleri
+
+yazdır("=== GUMUSDIL DEGISKEN ORNEKLERI ===")
+yazdır("")
+
+// 1. Basit değişken tanimlama
+değişken isim = "Ahmet"
+değişken yas = 25
+değişken aktif = doğru
+
+yazdır("Isim: " + isim)
+yazdır("Yas: " + metin(yas))
+yazdır("Aktif: " + metin(aktif))
+yazdır("")
+
+// 2. Matematiksel islemler
+değişken sayi1 = 10
+değişken sayi2 = 20
+değişken toplam = sayi1 + sayi2
+değişken fark = sayi2 - sayi1
+değişken carpim = sayi1 * sayi2
+değişken bolum = sayi2 / sayi1
+
+yazdır("=== MATEMATIKSEL ISLEMLER ===")
+yazdır("Toplam: " + metin(toplam))
+yazdır("Fark: " + metin(fark))
+yazdır("Carpim: " + metin(carpim))
+yazdır("Bolum: " + metin(bolum))
+yazdır("")
+
+// 3. Liste ile calisma
+değişken renkler = ["Kirmizi", "Mavi", "Yesil", "Sari"]
+yazdır("=== LISTE ORNEGI ===")
+yazdır("Renk sayisi: " + metin(uzunluk(renkler)))
+yazdır("")
+
+// 4. Döngü ile sayma
+yazdır("=== Döngü ORNEGI ===")
+değişken sayac = 1
+döngü (sayac <= 5) {
+    yazdır("Sayac: " + metin(sayac))
+    sayac = sayac + 1
+}
+yazdır("")
+
+// 5. Fonksiyon tanimlama
+fonksiyon selamla(ad) {
+    dön "Merhaba, " + ad + "!"
+}
+
+değişken mesaj = selamla("Gumushane")
+yazdır("=== FONKSIYON ORNEGI ===")
+yazdır(mesaj)
+yazdır("")
+
+yazdır("=== PROGRAM TAMAMLANDI ===")
+yazdır("Gumusdil - Tamamen Turkce!")
+

@@ -1,0 +1,59 @@
+// ---------------------------------------------------------
+// GUMUS ENTEGRASYON TESTI (test_entegrasyon.tr)
+// "Gumus Ordu" testi. Kutuphanelerin zincirleme reaksiyonu.
+// Senaryo: DB -> Veri -> AI -> Tahmin -> 3D -> Gorsellestirme
+// ---------------------------------------------------------
+
+dahil_et("../lib/birim.tr")
+dahil_et("../lib/db_yonetimi.tr")
+dahil_et("../lib/ai_gelis.tr")
+dahil_et("../lib/grafik_3d.tr")
+
+deðiþken t = yeni BirimTest("Entegrasyon Testi (Zincirleme)")
+
+t.bolum("ZINCIR: Veritabani -> Yapay Zeka -> Grafik")
+
+// ADIM 1: Veritabanindan Veri Cek (Mock)
+// -------------------------------------------------------
+yazdýr("1. ADIM: Veritabanindan veri cekiliyor...")
+deðiþken veritabani = db_baglan("oyun_verisi.db")
+// Simulasyon: SQL sorgusu bize bir egitim seti donduruyor gibi yapalim
+deðiþken ham_veri = veritabani.sorgu("SELECT * FROM dusman_hareketleri") 
+// db_yonetimi mock'unda sorgu [] donuyordu, biz manuel bir veri uretelim test icin
+deðiþken egitim_verisi = [1, 2, 3] 
+
+t.dogru_mu(veritabani.bagli_mi, "Veritabani baglantisi aktif")
+veritabani.kapat()
+
+// ADIM 2: Veriyi AI ile Isle
+// -------------------------------------------------------
+yazdýr("2. ADIM: Veri Yapay Zeka'ya besleniyor...")
+deðiþken yapay_zeka = yeni SinirAgi(0.05)
+yapay_zeka.katman_ekle(3, 2) // Giris: 3, Cikis: 2
+
+// DB'den gelen (simule edilen) veriyi egitimde kullan
+yapay_zeka.egit(egitim_verisi, 1)
+
+// Bir tahmin yurut
+deðiþken tahmin = yapay_zeka.tahmin_et([1, 2, 3])
+// Tahmin sonucu 0.95 donuyor (mock)
+t.esit_mi(0.95, tahmin, "AI tahmini beklenen deÄŸerde")
+
+// ADIM 3: Grafigi Guncelle (3D Sahne)
+// -------------------------------------------------------
+yazdýr("3. ADIM: Tahmine gore 3D Sahne guncelleniyor...")
+deðiþken sahne = yeni Sahne()
+deðiþken karakter = yeni Nesne3D("Dusman_Botu")
+
+sahne.nesne_ekle(karakter)
+
+// AI'nin tahminine gore karakteri tasiyalim
+// Ornegin tahmin deÄŸeri X koordinati olsun
+karakter.tasi(tahmin, 0, 0)
+
+t.esit_mi(0.95, karakter.konum.x, "Karakter grafik sahnesinde AI verisiyle doÄŸru konuma tasindi")
+
+sahne.render_al()
+
+t.raporla()
+

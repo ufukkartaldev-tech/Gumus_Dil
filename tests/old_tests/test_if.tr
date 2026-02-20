@@ -1,0 +1,10 @@
+yazdır("Başlangıç")
+değişken x = 2
+yazdır("x tanımlandı")
+eğer (x > 3) {
+    yazdır("Büyük")
+} değilse {
+    yazdır("Küçük")
+}
+yazdır("Bitti")
+

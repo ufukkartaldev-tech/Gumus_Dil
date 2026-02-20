@@ -1,0 +1,33 @@
+// GumusDil IDE Ozel Test Senaryosu
+
+// 1. Renkli Cikti Denemesi
+renkli_yazdir("turkuaz", "=== GUMUSDIL IDE TEST BASLIYOR ===");
+bekle(500); // Yarim saniye bekle
+
+// 2. Matematik Gosterisi
+renkli_yazdir("sari", "\n[Matematik Modulu Kontrol Ediliyor...]");
+değişken aci = 0;
+döngü (aci <= 3) {
+    değişken s = sin(aci);
+    değişken c = cos(aci);
+    yazdır("Aci: " + metin(aci) + " -> Sin: " + metin(s) + ", Cos: " + metin(c));
+    aci = aci + 1;
+}
+
+// 3. Dosya Islemleri Canli Test
+renkli_yazdir("yesil", "\n[Dosya Sistemi Kontrol Ediliyor...]");
+değişken dosya_adi = "ide_raporu.txt";
+
+eğer (dosya_sil(dosya_adi)) {
+    yazdır("Eski rapor silindi.");
+}
+
+dosya_yaz(dosya_adi, "Bu rapor GumusDil IDE tarafindan olusturuldu.\nTarih: " + metin(zaman()));
+yazdır("Yeni rapor yazildi: " + dosya_adi);
+yazdır("Okunan Icerik: " + dosya_oku(dosya_adi));
+
+// 4. Kapanis
+bekle(500);
+renkli_yazdir("kirmizi", "\n=== TEST BASARIYLA TAMAMLANDI ===");
+renkli_yazdir("mor", "GumusDil v2.1 Hazir!");
+

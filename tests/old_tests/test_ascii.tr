@@ -1,0 +1,5 @@
+yazdır("Test")
+eger (2 > 1) {
+    yazdır("Doğru")
+}
+

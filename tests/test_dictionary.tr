@@ -1,0 +1,41 @@
+// Gümüþdil Sözlük (Dictionary) Testi
+
+yazdýr("--- Sözlük Oluþturma Testi ---")
+deðiþken asker = {
+    ad: "Ahmet",
+    rütbe: "Onbaþý",
+    yaþ: 22,
+    "uzmanlýk": "Keskin Niþancý"
+}
+
+yazdýr("Asker Bilgileri:")
+yazdýr("Ad: " + asker["ad"])
+yazdýr("Rütbe: " + asker["rütbe"])
+yazdýr("Yaþ: " + metin(asker["yaþ"]))
+yazdýr("Uzmanlýk: " + asker["uzmanlýk"])
+
+yazdýr("\n--- Sözlük Güncelleme & Ekleme Testi ---")
+asker["rütbe"] = "Çavuþ"
+asker["bölük"] = "7. Komando"
+yazdýr("Yeni Rütbe: " + asker["rütbe"])
+yazdýr("Bölük: " + asker["bölük"])
+
+yazdýr("\n--- Sözlük Metotlarý Testi ---")
+yazdýr("Sözlük Uzunluðu: " + metin(asker.uzunluk()))
+yazdýr("Anahtarlar: " + metin(asker.anahtarlar()))
+yazdýr("Deðerler: " + metin(asker.deÄŸerler()))
+
+yazdýr("\n--- Sözlük Silme Testi ---")
+asker.sil("yaþ")
+yazdýr("Yaþ silindikten sonra uzunluk: " + metin(asker.uzunluk()))
+yazdýr("Kalan anahtarlar: " + metin(asker.anahtarlar()))
+
+yazdýr("\n--- Ýç Ýçe Sözlük Testi ---")
+deðiþken envanter = {
+    silah: { ad: "MPT-76", mermi: 30 },
+    gece_görüþ: doðru
+}
+yazdýr("Silah Adý: " + envanter["silah"]["ad"])
+
+yazdýr("\n>>> Sözlük Operasyonu Baþarýyla Tamamlandý! ?")
+

@@ -1,0 +1,43 @@
+// ============================================================================
+// GÜMÜŞ LOJİSTİK - Akıllı Şehir Kontrol Merkezi
+// Ana Dosya: baslat.tr
+// ============================================================================
+
+// Klasör yapısına göre modülleri dahil et
+dahil_et("veritabani.tr")
+dahil_et("zeka.tr")
+dahil_et("paralel.tr")
+dahil_et("grafik.tr")
+
+yazdır("╔════════════════════════════════════════════════════════════╗")
+yazdır("║          GÜMÜŞ LOJİSTİK - AKILLI ŞEHİR YÖNETİMİ          ║")
+yazdır("║       Modüler Lojistik Zinciri ve AI Savunma Hattı       ║")
+yazdır("╚════════════════════════════════════════════════════════════╝")
+yazdır("")
+
+// 1. ADIM: Veritabanı Mühürleme (10.000 Kayıt)
+değişken db_merkezi = yeni VeriMerkezi("lojistik_ana.db")
+db_merkezi.verileriMuhurle(10000)
+
+// 2. ADIM: AI Rota Planlama
+değişken ai_motoru = yeni RotaMotoru()
+ai_motoru.enKisaYolHesapla("Merkez Depo", "Kuzey İstasyonu", 0.85) // %85 trafik yoğunluğu
+
+// 3. ADIM: Paralel İşlemci (100 Kurye)
+değişken paralel_islem = yeni ParalelDenetleyici()
+değişken kuryeler = []
+değişken j = 0
+döngü (j < 100) {
+    ekle(kuryeler, "Kurye_" + metin(j))
+    j = j + 1
+}
+paralel_islem.kuryeleriDagit(kuryeler)
+
+// 4. ADIM: 3D Sahne Render
+değişken ekran = yeni SehirGrafik()
+ekran.sehriCiz(500, 100) // 500 bina, 100 aktif araç
+
+yazdır("")
+yazdır("✅ [SİSTEM] Gümüş Lojistik mermi hızıyla devrede!")
+db_merkezi.kapat()
+

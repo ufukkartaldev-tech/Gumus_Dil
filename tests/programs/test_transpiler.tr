@@ -1,0 +1,14 @@
+// test_transpiler.tr
+değişken sayi = 10
+değişken isim = "Ufuk"
+
+fonksiyon topla(a, b) {
+    dön a + b
+}
+
+eğer (sayi > 5) {
+    yazdır("Sayı büyük: " + topla(sayi, 5))
+} değilse {
+    yazdır("Sayı küçük")
+}
+

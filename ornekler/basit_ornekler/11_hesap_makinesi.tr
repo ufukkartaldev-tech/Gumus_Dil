@@ -1,0 +1,123 @@
+// ============================================
+// KAPSAMLI ÖRNEK: HESAP MAKİNESİ (OOP)
+// ============================================
+
+sınıf HesapMakinesi {
+    kurucu() {
+        öz.geçmiş = [];
+    }
+    
+    topla(a, b) {
+        değişken sonuç = a + b;
+        öz.geçmiş_ekle("Toplama", a, b, sonuç);
+        dön sonuç;
+    }
+    
+    çıkar(a, b) {
+        değişken sonuç = a - b;
+        öz.geçmiş_ekle("Çıkarma", a, b, sonuç);
+        dön sonuç;
+    }
+    
+    çarp(a, b) {
+        değişken sonuç = a * b;
+        öz.geçmiş_ekle("Çarpma", a, b, sonuç);
+        dön sonuç;
+    }
+    
+    böl(a, b) {
+        eğer (b == 0) {
+            yazdır("HATA: Sıfıra bölme hatası!");
+            dön boş;
+        }
+        değişken sonuç = a / b;
+        öz.geçmiş_ekle("Bölme", a, b, sonuç);
+        dön sonuç;
+    }
+    
+    üs_al(taban, üs) {
+        değişken sonuç = 1;
+        değişken i = 0;
+        döngü (i < üs) {
+            sonuç = sonuç * taban;
+            i = i + 1;
+        }
+        öz.geçmiş_ekle("Üs Alma", taban, üs, sonuç);
+        dön sonuç;
+    }
+    
+    geçmiş_ekle(işlem, a, b, sonuç) {
+        değişken kayıt = işlem + ": " + metin(a) + " ve " + metin(b) + " = " + metin(sonuç);
+        ekle(öz.geçmiş, kayıt);
+    }
+    
+    geçmiş_göster() {
+        yazdır("\n=== İŞLEM GEÇMİŞİ ===");
+        eğer (uzunluk(öz.geçmiş) == 0) {
+            yazdır("Henüz işlem yapılmadı.");
+        } değilse {
+            değişken i = 0;
+            döngü (i < uzunluk(öz.geçmiş)) {
+                yazdır(metin(i + 1) + ". " + öz.geçmiş[i]);
+                i = i + 1;
+            }
+        }
+        yazdır("=====================\n");
+    }
+}
+
+// Ana Program
+yazdır("╔════════════════════════════════════╗");
+yazdır("║   GÜMÜŞDİL HESAP MAKİNESİ        ║");
+yazdır("╚════════════════════════════════════╝");
+
+değişken hesap = HesapMakinesi();
+
+değişken devam = doğru;
+döngü (devam) {
+    yazdır("\nİşlem Seçin:");
+    yazdır("1. Toplama");
+    yazdır("2. Çıkarma");
+    yazdır("3. Çarpma");
+    yazdır("4. Bölme");
+    yazdır("5. Üs Alma");
+    yazdır("6. Geçmiş");
+    yazdır("0. Çıkış");
+    yazdır("");
+    
+    değişken seçim = girdi();
+    
+    eğer (seçim == "0") {
+        yazdır("\nHoşça kalın! 👋");
+        devam = yanlış;
+    } değilse eğer (seçim == "6") {
+        hesap.geçmiş_göster();
+    } değilse {
+        yazdır("Birinci sayı:");
+        değişken sayı1 = sayı(girdi());
+        
+        yazdır("İkinci sayı:");
+        değişken sayı2 = sayı(girdi());
+        
+        değişken sonuç = boş;
+        
+        eğer (seçim == "1") {
+            sonuç = hesap.topla(sayı1, sayı2);
+        } değilse eğer (seçim == "2") {
+            sonuç = hesap.çıkar(sayı1, sayı2);
+        } değilse eğer (seçim == "3") {
+            sonuç = hesap.çarp(sayı1, sayı2);
+        } değilse eğer (seçim == "4") {
+            sonuç = hesap.böl(sayı1, sayı2);
+        } değilse eğer (seçim == "5") {
+            sonuç = hesap.üs_al(sayı1, sayı2);
+        } değilse {
+            yazdır("Geçersiz seçim!");
+        }
+        
+        eğer (sonuç != boş) {
+            yazdır("\n✓ Sonuç: " + metin(sonuç));
+        }
+    }
+}
+

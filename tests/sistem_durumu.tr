@@ -1,0 +1,4 @@
+// std_lib modulu icinden sistem::sistem_durumu fonksiyonunu test eder
+dahil_et_modul("sistem", "sistem.tr");
+
+yazdır(sistem::sistem_durumu());

@@ -1,0 +1,22 @@
+// ---------------------------------------------------------
+// DONANIM (GPIO) KUTUPHANESI (donanim.tr)
+// ---------------------------------------------------------
+// Simdilik simule ediyoruz. Ekrana log basar.
+
+fonksiyon isik_yak(pin) {
+    renkli_yazdir("yesil", "[DONANIM] Pin " + metin(pin) + " YANDI (HIGH)")
+    yazdýr("__GPIO__:" + metin(pin) + ",HIGH")
+}
+
+fonksiyon isik_sondur(pin) {
+    renkli_yazdir("kirmizi", "[DONANIM] Pin " + metin(pin) + " SONDU (LOW)")
+    yazdýr("__GPIO__:" + metin(pin) + ",LOW")
+}
+
+fonksiyon deðer_oku(pin) {
+    // Simule edilmis sensor deðeri (rastgele 0-1023 arasi)
+    deðer = rastgele() * 1023
+    yazdýr("[DONANIM] Pin " + metin(pin) + " okunan deðer: " + metin(deðer))
+    dön deðer
+}
+

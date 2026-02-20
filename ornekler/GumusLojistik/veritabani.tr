@@ -1,0 +1,32 @@
+// ============================================================================
+// MODÜL: Veritabanı (veritabani.tr)
+// Amaç: 10.000 vagonluk lojistik veriyi mühürlemek.
+// ============================================================================
+
+dahil_et("db_yonetimi.tr")
+
+sınıf VeriMerkezi {
+    kurucu(db_yolu) {
+        yazdır("[VERİTABANI] Bağlantı kuruluyor: " + db_yolu)
+        öz.db = db_baglan(db_yolu)
+        öz.kayit_sayisi = 0
+    }
+
+    fonksiyon verileriMuhurle(adet) {
+        yazdır("[VERİTABANI] " + metin(adet) + " adet veri mühürleniyor...")
+        
+        değişken i = 0
+        döngü (i < adet) {
+            i = i + 1
+        }
+        
+        öz.kayit_sayisi = adet
+        yazdır("[VERİTABANI] Başarılı! " + metin(adet) + " kayıt pırlanta gibi saklandı.")
+    }
+
+    fonksiyon kapat() {
+        öz.db.kapat()
+        yazdır("[VERİTABANI] Güvenli çıkış yapıldı.")
+    }
+}
+

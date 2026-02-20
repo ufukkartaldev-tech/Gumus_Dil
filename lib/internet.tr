@@ -1,0 +1,10 @@
+modül Internet {
+    fonksiyon istek_at(url) {
+        dön _http_get(url)
+    }
+    
+    fonksiyon kaynak_kodunu_al(url) {
+        dön _http_get(url)
+    }
+}
+

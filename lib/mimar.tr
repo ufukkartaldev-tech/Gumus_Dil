@@ -1,0 +1,58 @@
+// --- MIMAR KUTUPHANESI ---
+// GümüþDil Voxel Insaat Araclari
+
+sýnýf Mimar {
+    kurucu() {
+        yazdýr("?? Mimar þantiyeye geldi.");
+    }
+
+    // Basit bir kule diker
+    kule_yap(x, z, h, tip) {
+        yazdýr("??? Kule inþa ediliyor... Konum: " + x + "," + z + " Yükseklik: " + h);
+        deðiþken y = 1; // Zeminin üstünden baþla
+        döngü (y <= h) {
+            insaa_et(x, y, z, tip);
+            y = y + 1;
+        }
+    }
+
+    // X ekseninde duvar örer
+    duvar_or(basla_x, bitis_x, z, h, tip) {
+        yazdýr("?? Duvar örülüyor (" + basla_x + " -> " + bitis_x + ")");
+        deðiþken suanki_x = basla_x;
+        döngü (suanki_x <= bitis_x) {
+            // Her X noktasý için kule dik (bu aslýnda bir duvar olur)
+            öz.kule_yap(suanki_x, z, h, tip);
+            suanki_x = suanki_x + 1;
+        }
+    }
+
+    // Antik Piramit algoritmasý
+    piramit_yap(merkez_x, merkez_z, taban_genisligi, tip) {
+        yazdýr("?? Piramit projesi baþladý!");
+        deðiþken kat = 0;
+        deðiþken genislik = taban_genisligi;
+
+        döngü (genislik > 0) {
+            // Þu anki katýn baþlangýç noktalarý
+            deðiþken basla_x = merkez_x - (genislik / 2); // Tamsayý bölmesi varsayýyoruz
+            deðiþken basla_z = merkez_z - (genislik / 2);
+            
+            // Kare çiz (Ýçi dolu)
+            deðiþken dx = 0;
+            döngü (dx < genislik) {
+                deðiþken dz = 0;
+                döngü (dz < genislik) {
+                   insaa_et(basla_x + dx, kat + 1, basla_z + dz, tip);
+                   dz = dz + 1;
+                }
+                dx = dx + 1;
+            }
+
+            genislik = genislik - 2; // Her katta 2 blok daralýr (saðdan 1, soldan 1)
+            kat = kat + 1;
+        }
+        yazdýr("? Piramit tamamlandý. Yükseklik: " + kat);
+    }
+}
+

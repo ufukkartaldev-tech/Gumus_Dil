@@ -1,0 +1,63 @@
+// ---------------------------------------------------------
+// GUMUS ARSIV (arsiv.tr)
+// Dosya Sikistirma ve Arsivleme Yonetimi
+// ---------------------------------------------------------
+
+dahil_et("dosya.tr")
+
+sinif Arsiv {
+    deÄŸiÅŸken format // "zip", "tar", "gz"
+    deÄŸiÅŸken hedef_dosya
+    deÄŸiÅŸken dosya_listesi
+
+    kurucu(hedef, fmt) {
+        öz.hedef_dosya = hedef
+        öz.format = fmt
+        öz.dosya_listesi = []
+        yazdÄ±r("[ARSIV] Arsiv olusturuldu: " + hedef + " (" + fmt + ")")
+    }
+
+    fonksiyon dosya_ekle(dosya_yolu) {
+        öz.dosya_listesi.ekle(dosya_yolu)
+        yazdÄ±r("[ARSIV] Listeye eklendi: " + dosya_yolu)
+    }
+
+    fonksiyon paketle() {
+        yazdÄ±r("[ARSIV] Paketleme islemi baslatiliyor...")
+        yazdÄ±r("[ARSIV] Format: " + öz.format)
+        yazdÄ±r("[ARSIV] Toplam dosya: " + metin(uzunluk(öz.dosya_listesi)))
+        
+        // Native Sıkıştırma Çağrısı Simülasyonu
+        // libzip veya zlib baglantisi gerektirir
+        
+        deÄŸiÅŸken i = 0
+        dÃ¶ngÃ¼ (i < uzunluk(öz.dosya_listesi)) {
+            yazdÄ±r("  -> Sikistiriliyor: " + öz.dosya_listesi[i])
+            i = i + 1
+        }
+        
+        yazdÄ±r("[ARSIV] " + öz.hedef_dosya + " basariyla olusturuldu.")
+        dÃ¶n doÄŸru
+    }
+
+    fonksiyon cikart(hedef_klasor) {
+        yazdÄ±r("[ARSIV] " + öz.hedef_dosya + " arsivi " + hedef_klasor + " konumuna cikartiliyor...")
+        // Native Cıkartma Çağrısı
+        dÃ¶n doÄŸru
+    }
+}
+
+// Yardimci Fonksiyonlar
+fonksiyon zip_olustur(isim, dosyalar) {
+    deÄŸiÅŸken arsiv = yeni Arsiv(isim + ".zip", "zip")
+    
+    deÄŸiÅŸken i = 0
+    dÃ¶ngÃ¼ (i < uzunluk(dosyalar)) {
+        arsiv.dosya_ekle(dosyalar[i])
+        i = i + 1
+    }
+    
+    arsiv.paketle()
+    dÃ¶n arsiv
+}
+

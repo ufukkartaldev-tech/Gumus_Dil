@@ -1,0 +1,34 @@
+// ---------------------------------------------------------
+// RASTGELE / OYUN KUTUPHANESI (rastgele.tr)
+// ---------------------------------------------------------
+
+// Native 'rastgele()' fonksiyonu 0 ile RAND_MAX (genelde 32767) arasi doner.
+// Biz bunu istedigimiz araliga cekecegiz.
+
+fonksiyon sayi_tut(min, max) {
+    // (min, max) araliginda rastgele tamsayi
+    r = rastgele() 
+    aralik = max - min + 1
+    
+    // Modulo islemi native yoksa, donguyle veya bolmeyle yapalim
+    // r % aralik
+    bolum = r / aralik
+    kalan = r - (bolum * aralik)
+    
+    dön min + kalan
+}
+
+fonksiyon listeden_sec(liste) {
+    l = uzunluk(liste)
+    eğer (l == 0) dön ""
+    
+    indeks = sayi_tut(0, l - 1)
+    dön liste[indeks]
+}
+
+fonksiyon yazi_tura() {
+    gelen = sayi_tut(0, 1)
+    eğer (gelen == 0) dön "Yazi"
+    dön "Tura"
+}
+

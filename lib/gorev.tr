@@ -1,0 +1,292 @@
+// ---------------------------------------------------------
+// YAPILACAKLAR VE ORGANIZASYON KUTUPHANESI (gorev.tr)
+// ---------------------------------------------------------
+// To-Do List, gunluk, rehber yonetimi
+
+dahil_et("std_lib/liste.tr")
+dahil_et("std_lib/dosya.tr")
+
+// ============ YAPILACAKLAR LISTESI ============
+
+gorevler = []
+gorev_durumu = [] // doğru = tamamlandi, yanlış = bekliyor
+
+fonksiyon gorev_ekle(gorev) {
+    ekle(gorevler, gorev)
+    ekle(gorev_durumu, yanlış)
+    yazdır("Gorev eklendi: " + gorev)
+}
+
+fonksiyon gorev_tamamla(indeks) {
+    eğer (indeks < 0) {
+        yazdır("HATA: Gecersiz indeks!")
+        dön yanlış
+    }
+    
+    eğer (indeks >= uzunluk(gorevler)) {
+        yazdır("HATA: Gecersiz indeks!")
+        dön yanlış
+    }
+    
+    gorev_durumu[indeks] = doğru
+    yazdır("Gorev tamamlandi: " + gorevler[indeks])
+    dön doğru
+}
+
+fonksiyon gorev_sil(indeks) {
+    eğer (indeks < 0) {
+        yazdır("HATA: Gecersiz indeks!")
+        dön yanlış
+    }
+    
+    eğer (indeks >= uzunluk(gorevler)) {
+        yazdır("HATA: Gecersiz indeks!")
+        dön yanlış
+    }
+    
+    yazdır("Gorev silindi: " + gorevler[indeks])
+    sil(gorevler, indeks)
+    sil(gorev_durumu, indeks)
+    dön doğru
+}
+
+fonksiyon gorevleri_listele() {
+    yazdır("========================================")
+    yazdır("       YAPILACAKLAR LISTESI")
+    yazdır("========================================")
+    
+    eğer (uzunluk(gorevler) == 0) {
+        yazdır("Henuz gorev yok!")
+        dön yanlış
+    }
+    
+    i = 0
+    l = uzunluk(gorevler)
+    
+    döngü (i < l) {
+        durum = "[ ]"
+        eğer (gorev_durumu[i]) {
+            durum = "[X]"
+        }
+        
+        yazdır(metin(i) + ". " + durum + " " + gorevler[i])
+        i = i + 1
+    }
+    
+    yazdır("========================================")
+}
+
+fonksiyon tamamlanan_gorevler() {
+    sayac = 0
+    i = 0
+    l = uzunluk(gorev_durumu)
+    
+    döngü (i < l) {
+        eğer (gorev_durumu[i]) {
+            sayac = sayac + 1
+        }
+        i = i + 1
+    }
+    
+    dön sayac
+}
+
+fonksiyon gorev_istatistik() {
+    toplam = uzunluk(gorevler)
+    tamamlanan = tamamlanan_gorevler()
+    bekleyen = toplam - tamamlanan
+    
+    yazdır("========================================")
+    yazdır("       GOREV ISTATISTIKLERI")
+    yazdır("========================================")
+    yazdır("Toplam Gorev: " + metin(toplam))
+    yazdır("Tamamlanan: " + metin(tamamlanan))
+    yazdır("Bekleyen: " + metin(bekleyen))
+    
+    eğer (toplam > 0) {
+        yuzde = (tamamlanan * 100) / toplam
+        yazdır("Tamamlanma Orani: %" + metin(yuzde))
+    }
+    
+    yazdır("========================================")
+}
+
+// ============ KISISEL GUNLUK ============
+
+fonksiyon gunluk_yaz(tarih, icerik) {
+    dosya_adi = "gunluk_" + tarih + ".txt"
+    dosya_yaz(dosya_adi, icerik)
+    yazdır("Gunluk kaydedildi: " + dosya_adi)
+}
+
+fonksiyon gunluk_oku(tarih) {
+    dosya_adi = "gunluk_" + tarih + ".txt"
+    icerik = dosya_oku(dosya_adi)
+    
+    eğer (uzunluk(icerik) == 0) {
+        yazdır("Bu tarih icin gunluk bulunamadi!")
+        dön ""
+    }
+    
+    yazdır("========================================")
+    yazdır("       GUNLUK - " + tarih)
+    yazdır("========================================")
+    yazdır(icerik)
+    yazdır("========================================")
+    
+    dön icerik
+}
+
+// ============ REHBER (KISI KAYIT) SISTEMI ============
+
+kisi_isimleri = []
+kisi_telefonlari = []
+kisi_emailleri = []
+
+fonksiyon kisi_ekle(isim, telefon, email) {
+    ekle(kisi_isimleri, isim)
+    ekle(kisi_telefonlari, telefon)
+    ekle(kisi_emailleri, email)
+    yazdır("Kisi eklendi: " + isim)
+}
+
+fonksiyon kisi_ara(isim) {
+    indeks = eleman_ara(kisi_isimleri, isim)
+    
+    eğer (indeks == -1) {
+        yazdır("Kisi bulunamadi!")
+        dön yanlış
+    }
+    
+    yazdır("========================================")
+    yazdır("Isim: " + kisi_isimleri[indeks])
+    yazdır("Telefon: " + kisi_telefonlari[indeks])
+    yazdır("Email: " + kisi_emailleri[indeks])
+    yazdır("========================================")
+    
+    dön doğru
+}
+
+fonksiyon kisi_sil(isim) {
+    indeks = eleman_ara(kisi_isimleri, isim)
+    
+    eğer (indeks == -1) {
+        yazdır("Kisi bulunamadi!")
+        dön yanlış
+    }
+    
+    yazdır("Kisi silindi: " + isim)
+    sil(kisi_isimleri, indeks)
+    sil(kisi_telefonlari, indeks)
+    sil(kisi_emailleri, indeks)
+    
+    dön doğru
+}
+
+fonksiyon rehber_listele() {
+    yazdır("========================================")
+    yazdır("           REHBER")
+    yazdır("========================================")
+    
+    eğer (uzunluk(kisi_isimleri) == 0) {
+        yazdır("Rehber boş!")
+        dön yanlış
+    }
+    
+    i = 0
+    l = uzunluk(kisi_isimleri)
+    
+    döngü (i < l) {
+        yazdır(metin(i + 1) + ". " + kisi_isimleri[i])
+        yazdır("   Tel: " + kisi_telefonlari[i])
+        yazdır("   Email: " + kisi_emailleri[i])
+        yazdır("----------------------------------------")
+        i = i + 1
+    }
+    
+    yazdır("========================================")
+}
+
+// ============ INTERAKTIF MENU ============
+
+fonksiyon gorev_yoneticisi() {
+    devam = doğru
+    
+    döngü (devam) {
+        yazdır("")
+        yazdır("========================================")
+        yazdır("      GOREV YONETICISI")
+        yazdır("========================================")
+        yazdır("1. Gorev Ekle")
+        yazdır("2. Gorevleri Listele")
+        yazdır("3. Gorev Tamamla")
+        yazdır("4. Gorev Sil")
+        yazdır("5. Istatistikler")
+        yazdır("0. Cikis")
+        yazdır("========================================")
+        
+        secim = sayi(girdi())
+        
+        eğer (secim == 0) {
+            devam = yanlış
+        } degilse eğer (secim == 1) {
+            yazdır("Gorev aciklamasi:")
+            gorev = girdi()
+            gorev_ekle(gorev)
+        } degilse eğer (secim == 2) {
+            gorevleri_listele()
+        } degilse eğer (secim == 3) {
+            yazdır("Tamamlanacak gorev numarasi:")
+            indeks = sayi(girdi())
+            gorev_tamamla(indeks)
+        } degilse eğer (secim == 4) {
+            yazdır("Silinecek gorev numarasi:")
+            indeks = sayi(girdi())
+            gorev_sil(indeks)
+        } degilse eğer (secim == 5) {
+            gorev_istatistik()
+        }
+    }
+}
+
+fonksiyon rehber_yoneticisi() {
+    devam = doğru
+    
+    döngü (devam) {
+        yazdır("")
+        yazdır("========================================")
+        yazdır("      REHBER YONETICISI")
+        yazdır("========================================")
+        yazdır("1. Kisi Ekle")
+        yazdır("2. Kisi Ara")
+        yazdır("3. Rehberi Listele")
+        yazdır("4. Kisi Sil")
+        yazdır("0. Cikis")
+        yazdır("========================================")
+        
+        secim = sayi(girdi())
+        
+        eğer (secim == 0) {
+            devam = yanlış
+        } degilse eğer (secim == 1) {
+            yazdır("Isim:")
+            isim = girdi()
+            yazdır("Telefon:")
+            tel = girdi()
+            yazdır("Email:")
+            email = girdi()
+            kisi_ekle(isim, tel, email)
+        } degilse eğer (secim == 2) {
+            yazdır("Aranacak isim:")
+            isim = girdi()
+            kisi_ara(isim)
+        } degilse eğer (secim == 3) {
+            rehber_listele()
+        } degilse eğer (secim == 4) {
+            yazdır("Silinecek isim:")
+            isim = girdi()
+            kisi_sil(isim)
+        }
+    }
+}
+

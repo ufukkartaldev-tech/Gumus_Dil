@@ -1,0 +1,32 @@
+// ---------------------------------------------------------
+// AKILLI GECE LAMBASI (gece_lambasi.tr)
+// Işık Sensörü ve LED Entegrasyonu
+// ---------------------------------------------------------
+
+dahil_et("donanim.tr")
+
+yazdır("💡 Akıllı Gece Lambası Sistemi Başlatılıyor...")
+yazdır("----------------------------------------")
+
+değişken led_pin = 7
+değişken sensor_pin = 0
+
+değişken sayac = 0
+döngü (sayac < 15) {
+    yazdır("\n[Sistem] Sensörden veri okunuyor...")
+    değişken isik_degeri = değer_oku(sensor_pin)
+    
+    // Işık seviyesi düşükse (karanlık) lambayı yak
+    eğer (isik_degeri < 500) {
+        yazdır("🌑 Ortam karanlık! Lamba açılıyor.")
+        isik_yak(led_pin)
+    } yoksa {
+        yazdır("☀️ Ortam aydınlık. Lamba kapatılıyor.")
+        isik_sondur(led_pin)
+    }
+    
+    sayac = sayac + 1
+}
+
+yazdır("\n✅ Sistem testi tamamlandı. GPIO panelindeki P7 pinini izleyin!")
+

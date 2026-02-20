@@ -1,0 +1,34 @@
+// ---------------------------------------------------------
+// VERİ ANALİZİ DEMO (veri_analizi_demo.tr)
+// GümüşDil ile Veri Bilimine Giriş
+// ---------------------------------------------------------
+
+dahil_et("veribilimi.tr")
+
+yazdır("📊 Gümüş Veri Analiz Laboratuvarı Başlatılıyor...")
+
+// 1. Veri Seti Oluştur
+değişken satislar = yeni VeriSeti("Haftalık Satış Raporu")
+satislar.sütun_ekle("Gelir")
+satislar.sütun_ekle("Gün")
+
+// 2. Veri Ekle (Pazartesi - Pazar)
+satislar.satır_ekle([120, "Pazartesi"])
+satislar.satır_ekle([150, "Salı"])
+satislar.satır_ekle([110, "Çarşamba"])
+satislar.satır_ekle([200, "Perşembe"])
+satislar.satır_ekle([250, "Cuma"])
+satislar.satır_ekle([300, "Cumartesi"])
+satislar.satır_ekle([180, "Pazar"])
+
+// 3. İstatistikleri Analiz Et
+satislar.özet_göster()
+değişken ort = satislar.sütun_ortalaması(0)
+yazdır("📈 Haftalık Ortalama Gelir: " + metin(ort) + " TL")
+
+// 4. Görselleştirme
+yazdır("\n[GÖRSEL] Grafikler IDE tuvaline aktarılıyor...")
+satislar.çiz_çizgi()
+
+yazdır("\n✅ Veri analizi tamamlandı. GümüşDil ile verilerinizi konuşturun!")
+

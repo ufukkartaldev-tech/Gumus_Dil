@@ -1,0 +1,245 @@
+// ---------------------------------------------------------
+// GUVENLIK VE KIMLIK DOGRULAMA KUTUPHANESI (guvenlik.tr)
+// ---------------------------------------------------------
+// Login sistemi, sifre yonetimi, basit hash
+
+dahil_et("std_lib/liste.tr")
+dahil_et("std_lib/metin_gelismis.tr")
+
+// ============ KULLANICI VERITABANI (BASIT) ============
+
+// Global kullanici listeleri
+kullanici_adlari = []
+sifreler = []
+
+fonksiyon kullanici_kayit(kullanici_adi, sifre) {
+    // Kullanici zaten var mi kontrol et
+    indeks = eleman_ara(kullanici_adlari, kullanici_adi)
+    
+    eğer (indeks != -1) {
+        yazdır("HATA: Bu kullanici adi zaten alinmis!")
+        dön yanlış
+    }
+    
+    // Sifre guclu mu kontrol et
+    eğer (metin_uzunlugu(sifre) < 6) {
+        yazdır("HATA: Sifre en az 6 karakter olmalidir!")
+        dön yanlış
+    }
+    
+    // Kullaniciyi kaydet
+    ekle(kullanici_adlari, kullanici_adi)
+    ekle(sifreler, sifre)
+    
+    yazdır("BASARILI: Kullanici kaydi tamamlandi!")
+    dön doğru
+}
+
+fonksiyon kullanici_giris(kullanici_adi, sifre) {
+    // Kullanici var mi?
+    indeks = eleman_ara(kullanici_adlari, kullanici_adi)
+    
+    eğer (indeks == -1) {
+        yazdır("HATA: Kullanici bulunamadi!")
+        dön yanlış
+    }
+    
+    // Sifre doğru mu?
+    eğer (sifreler[indeks] == sifre) {
+        yazdır("BASARILI: Giris yapildi! Hosgeldin " + kullanici_adi)
+        dön doğru
+    } degilse {
+        yazdır("HATA: yanlış sifre!")
+        dön yanlış
+    }
+}
+
+fonksiyon sifre_degistir(kullanici_adi, eski_sifre, yeni_sifre) {
+    // Once giris kontrolu
+    eğer (!kullanici_giris(kullanici_adi, eski_sifre)) {
+        dön yanlış
+    }
+    
+    // Yeni sifre guclu mu?
+    eğer (metin_uzunlugu(yeni_sifre) < 6) {
+        yazdır("HATA: Yeni sifre en az 6 karakter olmalidir!")
+        dön yanlış
+    }
+    
+    // Sifre degistir
+    indeks = eleman_ara(kullanici_adlari, kullanici_adi)
+    sifreler[indeks] = yeni_sifre
+    
+    yazdır("BASARILI: Sifre degistirildi!")
+    dön doğru
+}
+
+// ============ SIFRE GUCLU MU KONTROLU ============
+
+fonksiyon sifre_guc_kontrolu(sifre) {
+    uzunluk = metin_uzunlugu(sifre)
+    
+    yazdır("========================================")
+    yazdır("      SIFRE GUC ANALIZI")
+    yazdır("========================================")
+    
+    puan = 0
+    
+    // Uzunluk kontrolu
+    eğer (uzunluk >= 8) {
+        yazdır("[+] Uzunluk yeterli (8+ karakter)")
+        puan = puan + 25
+    } degilse {
+        yazdır("[-] Uzunluk yetersiz (8+ karakter olmali)")
+    }
+    
+    // Rakam var mi?
+    karakterler = parcala(sifre, "")
+    rakam_var = yanlış
+    
+    i = 0
+    l = uzunluk(karakterler)
+    
+    döngü (i < l) {
+        k = karakterler[i]
+        eğer (k == "0") rakam_var = doğru
+        eğer (k == "1") rakam_var = doğru
+        eğer (k == "2") rakam_var = doğru
+        eğer (k == "3") rakam_var = doğru
+        eğer (k == "4") rakam_var = doğru
+        eğer (k == "5") rakam_var = doğru
+        eğer (k == "6") rakam_var = doğru
+        eğer (k == "7") rakam_var = doğru
+        eğer (k == "8") rakam_var = doğru
+        eğer (k == "9") rakam_var = doğru
+        i = i + 1
+    }
+    
+    eğer (rakam_var) {
+        yazdır("[+] Rakam iceriyor")
+        puan = puan + 25
+    } degilse {
+        yazdır("[-] Rakam eklemelisiniz")
+    }
+    
+    // Buyuk harf var mi?
+    buyuk_harf_var = yanlış
+    i = 0
+    döngü (i < l) {
+        k = karakterler[i]
+        buyuk_k = buyuk(k)
+        eğer (k == buyuk_k) {
+            eğer (k != kucuk(k)) { // Harf mi kontrol et
+                buyuk_harf_var = doğru
+            }
+        }
+        i = i + 1
+    }
+    
+    eğer (buyuk_harf_var) {
+        yazdır("[+] Buyuk harf iceriyor")
+        puan = puan + 25
+    } degilse {
+        yazdır("[-] Buyuk harf eklemelisiniz")
+    }
+    
+    // Ozel karakter var mi?
+    ozel_var = yanlış
+    i = 0
+    döngü (i < l) {
+        k = karakterler[i]
+        eğer (k == "!") ozel_var = doğru
+        eğer (k == "@") ozel_var = doğru
+        eğer (k == "#") ozel_var = doğru
+        eğer (k == "$") ozel_var = doğru
+        eğer (k == "%") ozel_var = doğru
+        eğer (k == "&") ozel_var = doğru
+        eğer (k == "*") ozel_var = doğru
+        i = i + 1
+    }
+    
+    eğer (ozel_var) {
+        yazdır("[+] Ozel karakter iceriyor")
+        puan = puan + 25
+    } degilse {
+        yazdır("[-] Ozel karakter eklemelisiniz (!@#$%&*)")
+    }
+    
+    yazdır("========================================")
+    yazdır("Sifre Gucu: " + metin(puan) + "/100")
+    
+    eğer (puan >= 75) {
+        yazdır("Durum: GUCLU")
+    } degilse eğer (puan >= 50) {
+        yazdır("Durum: ORTA")
+    } degilse {
+        yazdır("Durum: ZAYIF")
+    }
+    
+    yazdır("========================================")
+    dön puan
+}
+
+// ============ LOGIN SIMULASYONU ============
+
+fonksiyon login_sistemi() {
+    yazdır("========================================")
+    yazdır("      KULLANICI GIRIS SISTEMI")
+    yazdır("========================================")
+    yazdır("1. Kayit Ol")
+    yazdır("2. Giris Yap")
+    yazdır("3. Sifre Degistir")
+    yazdır("4. Sifre Guc Testi")
+    yazdır("0. Cikis")
+    yazdır("========================================")
+    
+    secim = sayi(girdi())
+    
+    eğer (secim == 1) {
+        yazdır("Kullanici adi:")
+        kad = girdi()
+        yazdır("Sifre:")
+        sifre = girdi()
+        kullanici_kayit(kad, sifre)
+    } degilse eğer (secim == 2) {
+        yazdır("Kullanici adi:")
+        kad = girdi()
+        yazdır("Sifre:")
+        sifre = girdi()
+        kullanici_giris(kad, sifre)
+    } degilse eğer (secim == 3) {
+        yazdır("Kullanici adi:")
+        kad = girdi()
+        yazdır("Eski sifre:")
+        eski = girdi()
+        yazdır("Yeni sifre:")
+        yeni = girdi()
+        sifre_degistir(kad, eski, yeni)
+    } degilse eğer (secim == 4) {
+        yazdır("Test edilecek sifreyi girin:")
+        sifre = girdi()
+        sifre_guc_kontrolu(sifre)
+    }
+}
+
+// ============ BASIT HASH FONKSIYONU ============
+
+fonksiyon basit_hash(metin) {
+    // Cok basit bir hash (gercek uygulamada kullanmayin!)
+    karakterler = parcala(metin, "")
+    toplam = 0
+    
+    i = 0
+    l = uzunluk(karakterler)
+    
+    döngü (i < l) {
+        kod = karakter_kodu(karakterler[i])
+        eğer (kod != -1) {
+            toplam = toplam + (kod * (i + 1))
+        }
+        i = i + 1
+    }
+    
+    dön toplam
+}
+

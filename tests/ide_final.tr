@@ -1,0 +1,22 @@
+// GumusDil Final Test
+renkli_yazdir("turkuaz", "=== GUMUSDIL TEST ===");
+bekle(100);
+
+değişken x = 0;
+döngü (x < 5) {
+    değişken s = sin(x);
+    yazdır("Sin(" + metin(x) + ") = " + metin(s));
+    x = x + 1;
+}
+
+renkli_yazdir("yesil", "Dosya Islemi...");
+değişken d = "sonuc.txt";
+dosya_yaz(d, "Test Basarili");
+yazdır("Yazilan: " + dosya_oku(d));
+
+eğer (dosya_sil(d)) {
+    yazdır("Dosya temizlendi.");
+}
+
+renkli_yazdir("mor", "TAMAMLANDI");
+

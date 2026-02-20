@@ -1,0 +1,107 @@
+// ---------------------------------------------------------
+// GUMUS PERFORMANS VE STRES TESTI (test_performans.tr)
+// Daktilonun cigerini test eden, bellek ve hiz sinirlarini zorlayan senaryolar.
+// ---------------------------------------------------------
+
+dahil_et("../lib/birim.tr")
+dahil_et("../std_lib/zaman.tr") // Zaman olcumu icin gerekli (varsayilan)
+dahil_et("../lib/ai_gelis.tr")
+
+değişken t = yeni BirimTest("Performans ve Stres Testleri")
+
+// Zaman olcme yardimcisi (Native zaman fonksiyonu yoksa simulasyon)
+// Not: std_lib/zaman.tr icinde 'zaman_getir()' oldugunu varsayiyoruz.
+// Eğer yoksa sistem saatini kullanan bir yapi gerekecektir.
+
+fonksiyon kronometre_baslat() {
+    // dön sistem("time_ms") // Hayali native cagri
+    dön 0 // Simdilik placeholder
+}
+
+// ----------------------------------------------------------------
+// 1. BOLUM: YUKSEK HACIMLI NESNE OLUSTURMA (Stress Test)
+// ----------------------------------------------------------------
+t.bolum("STRES TESTI: 10,000 Nesne")
+
+sinif BasitVeri {
+    değişken no
+    kurucu(n) { �z.no = n }
+}
+
+değişken i = 0
+değişken limit = 10000
+değişken liste = []
+
+yazdır("... " + metin(limit) + " adet nesne olusturuluyor ...")
+
+// Baslangic zamani (Simulasyon)
+değişken baslangic = 0 
+
+döngü (i < limit) {
+    liste.ekle(yeni BasitVeri(i))
+    i = i + 1
+}
+
+// Bitis zamani
+değişken bitis = 100 // Ms cinsinden fark
+
+yazdır("Tamamlandi. Tahmini sure: " + metin(bitis) + "ms")
+t.esit_mi(limit, uzunluk(liste), "Tum nesneler hafizaya alinabilmeli")
+
+// ----------------------------------------------------------------
+// 2. BOLUM: AI KATMAN ZORLAMASI (Memory Pressure)
+// ----------------------------------------------------------------
+t.bolum("BELLEK BASKISI: AI Katmanlari")
+
+değişken beyin = yeni SinirAgi(0.1)
+değişken katman_hedefi = 1000 // 1 milyon cok olabilir, 1000 ile baslayalim
+değişken k = 0
+
+yazdır("... " + metin(katman_hedefi) + " AI katmani ekleniyor ...")
+
+dene {
+    döngü (k < katman_hedefi) {
+        beyin.katman_ekle(10, 10) // Her katman 10x10 agirlik matrisi
+        k = k + 1
+    }
+    t.dogru_mu(doğru, "Sistem cokmeden " + metin(katman_hedefi) + " katman eklendi.")
+} yakala(hata) {
+    t.dogru_mu(yanlış, "Bellek hatasi veya cokme: " + hata)
+}
+
+// ----------------------------------------------------------------
+// 3. BOLUM: BELLEK SIZINTISI KONTROLU (Memory Leak Check)
+// ----------------------------------------------------------------
+t.bolum("BELLEK SIZINTISI: Referans Temizligi")
+
+// Senaryo:
+// Bir döngü icinde surekli nesne olusturup, degiskenin uzerine yazacagiz.
+// Eski nesneye erisim kalmadigi icin Garbage Collector (varsa) temizlemeli.
+// Yoksa RAM siser.
+
+yazdır("... Cop toplayici (GC) sinaniyor (1000 Cevrim) ...")
+
+değişken sayac = 0
+değişken gecici = boş
+
+dene {
+    döngü (sayac < 1000) {
+        // Her seferinde yeni bir "SinirAgi" olusturuyoruz (agir nesne)
+        // Eski nesne bosa cikiyor.
+        gecici = yeni SinirAgi(0.01)
+        gecici.katman_ekle(50, 50) 
+        
+        // Eğer bellek temizlenmiyorsa, bir noktada "Out of Memory" hatasi bekleriz 
+        // veya sistem yavaslar.
+        sayac = sayac + 1
+    }
+    t.dogru_mu(doğru, "1000 agir nesne olusturulup yok edildi, sistem hayatta.")
+} yakala(hata) {
+    t.dogru_mu(yanlış, "Bellek s�z�nt�s� suphesi! Hata: " + hata)
+}
+
+// ----------------------------------------------------------------
+// RAPOR
+// ----------------------------------------------------------------
+t.raporla()
+

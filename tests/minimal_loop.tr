@@ -1,0 +1,9 @@
+fonksiyon loop_test() {
+    değişken i = 0
+    döngü(i < 5) {
+        yazdır(i)
+        i = i + 1
+    }
+}
+loop_test()
+

@@ -1,0 +1,48 @@
+// ---------------------------------------------------------
+// ZAMAN YONETIMI VE POMODORO (zaman_yonetimi.tr)
+// Verimlilik araclari
+// ---------------------------------------------------------
+
+dahil_et("zaman.tr") // Native bekle() komutu burada wrapper olabilir
+
+// Verilen saniye kadar geri sayim yapar
+fonksiyon zmn_geri_sayim(saniye) {
+    yazdır("Geri Sayim Basladi: " + metin(saniye) + " saniye")
+    
+    değişken kalan = saniye
+    döngü (kalan > 0) {
+        // Ekrana yaz (Ayni satira yazmak icin \r gerek ama yazdır() newline atar)
+        renkli_yazdir("sari", ">>> " + metin(kalan))
+        bekle(1000) // 1 saniye bekle
+        kalan = kalan - 1
+    }
+    
+    renkli_yazdir("kirmizi", "SURE DOLDU! ?")
+    // Sesli uyari icin sistem komutu (Windows beep)
+    // sistem("echo \a") // Bazi terminallerde calisir
+}
+
+// Pomodoro Teknigi (25 dk calis, 5 dk mola)
+fonksiyon zmn_pomodoro_baslat() {
+    yazdır("?? POMODORO BASLIYOR (25 Dakika Calisma)")
+    zmn_geri_sayim(25 * 60)
+    
+    yazdır("? MOLA ZAMANI (5 Dakika)")
+    zmn_geri_sayim(5 * 60)
+    
+    yazdır("Tebrikler! Bir pomodoro tamamladin.")
+}
+
+// Kronometre
+// Basit implementasyon: bekle() ile sayar (Hassas degil)
+fonksiyon zmn_kronometre(limit_saniye) {
+    değişken gecen = 0
+    yazdır("Kronometre Basladi (Durdurmak icin CTRL+C)")
+    
+    döngü (gecen < limit_saniye) {
+        bekle(1000)
+        gecen = gecen + 1
+        yazdır("Gecen Sure: " + metin(gecen) + " sn")
+    }
+}
+

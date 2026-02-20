@@ -1,0 +1,11 @@
+yazdır("Test 1")
+
+fonksiyon topla(a, b) {
+    dön a + b
+}
+
+yazdır("Test 2")
+değişken sonuc = topla(3, 5)
+yazdır("Test 3")
+yazdır(sonuc)
+

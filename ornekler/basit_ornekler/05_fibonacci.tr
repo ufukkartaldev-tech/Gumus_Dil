@@ -1,0 +1,39 @@
+// ============================================
+// ÖRNEK PROJE 5: FİBONACCİ DİZİSİ
+// ============================================
+
+yazdır("Kaç terim hesaplansın?")
+değişken n = sayı(girdi())
+
+fonksiyon fibonacci(terim) {
+    eğer (terim <= 1) {
+        dön terim  // ✅ Noktalı virgül kaldırıldı
+    }
+    dön fibonacci(terim - 1) + fibonacci(terim - 2)
+}
+
+yazdır("\nFibonacci Dizisi:")
+yazdır("==================")
+
+değişken i = 0  // ✅ Noktalı virgül kaldırıldı
+döngü (i < n) {
+    yazdır("F(" + metin(i) + ") = " + metin(fibonacci(i)))
+    i = i + 1
+}
+
+// Alternatif: Döngü ile (daha hızlı)
+yazdır("\nAlternatif Yöntem (Döngü):")
+yazdır("===========================")
+
+değişken a = 0
+değişken b = 1
+değişken sayaç = 0
+
+döngü (sayaç < n) {
+    yazdır(metin(a))
+    değişken temp = a + b
+    a = b
+    b = temp
+    sayaç = sayaç + 1
+}
+

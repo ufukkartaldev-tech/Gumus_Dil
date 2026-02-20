@@ -1,0 +1,43 @@
+// KUTUPHANE ENTEGRASYON TESTI
+dahil_et("std_lib/zaman.tr")
+dahil_et("std_lib/donanim.tr")
+dahil_et("std_lib/dosya.tr")
+dahil_et("std_lib/rastgele.tr")
+
+sistem("cls")
+renkli_yazdir("turkuaz", "=== YENI KUTUPHANELER TEST EDILIYOR ===")
+yazdır("")
+
+// 1. Zaman Testi
+yazdır("[ZAMAN] 2 saniye bekleniyor...")
+basla = kronometre_baslat()
+saniye_bekle(2)
+gecen = sure_olc(basla)
+yazdır("[ZAMAN] Gecen sure: " + metin(gecen) + " sn (Yaklasik)")
+
+// 2. Donanim Testi
+isik_yak(13)
+bekle(500)
+isik_sondur(13)
+sensor = değer_oku("A0")
+
+// 3. Rastgele Testi
+yazdır("")
+sansli_sayi = sayi_tut(1, 100)
+renkli_yazdir("sari", "[OYUN] 1-100 Arasi Sansli Sayiniz: " + metin(sansli_sayi))
+
+meyveler = ["Elma", "Armut", "Kiraz", "Muz"]
+secilen = listeden_sec(meyveler)
+yazdır("[OYUN] Secilen Meyve: " + secilen)
+yazdır("[OYUN] Yazi Tura: " + yazi_tura())
+
+// 4. Dosya Testi
+yazdır("")
+dosya_yaz("test_kaynak.txt", "Bu dosya kopyalanacak.\nGizli veriler.")
+dosya_kopyala("test_kaynak.txt", "test_hedef.txt")
+okunan = dosya_oku("test_hedef.txt")
+yazdır("[DOSYA] Hedef Dosya Oku: " + okunan)
+
+yazdır("")
+renkli_yazdir("yesil", "=== TEST BASARIYLA TAMAMLANDI ===")
+

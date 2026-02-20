@@ -1,0 +1,10 @@
+dahil_et_modul("mqtt", "std_lib/mqtt.tr");
+
+fonksiyon mesaj_yaz(metin) {
+  yazdır("MQTT alindi: " + metin);
+}
+
+değişken istemci = mqtt::MqttIstemci("mqtt://yerel");
+istemci.baglan();
+istemci.abone("sensor/okuma", mesaj_yaz);
+istemci.gonder("sensor/okuma", "selam");

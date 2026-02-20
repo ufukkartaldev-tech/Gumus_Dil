@@ -1,0 +1,29 @@
+// ---------------------------------------------------------
+// DOSYA KUTUPHANESI (dosya.tr)
+// ---------------------------------------------------------
+
+fonksiyon dosya_kopyala(kaynak, hedef) {
+    icerik = dosya_oku(kaynak)
+    eğer (uzunluk(icerik) == 0) {
+        yazdır("Hata: Kaynak dosya okunamadi: " + kaynak)
+        dön yanlış
+    }
+    
+    // Hedef dosyayi silip sifirdan yazmak icin (basitce uzerine yaziyoruz)
+    dosya_yaz(hedef, icerik)
+    yazdır("Dosya kopyalandi: " + kaynak + " -> " + hedef)
+    dön doğru
+}
+
+fonksiyon dosya_sil(yol) {
+    // Native silme destegi henuz yok, sistem komutu kullanalim
+    // Windows icin 'del', Linux icin 'rm'
+    sistem("del " + yol)
+    yazdır("Dosya silindi (Sistem Komutu): " + yol)
+}
+
+fonksiyon klasor_olustur(ad) {
+    sistem("mkdir " + ad)
+    yazdır("Klasor olusturuldu: " + ad)
+}
+

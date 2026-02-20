@@ -1,0 +1,21 @@
+// GumusDil Demo
+renkli_yazdir("mavi", "=== SIMULASYON BASLIYOR ===");
+bekle(200);
+
+renkli_yazdir("sari", "Matematik Motoru Devrede...");
+değişken i = 0;
+döngü (i < 3) {
+    değişken val = sin(i);
+    yazdır("Giris: " + metin(i) + " Sonuc: " + metin(val));
+    i = i + 1;
+}
+
+renkli_yazdir("yesil", "Dosya Kayit Sistemi...");
+değişken dosya = "demo_log.txt";
+dosya_yaz(dosya, "Log Kaydi: " + metin(zaman()));
+
+değişken icerik = dosya_oku(dosya);
+yazdır("Okunan: " + icerik);
+
+renkli_yazdir("kirmizi", "=== ISLEM TAMAM ===");
+

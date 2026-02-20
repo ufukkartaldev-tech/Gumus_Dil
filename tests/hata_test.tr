@@ -1,0 +1,37 @@
+// Hata Yakalama ve Mantik Testi
+
+deneme {
+    yazdır("1. Deneme blogu calisiyor...")
+    
+    a = 10
+    b = 0
+    
+    eğer (b == 0 ve a > 5) {
+        yazdır("2. Mantiksal VE calisiyor (b=0 ve a>5)")
+    }
+    
+    // Hata uretelim (Sifira bolme henuz hata firlatmiyor olabilir, o yuzden manuel hata veya hatali fonksiyon)
+    // Sifira bolme kontrolu interpreter'da yoksa, sonsuz veya 0 donebilir.
+    // Biz olmayan fonksiyon cagiralim.
+    yazdır("3. Hata uretiliyor...")
+    hatali_fonksiyon_cagrisi()
+    
+    yazdır("Bu satir calismamali!")
+} yakala (hata) {
+    renkli_yazdir("kirmizi", "4. HATA YAKALANDI: " + metin(hata))
+}
+
+yazdır("")
+yazdır("5. Program normal devam ediyor.")
+
+// Unary Test
+dogru_mu = !yanlış
+eğer (dogru_mu) {
+    renkli_yazdir("yesil", "6. Unary (!) operatoru calisiyor.")
+}
+
+negatif = -5
+eğer (negatif < 0) {
+    yazdır("7. Negatif sayi (-) calisiyor: " + metin(negatif))
+}
+

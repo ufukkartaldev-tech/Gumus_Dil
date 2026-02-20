@@ -1,0 +1,70 @@
+// ---------------------------------------------------------
+// BASIT GRAFIK KUTUPHANESI (grafik_basit.tr)
+// Terminal uzerinde ASCII sanati ve cizim
+// ---------------------------------------------------------
+
+dahil_et("matematik.tr") // mat_min, mat_max icin
+
+// Ekrani temizler
+fonksiyon grf_temizle() {
+    sistem("cls") // Windows icin cls, Linux icin clear
+}
+
+// Bir karakteri n kere tekrar eder (Yardimci fonksiyon)
+fonksiyon grf_tekrar(karakter, sayi) {
+    değişken sonuc = ""
+    değişken i = 0
+    döngü (i < sayi) {
+        sonuc = sonuc + karakter
+        i = i + 1
+    }
+    dön sonuc
+}
+
+// Dikdortgen cizer
+fonksiyon grf_dikdortgen(genislik, yukseklik) {
+    değişken ust_alt = "+" + grf_tekrar("-", genislik) + "+"
+    yazdır(ust_alt)
+    
+    değişken i = 0
+    döngü (i < yukseklik) {
+        yazdır("|" + grf_tekrar(" ", genislik) + "|")
+        i = i + 1
+    }
+    
+    yazdır(ust_alt)
+}
+
+// Liste verilerini grafik (bar chart) olarak basar
+// Ornek: [5, 10, 3] -> 
+// ***** (5)
+// ********** (10)
+// *** (3)
+fonksiyon grf_grafik_bas(liste, karakter) {
+    değişken i = 0
+    
+    // Once en buyuk değeri bulalim (olcekleme icin)
+    // Simdilik basit basiyoruz
+    
+    döngü (i < uzunluk(liste)) {
+        değişken değer = liste[i]
+        değişken cubuk = grf_tekrar(karakter, değer)
+        renkli_yazdir("yesil", cubuk + " (" + metin(değer) + ")")
+        i = i + 1
+    }
+}
+
+// Progress bar (ilerleme cubugu) gosterir
+// yuzde: 0-100 arasi sayi
+fonksiyon grf_ilerleme(yuzde) {
+    // [==========     ] %50
+    değişken dolu_kisim = yuzde / 5 // Her 5 puan icin 1 karakter (Toplam 20 karakter)
+    değişken bos_kisim = 20 - dolu_kisim
+    
+    değişken bar = "[" + grf_tekrar("=", dolu_kisim) + grf_tekrar(" ", bos_kisim) + "]"
+    
+    // \r ile ayni satirda yazmak isterdik ama yazdır() yeni satir koyuyor.
+    // Simdilik normal yazdiralim
+    yazdır(bar + " %" + metin(yuzde))
+}
+

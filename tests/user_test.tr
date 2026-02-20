@@ -1,0 +1,36 @@
+// GümüşDil - Tam Türkçe ve UTF-8 Yazılım Testi
+yazdır("--- Gümüşhaneli Mühendis Yazılım Denetimi Başlıyor ---");
+
+// 1. Değişken ve Liste Tahkimatı (değişken ve yazdır mühürlendi)
+değişken isim = "Ufuk";
+değişken puanlar = [85, 90, 100];
+değişken toplam = 0;
+değişken sayaç = 0;
+
+// 2. Döngü ve Koşul Harekatı
+yazdır(isim + " için başarı puanları hesaplanıyor...");
+
+döngü (sayaç < puanlar.uzunluk()) {
+    toplam = toplam + puanlar[sayaç];
+    sayaç = sayaç + 1;
+}
+
+değişken ortalama = toplam / puanlar.uzunluk();
+
+eğer (ortalama >= 90) {
+    yazdır("Sonuç: Pırlanta gibi bir başarı! Ortalaması: " + ortalama); [cite: 2025-12-27]
+} değilse eğer (ortalama >= 60) {
+    yazdır("Sonuç: Geçer not, operasyon başarılı. Ortalaması: " + ortalama);
+} değilse {
+    yazdır("Sonuç: Lojistik destek lazım, ortalama düşük.");
+}
+
+// 3. Hata Yakalama Zırhı
+deneme {
+    değişken kaza = 100 / 0; 
+} yakala(hata_mesajı) {
+    yazdır("Dikkat! Yakalanan Kaza: " + hata_mesajı);
+}
+
+yazdır("--- GümüşDil Denetimi Tamamlandı ---"); [cite: 2025-12-27]
+

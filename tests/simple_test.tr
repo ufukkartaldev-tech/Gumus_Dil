@@ -1,0 +1,20 @@
+// Simple tests
+yazdır("1. Baslangic")
+
+// 1. Unary
+değişken x = !yanlış
+yazdır("Unary sonucu: " + metin(x))
+
+// 2. Logic
+eğer (doğru ve doğru) {
+    yazdır("Logic VE calisiyor")
+}
+
+// 3. Try Catch
+deneme {
+    yazdır("Deneme blogu")
+    hata_yap()
+} yakala (h) {
+    yazdır("Hata yakalandi: " + metin(h))
+}
+

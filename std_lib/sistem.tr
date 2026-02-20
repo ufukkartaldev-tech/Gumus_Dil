@@ -1,0 +1,7 @@
+modul sistem {
+    fonksiyon sistem_durumu() {
+        değişken ts = zaman();
+        değişken mesaj = "Sistem Durumu | zaman=" + metin(ts);
+        dön mesaj;
+    }
+}

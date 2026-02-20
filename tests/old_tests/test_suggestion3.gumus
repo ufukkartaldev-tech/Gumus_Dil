@@ -1,0 +1,10 @@
+fonksiyon test_fonksiyonu() {
+    yazdır("Merhaba!")
+}
+
+fonksiyon diger_fonksiyon() {
+    yazdır("Diğer fonksiyon")
+}
+
+yazdır("Test başlıyor...")
+test_functon()

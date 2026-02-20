@@ -1,0 +1,211 @@
+// ============================================
+// VERİ YAPILARI KÜTÜPHANESİ - UNIT TESTLER
+// Test-Driven Development
+// ============================================
+
+yazdır("=== VERİ YAPILARI TESTLER BAŞLIYOR ===")
+yazdır("")
+
+değişken testSayisi = 0
+değişken basariliTest = 0
+değişken basarisizTest = 0
+
+fonksiyon testEt(isim, kosul) {
+    testSayisi = testSayisi + 1
+    eğer (kosul) {
+        yazdır("[BAŞARILI] " + isim)
+        basariliTest = basariliTest + 1
+    } değilse {
+        yazdır("[BAŞARISIZ] " + isim)
+        basarisizTest = basarisizTest + 1
+    }
+}
+
+// ============================================
+// YIĞIN TESTLERİ
+// ============================================
+
+yazdır("1. YIĞIN (Stack) Testleri:")
+yazdır("----------------------------")
+
+değişken yigin = yeni Yigin()
+
+testEt("Yeni yığın boş olmalı", yigin.bosmu())
+testEt("Boyut 0 olmalı", yigin.boyut == 0)
+
+yigin.ekle(10)
+testEt("Eleman eklendikten sonra boş olmamalı", !yigin.bosmu())
+testEt("Boyut 1 olmalı", yigin.boyut == 1)
+testEt("Üst eleman 10 olmalı", yigin.ust() == 10)
+
+yigin.ekle(20)
+yigin.ekle(30)
+testEt("3 eleman sonrası boyut 3", yigin.boyut == 3)
+testEt("Üst eleman 30 olmalı", yigin.ust() == 30)
+
+değişken cikarilanYigin = yigin.cikar()
+testEt("Çıkarılan eleman 30 olmalı", cikarilanYigin == 30)
+testEt("Çıkarma sonrası boyut 2", yigin.boyut == 2)
+testEt("Yeni üst 20 olmalı", yigin.ust() == 20)
+
+yigin.temizle()
+testEt("Temizleme sonrası boş", yigin.bosmu())
+
+yazdır("")
+
+// ============================================
+// KUYRUK TESTLERİ
+// ============================================
+
+yazdır("2. KUYRUK (Queue) Testleri:")
+yazdır("----------------------------")
+
+değişken kuyruk = yeni Kuyruk()
+
+testEt("Yeni kuyruk boş olmalı", kuyruk.bosmu())
+
+kuyruk.ekle("A")
+kuyruk.ekle("B")
+kuyruk.ekle("C")
+
+testEt("3 eleman sonrası boyut 3", kuyruk.boyut == 3)
+testEt("İlk eleman A olmalı", kuyruk.ilk() == "A")
+
+değişken cikarilanKuyruk = kuyruk.cikar()
+testEt("Çıkarılan A olmalı", cikarilanKuyruk == "A")
+testEt("Yeni ilk B olmalı", kuyruk.ilk() == "B")
+testEt("Boyut 2 olmalı", kuyruk.boyut == 2)
+
+kuyruk.temizle()
+testEt("Temizleme sonrası boş", kuyruk.bosmu())
+
+yazdır("")
+
+// ============================================
+// ÖNCELİKLİ KUYRUK TESTLERİ
+// ============================================
+
+yazdır("3. ÖNCELİKLİ KUYRUK Testleri:")
+yazdır("----------------------------")
+
+değişken pq = yeni OncelikliKuyruk()
+
+testEt("Yeni öncelikli kuyruk boş", pq.bosmu())
+
+pq.ekle("Düşük", 10)
+pq.ekle("Yüksek", 1)
+pq.ekle("Orta", 5)
+
+testEt("3 eleman sonrası boyut 3", pq.boyut == 3)
+
+değişken ilkCikarilanPQ = pq.cikar()
+testEt("En yüksek öncelikli (1) çıkmalı", ilkCikarilanPQ == "Yüksek")
+
+değişken ikinciCikarilanPQ = pq.cikar()
+testEt("İkinci öncelikli (5) çıkmalı", ikinciCikarilanPQ == "Orta")
+
+yazdır("")
+
+// ============================================
+// BAĞLI LİSTE TESTLERİ
+// ============================================
+
+yazdır("4. BAĞLI LİSTE Testleri:")
+yazdır("----------------------------")
+
+değişken liste = yeni BagliListe()
+
+testEt("Yeni liste boş olmalı", liste.bosmu())
+
+liste.sonaEkle(10)
+liste.sonaEkle(20)
+liste.sonaEkle(30)
+
+testEt("3 eleman sonrası boyut 3", liste.boyut == 3)
+testEt("10 bulunmalı (indeks 0)", liste.ara(10) == 0)
+testEt("20 bulunmalı (indeks 1)", liste.ara(20) == 1)
+testEt("30 bulunmalı (indeks 2)", liste.ara(30) == 2)
+testEt("99 bulunmamalı", liste.ara(99) == -1)
+
+liste.basaEkle(5)
+testEt("Başa ekleme sonrası boyut 4", liste.boyut == 4)
+testEt("5 başta olmalı (indeks 0)", liste.ara(5) == 0)
+
+değişken cikarilanListe = liste.bastanCikar()
+testEt("Baştan çıkarılan 5 olmalı", cikarilanListe == 5)
+testEt("Çıkarma sonrası boyut 3", liste.boyut == 3)
+
+yazdır("")
+
+// ============================================
+// HASH TABLOSU TESTLERİ
+// ============================================
+
+yazdır("5. HASH TABLOSU Testleri:")
+yazdır("----------------------------")
+
+değişken tablo = yeni HashTablosu(10)
+
+tablo.ekle("isim", "Ufuk")
+tablo.ekle("soyisim", "Kartal")
+tablo.ekle("yas", 25)
+
+testEt("İsim doğru alınmalı", tablo.al("isim") == "Ufuk")
+testEt("Soyisim doğru alınmalı", tablo.al("soyisim") == "Kartal")
+testEt("Yaş doğru alınmalı", tablo.al("yas") == 25)
+testEt("İsim anahtarı var", tablo.varmi("isim"))
+testEt("Olmayan anahtar yok", !tablo.varmi("adres"))
+testEt("Olmayan anahtar boş döner", tablo.al("adres") == bos)
+
+yazdır("")
+
+// ============================================
+// İKİLİ ARAMA AĞACI TESTLERİ
+// ============================================
+
+yazdır("6. İKİLİ ARAMA AĞACI Testleri:")
+yazdır("----------------------------")
+
+değişken agac = yeni IkiliAramaAgaci()
+
+agac.ekle(50)
+agac.ekle(30)
+agac.ekle(70)
+agac.ekle(20)
+agac.ekle(40)
+agac.ekle(60)
+agac.ekle(80)
+
+testEt("Ağaç boyutu 7 olmalı", agac.boyut == 7)
+testEt("50 bulunmalı", agac.ara(50))
+testEt("30 bulunmalı", agac.ara(30))
+testEt("70 bulunmalı", agac.ara(70))
+testEt("20 bulunmalı", agac.ara(20))
+testEt("99 bulunmamalı", !agac.ara(99))
+
+yazdır("")
+
+// ============================================
+// TEST SONUÇLARI
+// ============================================
+
+yazdır("============================================")
+yazdır("TEST SONUÇLARI")
+yazdır("============================================")
+yazdır("Toplam Test: " + metin(testSayisi))
+yazdır("Başarılı: " + metin(basariliTest))
+yazdır("Başarısız: " + metin(basarisizTest))
+
+değişken basariOrani = (basariliTest * 100) / testSayisi
+yazdır("Başarı Oranı: %" + metin(basariOrani))
+
+eğer (basarisizTest == 0) {
+    yazdır("")
+    yazdır("🎉 TÜM TESTLER BAŞARILI!")
+} değilse {
+    yazdır("")
+    yazdır("⚠️ Bazı testler başarısız oldu.")
+}
+
+yazdır("============================================")
+

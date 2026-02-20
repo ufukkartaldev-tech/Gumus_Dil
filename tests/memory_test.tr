@@ -1,0 +1,14 @@
+
+deðiþken sayi = 42;
+deðiþken metin = "Gümüþdil";
+deðiþken liste = [1, 2, 3];
+deðiþken sozluk = {"anahtar": "deÄŸer"};
+
+fonksiyon testBellek(a) {
+    deðiþken yerel = a * 2;
+    // Bellek dökümü burada otomatik tetiklenecektir
+    yazdýr "Fonksiyon icindeyiz.";
+}
+
+testBellek(sayi);
+

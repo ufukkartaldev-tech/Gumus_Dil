@@ -1,0 +1,34 @@
+// ---------------------------------------------------------
+// METIN KUTUPHANESI (metin.tr)
+// ---------------------------------------------------------
+
+// Native 'buyuk', 'kucuk', 'parcala' ve '+' operatoru temeldir.
+
+fonksiyon birlestir(liste, ayirici) {
+    sonuc = ""
+    l = uzunluk(liste)
+    i = 0
+    döngü (i < l) {
+        sonuc = sonuc + liste[i]
+        eğer (i < l - 1) {
+            sonuc = sonuc + ayirici
+        }
+        i = i + 1
+    }
+    dön sonuc
+}
+
+fonksiyon basile_mi_basliyor(ana_metin, alt_metin) {
+    // Basit bir kontrol (native substr destegi ilerde eklenebilir)
+    // Simdilik sadece esitlik olarak bakiyoruz birinci karaktere vs.
+    // Bu fonksiyon icin gelismis string erisimi (indexleme) lazim.
+    // Dilimizde string indexleme (metin[0]) var mi? Native kodda eklemistik sanki ama emin olalim.
+    // Yoksa 'parcala' ile harf harf bolup bakabiliriz.
+    
+    harfler = parcala(ana_metin, "") // boş ayirici ile harflere bolmeyi umuyoruz
+    alt_harfler = parcala(alt_metin, "")
+    
+    // Basit bir implementasyon:
+    dön harfler[0] == alt_harfler[0]
+}
+

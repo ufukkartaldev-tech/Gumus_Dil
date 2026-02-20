@@ -1,0 +1,231 @@
+// ---------------------------------------------------------
+// GELISMIS METIN KUTUPHANESI (metin_gelismis.tr)
+// ---------------------------------------------------------
+// Metin isleme, sifreleme, analiz fonksiyonlari
+
+dahil_et("std_lib/liste.tr")
+
+// ============ TEMEL METIN ISLEMLERI ============
+
+fonksiyon metin_ters_cevir(metin) {
+    // Metni karakterlere bol ve ters cevir
+    karakterler = parcala(metin, "")
+    ters_liste = ters_cevir(karakterler)
+    dön birlestir(ters_liste, "")
+}
+
+fonksiyon metin_uzunlugu(metin) {
+    karakterler = parcala(metin, "")
+    dön uzunluk(karakterler)
+}
+
+fonksiyon palindrom_mu(metin) {
+    // Palindrom kontrolu (aba, kayak gibi)
+    temiz = kucuk(metin) // Buyuk-kucuk harf farki olmasin
+    ters = metin_ters_cevir(temiz)
+    dön temiz == ters
+}
+
+// ============ SESLI HARF ANALIZI ============
+
+fonksiyon sesli_harf_mi(harf) {
+    h = kucuk(harf)
+    eğer (h == "a") dön doğru
+    eğer (h == "e") dön doğru
+    eğer (h == "i") dön doğru
+    eğer (h == "o") dön doğru
+    eğer (h == "u") dön doğru
+    eğer (h == "�") dön doğru
+    eğer (h == "�") dön doğru
+    eğer (h == "�") dön doğru
+    dön yanlış
+}
+
+fonksiyon sesli_harf_sayisi(metin) {
+    karakterler = parcala(metin, "")
+    sayac = 0
+    i = 0
+    l = uzunluk(karakterler)
+    
+    döngü (i < l) {
+        eğer (sesli_harf_mi(karakterler[i])) {
+            sayac = sayac + 1
+        }
+        i = i + 1
+    }
+    dön sayac
+}
+
+fonksiyon sessiz_harf_sayisi(metin) {
+    toplam = metin_uzunlugu(metin)
+    sesli = sesli_harf_sayisi(metin)
+    dön toplam - sesli
+}
+
+// ============ KELIME ISLEMLERI ============
+
+fonksiyon kelime_sayisi(metin) {
+    kelimeler = parcala(metin, " ")
+    dön uzunluk(kelimeler)
+}
+
+fonksiyon kelime_ara(metin, aranan) {
+    kelimeler = parcala(metin, " ")
+    indeks = eleman_ara(kelimeler, aranan)
+    dön indeks
+}
+
+fonksiyon kelime_degistir(metin, eski, yeni) {
+    kelimeler = parcala(metin, " ")
+    i = 0
+    l = uzunluk(kelimeler)
+    
+    döngü (i < l) {
+        eğer (kelimeler[i] == eski) {
+            kelimeler[i] = yeni
+        }
+        i = i + 1
+    }
+    
+    dön birlestir(kelimeler, " ")
+}
+
+// ============ SEZAR SIFRELEME ============
+
+fonksiyon karakter_kodu(harf) {
+    // Basit ASCII benzeri kodlama (a=0, b=1, ...)
+    // Turkce karakterler icin genisletilmis
+    h = kucuk(harf)
+    
+    eğer (h == "a") dön 0
+    eğer (h == "b") dön 1
+    eğer (h == "c") dön 2
+    eğer (h == "�") dön 3
+    eğer (h == "d") dön 4
+    eğer (h == "e") dön 5
+    eğer (h == "f") dön 6
+    eğer (h == "g") dön 7
+    eğer (h == "�") dön 8
+    eğer (h == "h") dön 9
+    eğer (h == "�") dön 10
+    eğer (h == "i") dön 11
+    eğer (h == "j") dön 12
+    eğer (h == "k") dön 13
+    eğer (h == "l") dön 14
+    eğer (h == "m") dön 15
+    eğer (h == "n") dön 16
+    eğer (h == "o") dön 17
+    eğer (h == "�") dön 18
+    eğer (h == "p") dön 19
+    eğer (h == "r") dön 20
+    eğer (h == "s") dön 21
+    eğer (h == "�") dön 22
+    eğer (h == "t") dön 23
+    eğer (h == "u") dön 24
+    eğer (h == "�") dön 25
+    eğer (h == "v") dön 26
+    eğer (h == "y") dön 27
+    eğer (h == "z") dön 28
+    
+    dön -1 // Bilinmeyen karakter
+}
+
+fonksiyon kod_karakter(kod) {
+    // Kod'dan harfe donusturme
+    alfabe = ["a", "b", "c", "�", "d", "e", "f", "g", "�", "h", 
+              "�", "i", "j", "k", "l", "m", "n", "o", "�", "p", 
+              "r", "s", "�", "t", "u", "�", "v", "y", "z"]
+    
+    eğer (kod >= 0) {
+        eğer (kod < uzunluk(alfabe)) {
+            dön alfabe[kod]
+        }
+    }
+    dön "?"
+}
+
+fonksiyon sezar_sifrele(metin, kaydirma) {
+    karakterler = parcala(metin, "")
+    sifreli = []
+    alfabe_boyutu = 29 // Turkce alfabe
+    
+    i = 0
+    l = uzunluk(karakterler)
+    
+    döngü (i < l) {
+        harf = karakterler[i]
+        kod = karakter_kodu(harf)
+        
+        eğer (kod == -1) {
+            // Harf degil, oldugu gibi birak (bosluk, noktalama vb.)
+            ekle(sifreli, harf)
+        } degilse {
+            // Kaydirma uygula
+            yeni_kod = (kod + kaydirma) % alfabe_boyutu
+            eğer (yeni_kod < 0) {
+                yeni_kod = yeni_kod + alfabe_boyutu
+            }
+            ekle(sifreli, kod_karakter(yeni_kod))
+        }
+        
+        i = i + 1
+    }
+    
+    dön birlestir(sifreli, "")
+}
+
+fonksiyon sezar_coz(sifreli_metin, kaydirma) {
+    // Ters kaydirma ile coz
+    dön sezar_sifrele(sifreli_metin, 0 - kaydirma)
+}
+
+// ============ SIFRE OLUSTURUCU ============
+
+fonksiyon guvenli_sifre_olustur(uzunluk) {
+    karakterler = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+                   "n", "o", "p", "r", "s", "t", "u", "v", "y", "z",
+                   "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+                   "N", "O", "P", "R", "S", "T", "U", "V", "Y", "Z",
+                   "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                   "!", "@", "#", "$", "%", "&", "*"]
+    
+    sifre = []
+    i = 0
+    karakter_sayisi = uzunluk(karakterler)
+    
+    döngü (i < uzunluk) {
+        rastgele_indeks = rastgele(0, karakter_sayisi - 1)
+        ekle(sifre, karakterler[rastgele_indeks])
+        i = i + 1
+    }
+    
+    dön birlestir(sifre, "")
+}
+
+// ============ METIN ANALIZI ============
+
+fonksiyon karakter_frekansi(metin) {
+    // Basit frekans analizi (sadece ekrana yazdirir)
+    karakterler = parcala(metin, "")
+    
+    yazdır("=== KARAKTER FREKANSI ===")
+    i = 0
+    l = uzunluk(karakterler)
+    
+    döngü (i < l) {
+        harf = karakterler[i]
+        sayac = 0
+        j = 0
+        
+        döngü (j < l) {
+            eğer (karakterler[j] == harf) {
+                sayac = sayac + 1
+            }
+            j = j + 1
+        }
+        
+        yazdır(harf + ": " + metin(sayac) + " kez")
+        i = i + 1
+    }
+}
+

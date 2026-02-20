@@ -1,0 +1,40 @@
+// ---------------------------------------------------------
+// LISTE VE ALGORITMA KUTUPHANESI (liste.tr)
+// ---------------------------------------------------------
+
+// Native 'ekle', 'sil', 'uzunluk' fonksiyonlari uzerine insa edilir.
+
+fonksiyon listeyi_kopyala(orijinal) {
+    kopya = []
+    i = 0
+    l = uzunluk(orijinal)
+    döngü (i < l) {
+        ekle(kopya, orijinal[i])
+        i = i + 1
+    }
+    dön kopya
+}
+
+fonksiyon eleman_ara(liste, aranan) {
+    // Lineer arama yapar, index doner. Bulamazsa -1 doner.
+    i = 0
+    l = uzunluk(liste)
+    döngü (i < l) {
+        eğer (liste[i] == aranan) dön i
+        i = i + 1
+    }
+    dön -1
+}
+
+fonksiyon ters_cevir(liste) {
+    // Listeyi ters cevirir
+    yeni_liste = []
+    l = uzunluk(liste)
+    i = l - 1
+    döngü (i > -1) { // 0 dahil
+        ekle(yeni_liste, liste[i])
+        i = i - 1
+    }
+    dön yeni_liste
+}
+

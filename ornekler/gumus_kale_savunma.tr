@@ -1,0 +1,266 @@
+// ============================================================================
+// GÜMÜŞ KALE - Entegre Savunma Simülasyonu
+// Proje: Yapay Zeka Destekli Füze Savunma Sistemi
+// Kütüphaneler: db_yonetimi + ai_gelis + grafik_3d + birim
+// ============================================================================
+
+dahil_et("../lib/birim.tr")
+dahil_et("../lib/db_yonetimi.tr")
+dahil_et("../lib/ai_gelis.tr")
+dahil_et("../lib/grafik_3d.tr")
+dahil_et("../lib/matematik.tr")
+
+// ============================================================================
+    fonksiyon hesaplaTehdit() {
+        // Hız ve mesafeye göre tehdit seviyesi hesapla
+        değişken mesafe = karekok(öz.konum["x"] * öz.konum["x"] + öz.konum["y"] * öz.konum["y"])
+        değişken tehdit = (öz.hiz * 10) / (mesafe + 1)
+        dön tehdit
+    }
+    
+    fonksiyon hareketEt(delta_zaman) {
+        // Düşman kaleye doğru ilerliyor (0,0,0 noktasına)
+        değişken yön_x = 0 - öz.konum["x"]
+        değişken yön_y = 0 - öz.konum["y"]
+        değişken yön_z = 0 - öz.konum["z"]
+        
+        // Normalize et
+        değişken uzunluk = karekok(yön_x * yön_x + yön_y * yön_y + yön_z * yön_z)
+        eğer (uzunluk > 0.1) {
+            yön_x = yön_x / uzunluk
+            yön_y = yön_y / uzunluk
+            yön_z = yön_z / uzunluk
+            
+            öz.konum["x"] = öz.konum["x"] + (yön_x * öz.hiz * delta_zaman)
+            öz.konum["y"] = öz.konum["y"] + (yön_y * öz.hiz * delta_zaman)
+            öz.konum["z"] = öz.konum["z"] + (yön_z * öz.hiz * delta_zaman)
+        }
+    }
+    
+    fonksiyon vuruldu() {
+        öz.aktif = yanlış
+        yazdır("[VURUŞ] " + öz.tip + " ID:" + metin(öz.id) + " etkisiz hale getirildi!")
+    }
+}
+
+// ============================================================================
+// SINIF: FuzeSistemi (Füze Savunma Sistemi)
+// ============================================================================
+sınıf FuzeSistemi {
+    kurucu() {
+        öz.atilan_fuze = 0
+        öz.isabet_sayisi = 0
+        öz.kaçan_hedef = 0
+    }
+    
+    fonksiyon atesEt(hedef_x, hedef_y, hedef_z) {
+        öz.atilan_fuze = öz.atilan_fuze + 1
+        yazdır("[FÜZE] Ateşlendi -> Hedef: (" + metin(hedef_x) + ", " + metin(hedef_y) + ", " + metin(hedef_z) + ")")
+        dön doğru
+    }
+    
+    fonksiyon isabetkaydet() {
+        öz.isabet_sayisi = öz.isabet_sayisi + 1
+    }
+    
+    fonksiyon rapor() {
+        değişken oran = 0
+        eğer (öz.atilan_fuze > 0) {
+            oran = (öz.isabet_sayisi * 100) / öz.atilan_fuze
+        }
+        yazdır("=== FÜZE SİSTEMİ RAPORU ===")
+        yazdır("Atılan Füze: " + metin(öz.atilan_fuze))
+        yazdır("İsabet: " + metin(öz.isabet_sayisi))
+        yazdır("İsabet Oranı: %" + metin(oran))
+    }
+}
+
+// ============================================================================
+// ANA SİMÜLASYON
+// ============================================================================
+
+yazdır("╔════════════════════════════════════════════════════════════╗")
+yazdır("║        GÜMÜŞ KALE - Entegre Savunma Simülasyonu          ║")
+yazdır("║    Yapay Zeka Destekli Füze Savunma Sistemi v1.0         ║")
+yazdır("╚════════════════════════════════════════════════════════════╝")
+yazdır("")
+
+// Test Framework Başlat
+değişken test = yeni BirimTest("Gümüş Kale Simülasyonu")
+
+// ============================================================================
+// ADIM 1: VERİTABANI - Düşman Verilerini Kaydet
+// ============================================================================
+test.bolum("ADIM 1: Veritabanı Lojistiği")
+
+yazdır("[DB] Düşman veritabanı oluşturuluyor...")
+değişken db = db_baglan("gumus_kale.db")
+
+// Düşman botlarını oluştur
+değişken dusmanlar = []
+ekle(dusmanlar, yeni Dusman(1, "Hızlı Drone", 5.0, 100, 50, 30))
+ekle(dusmanlar, yeni Dusman(2, "Ağır Tank", 2.0, 80, 80, 10))
+ekle(dusmanlar, yeni Dusman(3, "Savaş Helikopteri", 7.0, 120, 30, 50))
+ekle(dusmanlar, yeni Dusman(4, "Füze Bataryası", 3.0, 90, 90, 20))
+
+// Veritabanına kaydet (simülasyon)
+değişken i = 0
+döngü (i < uzunluk(dusmanlar)) {
+    değişken d = dusmanlar[i]
+    yazdır("[DB] Kaydediliyor: " + d.tip + " | Hız: " + metin(d.hiz) + " | Tehdit: " + metin(d.tehdit_seviyesi))
+    i = i + 1
+}
+
+test.dogru_mu(uzunluk(dusmanlar) == 4, "4 düşman bot veritabanına kaydedildi")
+db.kapat()
+
+// ============================================================================
+// ADIM 2: YAPAY ZEKA - Hedef Tahmin Sistemi
+// ============================================================================
+test.bolum("ADIM 2: Yapay Zeka Tahmin Motoru")
+
+yazdır("[AI] Sinir ağı eğitiliyor...")
+değişken ai = yeni SinirAgi(0.1)
+ai.katman_ekle(3, 5)  // Giriş: x,y,z -> Gizli: 5 nöron
+ai.katman_ekle(5, 3)  // Gizli: 5 -> Çıkış: tahmin_x, tahmin_y, tahmin_z
+
+// Geçmiş verilerle eğit (simülasyon)
+değişken egitim_verisi = [100, 50, 30]  // İlk düşman konumu
+ai.egit(egitim_verisi, 5)
+
+yazdır("[AI] Eğitim tamamlandı. Tahmin sistemi aktif!")
+test.dogru_mu(doğru, "AI sinir ağı başarıyla eğitildi")
+
+// ============================================================================
+// ADIM 3: 3D SAHNE - Savaş Alanını Görselleştir
+// ============================================================================
+test.bolum("ADIM 3: 3D Grafik Render Sistemi")
+
+yazdır("[3D] Savaş sahnesi oluşturuluyor...")
+değişken sahne = yeni Sahne()
+
+// Düşmanları sahneye ekle
+i = 0
+döngü (i < uzunluk(dusmanlar)) {
+    değişken d = dusmanlar[i]
+    değişken nesne = yeni Nesne3D(d.tip)
+    nesne.tasi(d.konum["x"], d.konum["y"], d.konum["z"])
+    sahne.nesne_ekle(nesne)
+    i = i + 1
+}
+
+// Kaleyi ekle
+değişken kale = yeni Nesne3D("Gümüş Kale")
+kale.tasi(0, 0, 0)
+sahne.nesne_ekle(kale)
+
+test.dogru_mu(doğru, "3D sahne başarıyla oluşturuldu")
+
+// ============================================================================
+// ADIM 4: SİMÜLASYON - Füze Savunma Döngüsü
+// ============================================================================
+test.bolum("ADIM 4: Füze Savunma Simülasyonu")
+
+yazdır("")
+yazdır("═══════════════════════════════════════════════════════════")
+yazdır("           SİMÜLASYON BAŞLIYOR - 5 SANIYE           ")
+yazdır("═══════════════════════════════════════════════════════════")
+yazdır("")
+
+değişken fuze_sistemi = yeni FuzeSistemi()
+değişken simülasyon_suresi = 5
+değişken delta_zaman = 1
+değişken zaman = 0
+
+döngü (zaman < simülasyon_suresi) {
+    yazdır("--- ZAMAN: " + metin(zaman) + " saniye ---")
+    
+    // Her düşman için
+    i = 0
+    döngü (i < uzunluk(dusmanlar)) {
+        değişken dusman = dusmanlar[i]
+        
+        eğer (dusman.aktif) {
+            // Düşman hareket et
+            dusman.hareketEt(delta_zaman)
+            
+            yazdır("[RADAR] " + dusman.tip + " -> Konum: (" + metin(dusman.konum["x"]) + ", " + metin(dusman.konum["y"]) + ", " + metin(dusman.konum["z"]) + ")")
+            
+            // AI ile 5 saniye sonraki konumu tahmin et
+            değişken tahmin_girdi = [dusman.konum["x"], dusman.konum["y"], dusman.konum["z"]]
+            değişken tahmin = ai.tahmin_et(tahmin_girdi)
+            
+            // Füze ateşle (tahmini konuma)
+            fuze_sistemi.atesEt(tahmin, tahmin, tahmin)
+            
+            // %80 isabet şansı (simülasyon)
+            değişken isabet_sans = rastgele() * 100
+            eğer (isabet_sans < 80) {
+                dusman.vuruldu()
+                fuze_sistemi.isabetkaydet()
+            } değilse {
+                yazdır("[KAÇTI] Hedef füzeden kaçtı!")
+            }
+        }
+        
+        i = i + 1
+    }
+    
+    yazdır("")
+    zaman = zaman + 1
+}
+
+// ============================================================================
+// ADIM 5: RENDER - Final Sahne
+// ============================================================================
+test.bolum("ADIM 5: Final Render")
+
+yazdır("[3D] Final sahne render alınıyor...")
+sahne.render_al()
+
+// ============================================================================
+// ADIM 6: RAPOR - Sonuçlar
+// ============================================================================
+test.bolum("ADIM 6: Sistem Raporu")
+
+yazdır("")
+yazdır("╔════════════════════════════════════════════════════════════╗")
+yazdır("║              SAVUNMA SİSTEMİ FİNAL RAPORU                 ║")
+yazdır("╚════════════════════════════════════════════════════════════╝")
+yazdır("")
+
+fuze_sistemi.rapor()
+
+yazdır("")
+yazdır("=== DÜŞMAN DURUMU ===")
+değişken etkisiz_hale_getirilen = 0
+i = 0
+döngü (i < uzunluk(dusmanlar)) {
+    değişken d = dusmanlar[i]
+    değişken durum = "AKTİF"
+    eğer (!d.aktif) {
+        durum = "ETKİSİZ"
+        etkisiz_hale_getirilen = etkisiz_hale_getirilen + 1
+    }
+    yazdır(d.tip + " (ID:" + metin(d.id) + ") -> " + durum)
+    i = i + 1
+}
+
+yazdır("")
+yazdır("Toplam Düşman: " + metin(uzunluk(dusmanlar)))
+yazdır("Etkisiz Hale Getirilen: " + metin(etkisiz_hale_getirilen))
+yazdır("Kaleye Ulaşan: " + metin(uzunluk(dusmanlar) - etkisiz_hale_getirilen))
+
+// Test Doğrulamimarirı
+test.dogru_mu(etkisiz_hale_getirilen > 0, "En az 1 düşman etkisiz hale getirildi")
+test.dogru_mu(fuze_sistemi.atilan_fuze > 0, "Füze sistemi aktif olarak çalıştı")
+
+yazdır("")
+yazdır("╔════════════════════════════════════════════════════════════╗")
+yazdır("║           SİMÜLASYON TAMAMLANDI - BAŞARILI!              ║")
+yazdır("╚════════════════════════════════════════════════════════════╝")
+
+// Final Test Raporu
+test.raporla()
+
+

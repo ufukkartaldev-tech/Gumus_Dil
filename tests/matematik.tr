@@ -1,0 +1,28 @@
+// Matematik Kutuphanesi
+// Bu dosya 'dahil_et' ile baska projelere eklenebilir.
+
+fonksiyon daire_alani(yaricap) {
+    dön 3 * yaricap * yaricap // Pi = 3 alindi (Basitlik icin)
+}
+
+fonksiyon daire_cevresi(yaricap) {
+    dön 2 * 3 * yaricap
+}
+
+fonksiyon us_al(taban, us) {
+    değişken sonuc = 1
+    değişken i = 0
+    döngü(i < us) {
+        sonuc = sonuc * taban
+        i = i + 1
+    }
+    dön sonuc
+}
+
+fonksiyon faktoriyel(n) {
+    eğer (n <= 1) dön 1
+    dön n * faktoriyel(n - 1)
+}
+
+yazdır("[Bilgi] Matematik kutuphanesi yuklendi.")
+

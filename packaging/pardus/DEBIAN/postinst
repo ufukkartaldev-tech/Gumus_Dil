@@ -1,0 +1,71 @@
+#!/bin/bash
+# GümüşDil Kurulum Sonrası Script
+
+set -e
+
+echo "🌟 GümüşDil kurulumu tamamlanıyor..."
+
+# Python bağımlılıklarını yükle (Robust Error Handling)
+echo "📦 Python paketleri yükleniyor..."
+
+# Önce pip'in kendisini güncelle
+python3 -m pip install --upgrade pip --user 2>/dev/null || true
+
+# CustomTkinter ve Pillow'u kur (Kritik bağımlılıklar)
+if ! python3 -c "import customtkinter" 2>/dev/null; then
+    echo "   → CustomTkinter kuruluyor..."
+    pip3 install --user customtkinter==5.2.0 2>/dev/null || {
+        echo "   ⚠️  pip başarısız, apt ile deneniyor..."
+        apt-get install -y python3-customtkinter 2>/dev/null || true
+    }
+fi
+
+if ! python3 -c "import PIL" 2>/dev/null; then
+    echo "   → Pillow kuruluyor..."
+    pip3 install --user pillow 2>/dev/null || {
+        apt-get install -y python3-pil python3-pil.imagetk 2>/dev/null || true
+    }
+fi
+
+echo "✅ Python bağımlılıkları hazır"
+
+# Desktop kısayolu oluştur
+DESKTOP_FILE="/usr/share/applications/gumusdil.desktop"
+cat > "$DESKTOP_FILE" << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=GümüşDil IDE
+Name[tr]=GümüşDil IDE
+Comment=Türkçe Programlama Dili
+Comment[tr]=Türkçe Programlama Dili
+Exec=/usr/bin/gumusdil
+Icon=/usr/share/gumusdil/icon.png
+Terminal=false
+Categories=Development;Education;IDE;
+Keywords=programming;turkish;education;teknofest;
+StartupNotify=true
+EOF
+
+# İkon dosyası yoksa placeholder oluştur
+if [ ! -f "/usr/share/gumusdil/icon.png" ]; then
+    echo "⚠️  İkon dosyası bulunamadı, varsayılan kullanılacak"
+fi
+
+# Çalıştırma izinleri
+chmod +x /usr/bin/gumusdil
+chmod +x /usr/share/gumusdil/bin/gumus 2>/dev/null || true
+
+# Masaüstü veritabanını güncelle
+update-desktop-database 2>/dev/null || true
+
+echo "✅ GümüşDil başarıyla kuruldu!"
+echo ""
+echo "🚀 Başlatmak için:"
+echo "   - Uygulama menüsünden 'GümüşDil IDE' seçin"
+echo "   - veya terminalde 'gumusdil' yazın"
+echo ""
+echo "📚 Örnek kodlar: /usr/share/gumusdil/ornekler/"
+echo ""
+
+exit 0

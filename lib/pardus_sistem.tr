@@ -1,0 +1,56 @@
+// ---------------------------------------------------------
+// PARDUS SİSTEM KÜTÜPHANESİ (pardus_sistem.tr)
+// Pardus İşletim Sistemi Entegrasyon Araçları
+// ---------------------------------------------------------
+
+modül Pardus {
+    // Pardus Sürüm Bilgisi
+    fonksiyon sürüm_oku() {
+        yazdır("[PARDUS] Sistem sürümü sorgulanıyor...")
+        // Gerçekte /etc/os-release okunur
+        dön "Pardus 23.1 (Ay Yıldız)"
+    }
+
+    // Paket Bilgisi Sorgulama
+    fonksiyon paket_varmı(paket_adı) {
+        yazdır("[PARDUS] Paket kontrol ediliyor: " + paket_adı)
+        // dpkg -l sorgusu simülasyonu
+        dön doğru
+    }
+
+    // Sistem Güncelleme Komutu (Simüle)
+    fonksiyon güncelleme_kontrol_et() {
+        yazdır("[PARDUS] Güncelleme sunucularına bağlanılıyor...")
+        yazdır("[PARDUS] Sunucular kontrol ediliyor, lütfen bekleyin...")
+        
+        bekle(2000) // 2 saniye gecikme (Gerçekçilik için)
+
+        renkli_yazdir("mavi", "[PARDUS] 3 yeni güvenlik güncellemesi mevcut.")
+        dön 3
+    }
+
+    // Pardus ETAP (Etkileşimli Tahta) Modu Kontrolü
+    fonksiyon etap_modu_aktifmi() {
+        // XDG_CURRENT_DESKTOP kontrolü
+        dön doğru
+    }
+
+    // Servis Yönetimi
+    fonksiyon servis_başlat(servis_adı) {
+        yazdır("[PARDUS] Servis başlatılıyor: " + servis_adı)
+        // systemctl start simülasyonu
+        dön doğru
+    }
+
+    // Kullanıcı Bilgisi
+    fonksiyon kullanıcı_adı() {
+        dön "pardus_kullanıcısı"
+    }
+
+    // Güvenli Kapatma/Yeniden Başlatma
+    fonksiyon yeniden_başlat() {
+        yazdır("[PARDUS] Sistem yeniden başlatılıyor...")
+        // reboot komutu
+    }
+}
+

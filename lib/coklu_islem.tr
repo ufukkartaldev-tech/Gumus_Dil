@@ -1,0 +1,56 @@
+// ---------------------------------------------------------
+// GUMUS PARALEL ISLEM (coklu_islem.tr)
+// Cok cekirdekli islem ve asenkron gorev yonetimi
+// ---------------------------------------------------------
+
+// Is parcacigi (Thread) soyutlamasi
+sinif IsParcacigi {
+    değişken gorev_id
+    değişken calisiyor_mu
+    değişken islem_fonksiyonu
+
+    kurucu(fonk_adi) {
+        �z.islem_fonksiyonu = fonk_adi
+        �z.calisiyor_mu = yanlış
+        �z.gorev_id = -1
+    }
+
+    fonksiyon baslat(parametreler) {
+        �z.calisiyor_mu = doğru
+        // Native thread baslatma cagrisi burada yapilirdi
+        yazdır("[CPU] Is parcacigi baslatildi: " + �z.islem_fonksiyonu)
+    }
+
+    fonksiyon bekle() {
+        // Thread join islemi
+        yazdır("[CPU] Is parcacigi bekleniyor...")
+        �z.calisiyor_mu = yanlış
+    }
+}
+
+// Kilit (Mutex) mekanizmasi
+sinif Kilit {
+    değişken kilitli_mi
+    
+    kurucu() {
+        �z.kilitli_mi = yanlış
+    }
+
+    fonksiyon kilitle() {
+        eğer (�z.kilitli_mi) {
+            yazdır("[CPU] Kaynak mesgul, bekleniyor...")
+        }
+        �z.kilitli_mi = doğru
+    }
+
+    fonksiyon serbest_birak() {
+        �z.kilitli_mi = yanlış
+    }
+}
+
+// Paralel döngü yardimcisi
+fonksiyon paralel_dongu(baslangic, bitis, islem_fonksiyonu) {
+    yazdır("[CPU] Paralel döngü baslatiliyor (" + metin(baslangic) + " -> " + metin(bitis) + ")")
+    // Cekirdek sayisina gore bolup dagitma simulasyonu
+}
+

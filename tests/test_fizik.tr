@@ -1,0 +1,50 @@
+yazdır("--- FİZİK MOTORU TESTİ BAŞLIYOR ---");
+
+// 1. Zemini Doşe (Yeşil Çimen)
+değişken x = 0;
+değişken z = 0;
+değişken i = 0;
+
+yazdır("Zemin Insa Ediliyor...");
+döngü (x < 5) {
+    z = 0;
+    döngü (z < 5) {
+        insaa_et(x, 0, z, 1); // Zemin (Çimen)
+        z = z + 1;
+    }
+    x = x + 1;
+}
+
+// 2. Havada Asılı Taşlar (Sabit Kalmalı)
+insaa_et(2, 5, 2, 2); // (2,5,2) noktasında Taş
+yazdır("Havada sabit taş oluşturuldu (2,5,2)");
+
+// 3. Havada Kumlar (Düşmeli)
+yazdır("Havaya kumlar bırakılıyor... DİKKAT!");
+insaa_et(0, 8, 0, 6); // Kum (0,8,0) -> Zemine düşmeli
+insaa_et(1, 8, 0, 6);
+insaa_et(2, 9, 2, 6); // Taşın üstüne düşmeli! (2,6,2)'de durmalı
+
+// 4. Fizik Simülasyonu (Game Loop)
+yazdır("Simülasyon Başlıyor... (30 Adım)");
+değişken adim = 0;
+döngü (adim < 30) {
+    
+    // Fiziği Güncelle
+    değişken eylem_sayisi = fizik_guncelle();
+    
+    eğer (eylem_sayisi > 0) {
+        yazdır("Adım " + adim + ": " + eylem_sayisi + " blok hareket etti.");
+    }
+    
+    // Biraz bekle (Animasyon hızı için)
+    bekle(100); 
+    
+    adim = adim + 1;
+}
+
+yazdır("Simülasyon Bitti.");
+yazdır("Kontrol: (2,6,2) noktasında kum olmalı (Taşın üstünde).");
+değişken blok = blok_ne(2, 6, 2);
+yazdır("Sonuç: " + blok); // 6 bekliyoruz
+

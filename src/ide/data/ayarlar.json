@@ -1,0 +1,11 @@
+{
+    "ai_modu": "dayi",
+    "kisayollar": {
+        "kaydet": "<Control-s>",
+        "calistir": "<F5>",
+        "debug_adim": "<F10>",
+        "debug_gir": "<F11>",
+        "ara": "<Control-f>",
+        "yorum_satiri": "<Control-slash>"
+    }
+}

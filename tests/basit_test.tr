@@ -1,0 +1,21 @@
+// Basit Test Programı
+yazdır("========================================")
+yazdır("   GÜMÜŞDIL TEST PROGRAMI")
+yazdır("========================================")
+yazdır("")
+yazdır("")
+
+değişken isim = "Gümüşdil"
+yazdır("Merhaba " + isim + "!")
+yazdır("")
+
+değişken sayi1 = 10
+değişken sayi2 = 20
+yazdır("Sayı 1: " + metin(sayi1))
+yazdır("Sayı 2: " + metin(sayi2))
+yazdır("")
+
+yazdır("========================================")
+yazdır("   TEST TAMAMLANDI!")
+yazdır("========================================")
+

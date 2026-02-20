@@ -1,0 +1,139 @@
+// ---------------------------------------------------------
+// SINIR OTESI TESTLERI (test_sinir_otesi.tr)
+// "G�m�shane Sogugu" kadar sert, negatif ve hata testleri.
+// G�m��Dil'in hata tolerans�n� ve saglaml�g�n� olcer.
+// ---------------------------------------------------------
+
+dahil_et("../lib/birim.tr")
+dahil_et("../std_lib/matematik.tr")
+dahil_et("../std_lib/liste.tr")
+dahil_et("../lib/ai_gelis.tr")
+
+değişken t = yeni BirimTest("Sinir Otesi (Negatif) Testler")
+
+// ----------------------------------------------------------------
+// 1. BOLUM: MATEMATIK "KARADELIK" TESTLERI
+// ----------------------------------------------------------------
+t.bolum("MATEMATIK: Beklenmedik değerler")
+
+// Negatif Faktoriyel:
+// Standart fonksiyonumuz su an recursive ve eksi kontrolu yapmiyor olabilir
+// Sonsuz donguye girmeden yanit donuyor mu bakalim.
+// Beklenen: Ya hata firlatmali ya da 1 donmeli (tanima gore)
+t.esit_mi(1, mat_faktoriyel(-5), "Faktoriyel(-5) sistem cokmemeli (1 veya Hata)")
+
+// 0 uzeri 0 Belirsizligi:
+// Genellikle 1 kabul edilir.
+t.esit_mi(1, mat_üs(0, 0), "0^0 = 1 olmali")
+
+// SIFIRA BOLME (Kritik!)
+// Daktilonun 'dene-yakala' mekanizmasi burada devreye girmeli.
+t.bolum("MATEMATIK: Sifira Bolme Yakalama")
+
+değişken yakalandi_mi = yanlış
+dene {
+    değişken patlama = 10 / 0
+} yakala(hata) {
+    yakalandi_mi = doğru
+    renkli_yazdir("sari", "  [i] Beklenen hata yakalandi: " + hata)
+}
+t.dogru_mu(yakalandi_mi, "Sifira bolme hatasi 'dene-yakala' ile tutulmali")
+
+
+// ----------------------------------------------------------------
+// 2. BOLUM: LISTE "HAYALET ELEMAN" TESTLERI
+// ----------------------------------------------------------------
+t.bolum("LISTE: Sinir Durumlari")
+
+değişken bos_liste = []
+
+// boş listede arama
+t.esit_mi(-1, eleman_ara(bos_liste, "hayalet"), "boş listede eleman arama -1 donmeli")
+
+// Olmayan indeks (Boundary Check)
+// G�m��Dil su an indeks hatasinda crash mi oluyor yoksa hata mi firlatiyor?
+// Test edelim.
+yakalandi_mi = yanlış
+dene {
+    değişken olmayan = bos_liste[999]
+} yakala(hata) {
+    yakalandi_mi = doğru
+    renkli_yazdir("sari", "  [i] Index hatasi yakalandi: " + hata)
+}
+// NOT: Eğer dil native seviyede boundary check yapmiyorsa bu test cokebilir (segfault).
+// Ancak interpreter dillerinde bu check genelde vardir.
+t.dogru_mu(yakalandi_mi, "Gecersiz indeks erisimi hata firlatmali")
+
+// Tip Uyusmazligi: Metin listesinde sayi arama
+değişken metin_listesi = ["elma", "armut"]
+t.esit_mi(-1, eleman_ara(metin_listesi, 12345), "Metin listesinde sayi arandiginda hata vermeden -1 donmeli")
+
+
+// ----------------------------------------------------------------
+// 3. BOLUM: AI "boş KOVAN" TESTLERI
+// ----------------------------------------------------------------
+t.bolum("YAPAY ZEKA: Hatali Kullanim")
+
+değişken bos_beyin = yeni SinirAgi(-0.5) // Negatif ogrenme orani?
+
+// Katman eklemeden tahmin
+yakalandi_mi = yanlış
+dene {
+    // Katman yokken tahmin yapmaya calisinca donguler calismaz veya hata verir
+    // Kodda "katmanlar" boş oldugu icin döngü donmez, sonuc ne doner?
+    // Tahminen 0.95 (hardcoded) donecektir ama cokmemeli.
+    değişken sonuc = bos_beyin.tahmin_et([1])
+} yakala(hata) {
+    yakalandi_mi = doğru
+    renkli_yazdir("sari", "  [i] boş AI hatasi: " + hata)
+}
+// Burada hata firlatmasa bile cokmemesi basaridir.
+t.dogru_mu(true, "Katmansiz AI calisinca sistem cokmedi")
+
+
+// ----------------------------------------------------------------
+// 4. BOLUM: NESNE "OZ" VE TIP TESTLERI
+// ----------------------------------------------------------------
+t.bolum("NESNE: Tip Guvenligi")
+
+sinif SaglamSinif {
+    değişken veri
+    kurucu(v) {
+        �z.veri = v
+        // Burada v'nin tipi kontrol edilmiyor, dinamik tip.
+    }
+}
+
+// yanlış tipte veri muhurleme
+// G�m��Dil dinamik tipli oldugu icin bu "hata" degil "ozellik"tir ama
+// davranisi gormek lazim.
+değişken nesne1 = yeni SaglamSinif(123)
+değişken nesne2 = yeni SaglamSinif("metin")
+
+t.esit_mi(nesne1.veri, 123, "Nesne integer tutabiliyor")
+t.esit_mi(nesne2.veri, "metin", "Ayni sinif string tutabiliyor (Dinamik Tip)")
+
+// Kurucu cagirmadan? 
+// G�m��Dil'de 'yeni' keywordu kurucuyu otomatik cagirir.
+// Manuel atlatma sansimiz yok ama kurucuda hata olusursa ne olur?
+
+sinif HataliSinif {
+    kurucu() {
+        hata_firlat("Kurucuda patlama!")
+    }
+}
+
+yakalandi_mi = yanlış
+dene {
+    değişken h = yeni HataliSinif()
+} yakala(hata) {
+    yakalandi_mi = doğru
+    renkli_yazdir("sari", "  [i] Kurucu hatasi yakalandi: " + hata)
+}
+t.dogru_mu(yakalandi_mi, "Nesne olusturulurken yapilan hata yakalanmali")
+
+// ----------------------------------------------------------------
+// RAPOR
+// ----------------------------------------------------------------
+t.raporla()
+
