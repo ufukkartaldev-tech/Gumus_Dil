@@ -141,9 +141,7 @@ GümüşDil bir topluluk projesidir. Siz de katkıda bulunabilirsiniz:
 
 ## 📞 İletişim
 
-- **Geliştirici:** Ufuk Kartal ([ufukkartal@gumusdil.org](mailto:ufukkartal@gumusdil.org))
-- **Destek:** [destek@gumusdil.org](mailto:destek@gumusdil.org)
-- **Topluluk:** [discord.gg/gumusdil](https://discord.gg/gumusdil)
+- **Geliştirici:** Ufuk Kartal ([ufuk.kartal.dev@gmail.com](mailto:ufuk.kartal.dev@gmail.com))
 
 ---
 
