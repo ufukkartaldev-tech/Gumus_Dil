@@ -24,75 +24,10 @@ class DialogManager:
         )
 
     def show_theme_selector(self):
-        """Tema seçici dialog göster"""
-        theme_window = ctk.CTkToplevel(self.root)
-        theme_window.title("🎨 Tema Seçici")
-        theme_window.geometry("500x600")
-        theme_window.resizable(False, False)
-        
-        # Pozisyon
-        theme_window.update_idletasks()
-        try:
-            x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 250
-            y = self.root.winfo_y() + 100
-            theme_window.geometry(f"+{x}+{y}")
-        except: pass
-        
-        # Modal
-        theme_window.transient(self.root)
-        theme_window.grab_set()
-        
-        current_theme = self.config.THEMES[self.config.theme]
-        
-        # Ana frame
-        main_frame = ctk.CTkFrame(theme_window, fg_color=current_theme['bg'])
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        # Başlık ve Liste (Kodun geri kalanı aynı)
-        title = ctk.CTkLabel(main_frame, text="🎨 Tema Seçin", font=("Segoe UI", 24, "bold"), text_color=current_theme['accent'])
-        title.pack(pady=20)
-        
-        scroll_frame = ctk.CTkScrollableFrame(main_frame, fg_color=current_theme['sidebar_bg'], corner_radius=12)
-        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
-        
-        for theme_key, theme_data in self.config.THEMES.items():
-            self._create_theme_item(scroll_frame, theme_key, theme_data, theme_window)
+        """Modern Tema Seçici (V2) dialogu göster"""
+        from .theme_selector_v2 import ThemeSelectorV2
+        ThemeSelectorV2(self.main_window, self.config)
 
-    def _create_theme_item(self, parent, theme_key, theme_data, window):
-        theme_frame = ctk.CTkFrame(
-            parent,
-            fg_color=theme_data['bg'],
-            corner_radius=10,
-            border_width=3 if theme_key == self.config.theme else 0,
-            border_color=theme_data['accent']
-        )
-        theme_frame.pack(fill="x", padx=10, pady=8)
-        
-        # Tema bilgileri
-        info_frame = ctk.CTkFrame(theme_frame, fg_color="transparent")
-        info_frame.pack(fill="x", padx=15, pady=12)
-        
-        name_label = ctk.CTkLabel(info_frame, text=theme_data.get('name', theme_key), font=("Segoe UI", 16, "bold"), text_color=theme_data['fg'])
-        name_label.pack(anchor="w")
-        
-        # Renk paletleri
-        colors_frame = ctk.CTkFrame(info_frame, fg_color="transparent", height=40)
-        colors_frame.pack(fill="x", pady=(8, 0))
-        
-        for color_key in ['keyword', 'string', 'number', 'function', 'class', 'comment']:
-            if color_key in theme_data:
-                ctk.CTkFrame(colors_frame, fg_color=theme_data[color_key], width=50, height=30, corner_radius=6).pack(side="left", padx=3)
-        
-        # Seç butonu
-        ctk.CTkButton(
-            theme_frame,
-            text="✓ Seç" if theme_key == self.config.theme else "Seç",
-            command=lambda: self.apply_theme(theme_key, window),
-            fg_color=theme_data['accent'],
-            hover_color=theme_data['select_bg'],
-            font=("Segoe UI", 12, "bold"),
-            height=35
-        ).pack(fill="x", padx=15, pady=(0, 12))
 
     def apply_theme(self, theme_key, window=None):
         """Temayı uygula - Tüm arayüzü özyinelemeli (recursive) olarak günceller"""
