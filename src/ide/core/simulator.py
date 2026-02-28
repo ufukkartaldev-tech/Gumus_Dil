@@ -62,10 +62,15 @@ class GumusSimulator:
 
                 # 📊 GümüşRadar: Profiling Sinyali
                 if i % 10 == 0: # Her 10 satırda bir raporla (Performans için)
-                    import psutil
-                    cpu = psutil.cpu_percent()
-                    mem = psutil.Process().memory_info().rss / (1024 * 1024)
-                    self.log(f"__PROFILE__:{{\"cpu\": {cpu}, \"mem\": {mem:.1f}, \"line\": {i+1}}}")
+                    try:
+                        import psutil
+                        cpu = psutil.cpu_percent()
+                        mem = psutil.Process().memory_info().rss / (1024 * 1024)
+                        self.log(f"__PROFILE__:{{\"cpu\": {cpu}, \"mem\": {mem:.1f}, \"line\": {i+1}}}")
+                    except ImportError:
+                        pass # psutil yüklü değilse profiler sessiz kalsın
+                    except Exception:
+                        pass
 
                 if self.execution_delay > 0:
                     time.sleep(self.execution_delay)
@@ -413,7 +418,7 @@ class GumusSimulator:
         return self.evaluate_expression(expr)
 
     def evaluate_expression(self, expr):
-        safe_dict = self.variables.copy()
+        safe_dict = {}
         
         # Native fonksiyonlar
         safe_dict['metin'] = str
@@ -426,6 +431,9 @@ class GumusSimulator:
         # Türkçe anahtar kelimeler
         safe_dict['doğru'] = True
         safe_dict['yanlış'] = False
+        
+        # Kullanıcı değişkenleri built-in'leri ezebilir (örneğin kullanıcı 'sayı' diye değişken tanımlarsa)
+        safe_dict.update(self.variables)
         
         # Kullanıcı tanımlı fonksiyonları ekle
         def make_func_wrapper(fn_name):

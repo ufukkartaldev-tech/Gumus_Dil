@@ -21,3 +21,6 @@ customtkinter>=5.0.0
 # HTTP istekleri ve API entegrasyonu için
 requests>=2.31.0
 
+# Sistem kaynak takibi için
+psutil>=5.9.0
+

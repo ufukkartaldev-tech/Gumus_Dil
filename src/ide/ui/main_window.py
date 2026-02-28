@@ -254,11 +254,11 @@ class MainWindow:
         if editor:
             if line:
                 # Satıra odaklı tamir
-                editor._textbox.delete(f"{line}.0", f"{line}.end")
-                editor._textbox.insert(f"{line}.0", code)
+                editor.delete(f"{line}.0", f"{line}.end")
+                editor.insert(f"{line}.0", code)
                 self.show_toast(f"📍 Satır {line} mühürlendi!", "success")
             else:
-                editor._textbox.insert(tk.INSERT, code)
+                editor.insert(tk.INSERT, code)
             
     def update_title(self):
         title = "💎 Gümüşdil IDE"

@@ -21,7 +21,7 @@ class CompilerRunner:
                 creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
                 timeout=2
             )
-            # 0 dönmeli, yoksa bir sorun vardır.
+            # 0 dönmeli, yoksa bir sorun vardır (3221225781: DLL Missing, 3221225785: Entry Point Not Found)
             return res.returncode == 0
         except Exception:
             return False
@@ -146,8 +146,23 @@ class CompilerRunner:
     def get_ast_json(source_file):
         """AST'yi JSON olarak almak için derleyiciyi çalıştırır"""
         if not CompilerRunner.is_compiler_viable():
-            # AST Fallback yok (JSON parser yazmadık)
-            return None, f"HATA: Derleyici bulunamadı veya bağımlılıkları eksik (AST desteklenmiyor).", -1
+            # FALLBACK: Python tabanlı parser'ı kullan
+            try:
+                from .tokenizer import GumusTokenizer
+                from .parser import GumusParser
+                import json
+                
+                with open(source_file, 'r', encoding='utf-8') as f:
+                    code = f.read()
+                
+                tokenizer = GumusTokenizer(code)
+                tokens = tokenizer.tokenize()
+                parser = GumusParser(tokens)
+                ast = parser.parse()
+                
+                return json.dumps(ast.to_json(), indent=2, ensure_ascii=False), "", 0
+            except Exception as e:
+                return None, f"HATA: Derleyici eksik ve simülasyon parser'ı başarısız oldu: {e}", -1
             
         try:
             # Windows için konsol penceresi açılmasını engelle
