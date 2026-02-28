@@ -287,29 +287,12 @@ class MainWindow:
     
     def show_project_translator(self):
         """Python projesini toplu halde GümüşDil'e çevirir."""
-        from tkinter import filedialog
-        source = filedialog.askdirectory(title="Python Proje Klasörünü Seç")
-        if not source: return
-        
-        target = filedialog.askdirectory(title="GümüşDil Projesinin Kaydedileceği Klasörü Seç")
-        if not target: return
-        
-        self.show_toast("🚀 Proje Dönüştürülüyor...", "info")
-        
-        from ..core.project_converter import GümüşProjectConverter
-        converter = GümüşProjectConverter(self)
-        count, errors = converter.convert_project(source, target)
-        
-        msg = f"✅ Dönüştürme Tamamlandı!\n📄 {count} dosya çevrildi."
-        if errors:
-            msg += f"\n🚨 {len(errors)} hata oluştu."
-        
-        messagebox.showinfo("Proje Çevirici", msg)
-        
-        # Pardus Paketleme sorabiliriz
-        if count > 0:
-            if messagebox.askyesno("Paketleme", "Bu projeyi hemen Pardus (.deb) paketi haline getirelim mi?"):
-                converter.package_converted_project(target)
+        try:
+            from .project_translator_ui import ProjectTranslatorUI
+            ui = ProjectTranslatorUI(self, self.config)
+            ui.focus()
+        except ImportError as e:
+            self.show_toast(f"Çevirici arayüzü yüklenemedi: {e}", "error")
 
     def translate_current_file(self):
         """Aktif Python dosyasını GümüşDil'e çevirir."""
