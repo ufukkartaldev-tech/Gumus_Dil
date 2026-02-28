@@ -49,7 +49,18 @@ class ASTViewer(ctk.CTkToplevel):
         super().__init__(parent)
         self.config = config
         self.title("🌳 GümüşAST - Ağaç Görselleştirme")
-        self.geometry("1200x800")
+        
+        # Ekran boyutuna göre dinamik boyutlandırma
+        screen_w = parent.winfo_screenwidth()
+        screen_h = parent.winfo_screenheight()
+        w = min(1200, int(screen_w * 0.8))
+        h = min(800, int(screen_h * 0.8))
+        
+        x = (screen_w - w) // 2
+        y = (screen_h - h) // 2
+        
+        self.geometry(f"{w}x{h}+{x}+{y}")
+        self.minsize(800, 600)
         
         # Zoom ve Pan değişkenleri
         self.zoom_level = 1.0
