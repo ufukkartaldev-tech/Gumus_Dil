@@ -659,7 +659,7 @@ class CodeEditor(ctk.CTkFrame):
     def _highlight_current_line(self):
         """Aktif satırı vurgula"""
         self._textbox.tag_remove("current_line", "1.0", tk.END)
-        self._textbox.tag_add("current_line", "insert linestart", "insert lineend+1c")
+        # self._textbox.tag_add("current_line", "insert linestart", "insert lineend+1c")
         
         # ASTViewer Vurgusu İçin Main Window'u Bilgilendir
         try:

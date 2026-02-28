@@ -387,8 +387,17 @@ class Sidebar(ctk.CTkFrame):
         self.profiler_panel = ProfilerPanel(self.content_container, config)
         self.docs_panel = DocsPanel(self.content_container, config)
         self.flowchart_panel = FlowchartPanel(self.content_container, config)
-        self.voxel_editor = VoxelEditor(self.content_container, config)
-        self.vizyon_panel = VizyonPanel(self.content_container, config)
+        self.voxel_editor = VoxelEditor(
+            self.content_container, 
+            config,
+            on_apply_code=callbacks.get('on_apply_code'),
+            get_code=callbacks.get('get_code')
+        )
+        self.vizyon_panel = VizyonPanel(
+            self.content_container, 
+            config,
+            on_apply_code=callbacks.get('on_apply_code')
+        )
         
         # MemoryView'e AI Köprüsü
         def bridge_to_ai(context_text):

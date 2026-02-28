@@ -5,10 +5,11 @@ import random
 
 class VizyonPanel(ctk.CTkFrame):
     """Gümüş Vizyon - İHA Takip ve Kontrol Merkezi"""
-    def __init__(self, parent, config):
+    def __init__(self, parent, config, on_apply_code=None):
         super().__init__(parent, fg_color="transparent")
         self.config = config
         self.theme = config.THEMES[config.theme]
+        self.on_apply_code = on_apply_code
         
         self._setup_ui()
         
@@ -43,8 +44,8 @@ class VizyonPanel(ctk.CTkFrame):
         
         self.radar_canvas = tk.Canvas(self.radar_frame, bg="#0a1a0a", highlightthickness=0, bd=0)
         self.radar_canvas.pack(fill="both", expand=True, padx=10, pady=10)
-        this = self
-        self.radar_canvas.bind("<Configure>", lambda e: this._draw_radar_static())
+        
+        self.radar_canvas.bind("<Configure>", lambda e: self._draw_radar_static())
         
         # Sağ Taraf: Kontrol ve Loglar
         self.right_frame = ctk.CTkFrame(self.content_frame, width=200, fg_color="transparent")
@@ -107,10 +108,14 @@ class VizyonPanel(ctk.CTkFrame):
         self.log_box.configure(state="disabled")
 
     def update_metrics(self, alt, speed, bat, signal):
-        self.metrics["🛸 İrtifa"].configure(text=f"{alt} m")
-        self.metrics["🚀 Hız"].configure(text=f"{speed} km/s")
-        self.metrics["🔋 Batarya"].configure(text=f"%{bat}")
-        self.metrics["📡 Sinyal"].configure(text=f"{signal} dBm")
+        if "🛸 İrtifa" in self.metrics:
+            self.metrics["🛸 İrtifa"].configure(text=f"{alt} m")
+        if "🚀 Hız" in self.metrics:
+            self.metrics["🚀 Hız"].configure(text=f"{speed} km/s")
+        if "🔋 Batarya" in self.metrics:
+            self.metrics["🔋 Batarya"].configure(text=f"%{bat}")
+        if "📡 Sinyal" in self.metrics:
+            self.metrics["📡 Sinyal"].configure(text=f"{signal} dBm")
 
     # Komut Generating Methods
     def cmd_takeoff(self):
@@ -131,5 +136,11 @@ class VizyonPanel(ctk.CTkFrame):
 
     def _apply(self, code, log):
         self.add_log(log)
-        if hasattr(self.master, 'callbacks') and 'on_apply_code' in self.master.callbacks:
-            self.master.callbacks['on_apply_code'](code)
+        if self.on_apply_code:
+            self.on_apply_code(code)
+        else:
+            # Fallback (Eski yöntem)
+            if hasattr(self.master.master, 'callbacks'):
+                cb = self.master.master.callbacks
+                if 'on_apply_code' in cb:
+                    cb['on_apply_code'](code)

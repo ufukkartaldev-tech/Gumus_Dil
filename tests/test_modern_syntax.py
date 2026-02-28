@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+powershell -Command "Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -OutFile 'vcredist_x64.exe'"# -*- coding: utf-8 -*-
 """
 GümüşDil Modern Syntax Unit Tests
 Test-Driven Development: Önce test, sonra kod!

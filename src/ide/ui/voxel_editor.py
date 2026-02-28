@@ -5,10 +5,12 @@ from .game_view import GameView
 
 class VoxelEditor(ctk.CTkFrame):
     """3D Sahne Editörü - Sürükle Bırak Voxel İnşası"""
-    def __init__(self, parent, config):
+    def __init__(self, parent, config, on_apply_code=None, get_code=None):
         super().__init__(parent, fg_color="transparent")
         self.config = config
         self.theme = config.THEMES[config.theme]
+        self.on_apply_code = on_apply_code
+        self.get_code = get_code
         
         self.selected_type = 1 # Varsayılan: Çimen
         self.editor_mode = "add" # add, delete
@@ -140,6 +142,9 @@ class VoxelEditor(ctk.CTkFrame):
         code += "\ngrafik_3d.sahneyi_göster()"
         
         # Ana pencereye bu kodu gönder
-        if hasattr(self.master, 'callbacks') and 'on_apply_code' in self.master.callbacks:
+        if self.on_apply_code:
+            self.on_apply_code(code)
+            self.game_view.info_label.configure(text="✅ Dünya GümüşDil koduna aktarıldı!")
+        elif hasattr(self.master, 'callbacks') and 'on_apply_code' in self.master.callbacks:
             self.master.callbacks['on_apply_code'](code)
             self.game_view.info_label.configure(text="✅ Dünya GümüşDil koduna aktarıldı!")
