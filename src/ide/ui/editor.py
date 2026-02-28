@@ -303,6 +303,7 @@ class CodeEditor(ctk.CTkFrame):
             border_width=2
         )
         self.textbox.grid(row=1, column=1, sticky="nsew", padx=(0, 8), pady=(4, 8))
+        self.textbox.configure(state="normal")
         
         self.completer = None
         try:
@@ -411,6 +412,18 @@ class CodeEditor(ctk.CTkFrame):
         
         # Hata Takibi
         self.current_errors = {}  # {line_number: error_message}
+
+    # --- Proxy Methods ---
+    def insert(self, index, text, tags=None):
+        self._textbox.insert(index, text, tags)
+        self._on_change()
+
+    def get(self, start, end):
+        return self._textbox.get(start, end)
+
+    def delete(self, start, end):
+        self._textbox.delete(start, end)
+        self._on_change()
 
     # --- Floating Context Bar Helpers ---
     def _on_selection_change(self, event=None):
@@ -571,6 +584,7 @@ class CodeEditor(ctk.CTkFrame):
 
     def _on_key_press(self, event):
         """Klavye tuş vuruşlarını yakala (Öneri kutusu kontrolü için)"""
+        print(f"Key pressed: {getattr(event, 'keysym', 'UNKNOWN')}")
         # Eğer öneri kutusu açıksa yön tuşlarıyla gez
         if hasattr(self, 'suggestion_frame') and self.suggestion_frame.winfo_ismapped():
             if event.keysym == "Down":
