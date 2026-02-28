@@ -22,6 +22,8 @@ class CodeFileManager:
         # Breadcrumb navigasyon callback'i ile oluştur
         editor = CodeEditor(self.main_window.editor_content_area, self.config, on_navigate=self.main_window.handle_breadcrumb_click)
         self.main_window.editors[temp_id] = editor
+        if hasattr(self.main_window, 'tab_manager'):
+            self.main_window.tab_manager.editors[temp_id] = editor
         self.main_window.switch_to_tab(temp_id)
         
         # Trigger plugin hook
@@ -60,6 +62,8 @@ class CodeFileManager:
                 editor.set_file_path(path)
             
             self.main_window.editors[path] = editor
+            if hasattr(self.main_window, 'tab_manager'):
+                self.main_window.tab_manager.editors[path] = editor
             self.main_window.switch_to_tab(path)
             
             # Son kullanılanlara ekle
@@ -87,6 +91,9 @@ class CodeFileManager:
             # Eski editörü yeni yola taşı
             editor = self.main_window.editors.pop(self.main_window.active_tab)
             self.main_window.editors[path] = editor
+            if hasattr(self.main_window, 'tab_manager'):
+                self.main_window.tab_manager.editors.pop(self.main_window.active_tab, None)
+                self.main_window.tab_manager.editors[path] = editor
             self.main_window.active_tab = path
             
         try:
@@ -127,6 +134,9 @@ class CodeFileManager:
             # Eski editörü yeni yola taşı
             editor = self.main_window.editors.pop(self.main_window.active_tab)
             self.main_window.editors[path] = editor
+            if hasattr(self.main_window, 'tab_manager'):
+                self.main_window.tab_manager.editors.pop(self.main_window.active_tab, None)
+                self.main_window.tab_manager.editors[path] = editor
             self.main_window.active_tab = path
             
             if hasattr(editor, 'set_file_path'):
