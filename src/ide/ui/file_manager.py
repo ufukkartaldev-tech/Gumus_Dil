@@ -159,3 +159,30 @@ class CodeFileManager:
         except Exception as e:
              messagebox.showerror("Hata", f"Farklı kaydetme hatası:\n{e}")
 
+    def start_auto_save_loop(self):
+        """30 saniyede bir otomatik kaydetme döngüsünü başlatır"""
+        self._auto_save()
+        
+    def _auto_save(self):
+        saved_any = False
+        if hasattr(self.main_window, 'tab_manager'):
+            for path in list(self.main_window.tab_manager.dirty_tabs):
+                if "untitled" not in path:
+                    try:
+                        content = self.main_window.editors[path].get('1.0', tk.END)
+                        with open(path, 'w', encoding='utf-8') as f:
+                            f.write(content)
+                        self.main_window.tab_manager.set_dirty(path, False)
+                        if hasattr(self.main_window, 'terminal'):
+                            self.main_window.terminal.write_text(f">>> [Oto-Kayıt] {os.path.basename(path)} yedeklendi.\n")
+                        saved_any = True
+                    except Exception as e:
+                        pass
+                        
+            if saved_any:
+                self.main_window.refresh_tabs()
+                self.main_window.update_title()
+                
+        # 30000ms (30 saniye) sonra tekrar çalıştır
+        self.main_window.root.after(30000, self._auto_save)
+
