@@ -105,6 +105,9 @@ class MainWindow:
         self.plugin_manager.load_plugins()
         self.plugin_manager.trigger_hook("on_startup")
         self.plugin_manager.trigger_hook("on_ui_setup", self)
+        
+        # Otomatik Kayıt sistemini ateşle
+        self.file_manager.start_auto_save_loop()
 
     def run_code(self):
         self.code_runner.run_code()
