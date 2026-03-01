@@ -50,7 +50,7 @@ def main():
 
     
     # Komut satırı argümanı kontrolü
-    mode = 'pro'
+    mode = 'ogrenci'
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
         
