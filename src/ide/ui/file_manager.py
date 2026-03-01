@@ -173,11 +173,11 @@ class CodeFileManager:
                         with open(path, 'w', encoding='utf-8') as f:
                             f.write(content)
                         self.main_window.tab_manager.set_dirty(path, False)
-                        if hasattr(self.main_window, 'terminal'):
-                            self.main_window.terminal.write_text(f">>> [Oto-Kayıt] {os.path.basename(path)} yedeklendi.\n")
+                        # Başarılı oto-kayıt mesajı terminali kuleteceği için kaldırıldı.
                         saved_any = True
                     except Exception as e:
-                        pass
+                        if hasattr(self.main_window, 'terminal'):
+                            self.main_window.terminal.write_text(f">>> [Oto-Kayıt Hatası] {os.path.basename(path)} kaydedilemedi: {e}\n")
                         
             if saved_any:
                 self.main_window.refresh_tabs()
