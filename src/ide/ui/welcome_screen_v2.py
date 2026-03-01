@@ -214,13 +214,13 @@ class WelcomeScreenV2(ctk.CTkToplevel):
         ProjectCard(grid, "📂", "Dosya Aç", "Bilgisayarındaki bir projeyi yükle.", 
                    lambda: self._action(self._open_file_dialog), theme, color="keyword").grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         
-        # Gümüş Market
-        ProjectCard(grid, "🛒", "Gümüş Pazar", "Kütüphane ve eklentilere göz at.", 
-                   lambda: self._action(lambda: self._jump_to_sidebar("market")), theme, color="function").grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        # Gümüş Zeka
+        ProjectCard(grid, "🤖", "Gümüş Zeka", "Milli yapay zeka ile kod blokları oluştur.", 
+                   lambda: self._action(lambda: self._jump_to_sidebar("ai")), theme, color="function").grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         
-        # Gümüş Analiz
-        ProjectCard(grid, "📊", "Gümüş Analiz", "Performans ve darboğaz analizi yap.", 
-                   lambda: self._action(lambda: self._jump_to_sidebar("profiler")), theme, color="class").grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        # Gezgin
+        ProjectCard(grid, "📂", "Gezgin", "Proje dosyalarını ve örnekleri incele.", 
+                   lambda: self._action(lambda: self._jump_to_sidebar("explorer")), theme, color="class").grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
         
         # Son Dosyalar (Mockup)
         # İleride gerçek geçmiş (history) eklenebilir
