@@ -35,14 +35,14 @@ class TabManager:
         tab_frame = ctk.CTkFrame(self.main_window.tab_bar, fg_color="transparent", corner_radius=0)
         tab_frame.pack(side="left", padx=1, pady=0, fill="y")
 
-        # Üst Çizgi (Aktif sekme vurgusu)
-        if is_active:
-             top_line = ctk.CTkFrame(tab_frame, height=2, fg_color=theme['accent'], corner_radius=0)
-             top_line.pack(side="top", fill="x")
-
         # Sekme İçeriği
         btn_frame = ctk.CTkFrame(tab_frame, fg_color=bg_color, corner_radius=0)
         btn_frame.pack(side="top", fill="both", expand=True)
+
+        # Alt Çizgi (Aktif sekme vurgusu)
+        if is_active:
+             bottom_line = ctk.CTkFrame(tab_frame, height=2, fg_color=theme['accent'], corner_radius=0)
+             bottom_line.pack(side="bottom", fill="x")
 
         # Sekme Butonu
         btn = ctk.CTkButton(
