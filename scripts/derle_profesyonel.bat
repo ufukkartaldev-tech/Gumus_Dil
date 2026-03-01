@@ -38,7 +38,7 @@ g++ -std=c++17 -c src/compiler/main.cpp -o build/main.o -I.
 if %errorlevel% neq 0 goto error
 
 echo [LINK] Baglaniyor (Linking)...
-g++ -std=c++17 -o gumus.exe build/main.o build/tokenizer.o build/parser.o build/interpreter.o build/native_functions.o build/objects.o build/property_handlers.o build/serial_port.o -lwininet
+g++ -std=c++17 -o gumus.exe build/main.o build/tokenizer.o build/parser.o build/interpreter.o build/native_functions.o build/objects.o build/property_handlers.o build/serial_port.o -lwininet -lws2_32 -static -static-libgcc -static-libstdc++
 if %errorlevel% neq 0 goto error
 
 echo.
