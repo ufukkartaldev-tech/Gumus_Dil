@@ -1122,11 +1122,15 @@ class CodeEditor(ctk.CTkFrame):
 
 
     def _on_tab_press(self, event):
-        """Tab tuşu basıldığında: Öneri varsa tamamla, yoksa girinti yap"""
+        """Tab tuşu basıldığında: Öneri varsa tamamla, yoksa snippet ekle, yoksa girinti yap"""
         if hasattr(self, 'suggestion_frame') and self.suggestion_frame.winfo_ismapped():
             self._apply_suggestion()
             return "break"
         
+        # Öneri yoksa snippet kontrolü yap (tabanlı oto-tamamlama)
+        if self.insert_snippet():
+            return "break"
+            
         # Varsayılan davranış (4 boşluk girinti önerilir)
         # self._textbox.insert(tk.INSERT, "    ")
         # return "break"
@@ -1211,13 +1215,11 @@ class CodeEditor(ctk.CTkFrame):
             self.doc_popup = None
 
     def bind_snippets(self):
-        """Tab ile kod tamamlama şablonları"""
-        self._textbox.bind("<Tab>", self._check_snippet)
+        """Tab ile kod tamamlama şablonları (Artık _on_tab_press içinde birleşik)"""
+        pass
 
     def _check_snippet(self, event):
-        """Tab'a basıldığında şablon kontrolü yap"""
-        if hasattr(self, 'suggestion_box') and self.suggestion_box.winfo_ismapped():
-             return # Eğer öneri kutusu açıksa snippet çalışma
+        pass
              
     def insert_snippet(self, event=None):
         """Tab tuşu ile snippet ekleme"""
