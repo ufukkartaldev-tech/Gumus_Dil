@@ -141,6 +141,33 @@ else
     echo "   ⚠️  CustomTkinter yüklenemedi"
 fi
 
+# 8. Milli Zeka (Yapay Zeka) Opsiyonel Kurulum
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🤖 GÜMÜŞ ZEKAYA GEÇİŞ EKRANI"
+echo "Milli Zeka Motoru, GümüşDil içinde size Türkçe kodlama asistanlığı yapar."
+echo "Uyarı: Bu işlem yaklaşık 2GB yer kaplar. Zayıf bilgisayarlar için 'Hayır' önerilir."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+read -p "Milli Zeka Motoru (Ollama + gumus_zeka) kurulsun mu? (e/h): " ZEK_CEVAP
+
+if [[ "$ZEK_CEVAP" =~ ^[Ee]$ ]]; then
+    echo "📦 Zeka Motoru indiriliyor ve arka planda kuruluyor..."
+    curl -fsSL https://ollama.com/install.sh | sh
+    
+    echo "🧠 Model eğitiliyor..."
+    if [ -f "Modelfile" ]; then
+        ollama create gumus_zeka -f Modelfile
+    else
+        echo "   ⚠️  Modelfile bulunamadı. Boş şablon oluşturuldu."
+    fi
+    echo "✅ Milli Zeka aktif! IDE açıldığında asistanınız hazır olacak."
+else
+    echo "⚙️ Sadece HAFİF EDİTÖR kuruldu."
+    echo "   - Yapay zeka modülü devre dışı bırakıldı."
+    echo "   - Çevrimdışı hazır sözlük ile hızla çalışmaya devam edilebilir."
+fi
+
+
 # Başarı mesajı
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
