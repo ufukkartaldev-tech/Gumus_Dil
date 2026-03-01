@@ -10,6 +10,8 @@ class TabManager:
         self.config = config
         self.active_tab = None
         self.editors = {} # {path: editor_widget}
+        self.tab_close_btns = {} 
+        self.dirty_tabs = set()
 
     def setup_tabs(self):
         """Sekmeleri başlat"""
@@ -82,6 +84,10 @@ class TabManager:
         )
         close_btn.pack(side="right", padx=0, pady=0)
         
+        self.tab_close_btns[path] = close_btn
+        if path in self.dirty_tabs:
+            close_btn.configure(text="●", text_color=theme['accent'], hover_color=theme['border'])
+            
         # Orta Tık (Scroll Click) Kapatma Desteği
         for w in [btn_frame, btn]:
             w.bind("<Button-2>", lambda e, p=path: self.close_tab(p))
@@ -91,6 +97,7 @@ class TabManager:
     def refresh_tabs(self):
         """Sekme çubuğunu yeniden çiz"""
         if hasattr(self.main_window, 'tab_bar'):
+             self.tab_close_btns.clear()
              for widget in self.main_window.tab_bar.winfo_children():
                 widget.destroy()
         
@@ -127,6 +134,9 @@ class TabManager:
         editor = self.editors.pop(path)
         editor.destroy()
         
+        if path in self.dirty_tabs: self.dirty_tabs.remove(path)
+        if path in self.tab_close_btns: del self.tab_close_btns[path]
+        
         if self.active_tab == path:
             self.active_tab = list(self.editors.keys())[-1] if self.editors else None
             if self.active_tab:
@@ -155,5 +165,19 @@ class TabManager:
         """Yeni bir editör kaydet"""
         self.editors[path] = editor_widget
         self.active_tab = path
+
+    def set_dirty(self, path, is_dirty):
+        """Sekmenin kirli (değiştirilmiş ve kaydedilmemiş) durumunu ayarla"""
+        theme = self.config.THEMES[self.config.theme]
+        if is_dirty:
+            self.dirty_tabs.add(path)
+            if path in self.tab_close_btns:
+                self.tab_close_btns[path].configure(text="●", text_color=theme['accent'], hover_color=theme['border'])
+        else:
+            if path in self.dirty_tabs:
+                self.dirty_tabs.remove(path)
+            if path in self.tab_close_btns:
+                text_color = theme['accent'] if path == self.active_tab else theme['comment']
+                self.tab_close_btns[path].configure(text="×", text_color=text_color, hover_color="#da3633")
 
 

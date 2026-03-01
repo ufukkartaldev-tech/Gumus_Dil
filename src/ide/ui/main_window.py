@@ -273,7 +273,18 @@ class MainWindow:
     def handle_breadcrumb_click(self, path):
         self.open_file_from_path(path)
         
+    def _on_editor_modified(self, event=None):
+        if hasattr(self, 'active_tab') and self.active_tab:
+            if hasattr(self, 'tab_manager'):
+                self.tab_manager.set_dirty(self.active_tab, True)
+                
     def update_cursor_position(self, event=None):
+        import time
+        current_time = time.time()
+        if current_time - self.last_ui_update_time < self.ui_update_interval:
+            return
+        self.last_ui_update_time = current_time
+        
         editor = self.get_current_editor()
         if editor:
             pos = editor._textbox.index(tk.INSERT)

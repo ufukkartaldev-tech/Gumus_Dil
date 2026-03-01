@@ -105,7 +105,9 @@ class CodeFileManager:
             if hasattr(self.main_window.editors[path], 'set_file_path'):
                 self.main_window.editors[path].set_file_path(path)
             
-            self.main_window.terminal.write_text(f">>> Dosya Kaydedildi: {os.path.basename(path)}\n")
+            if hasattr(self.main_window, 'tab_manager'):
+                self.main_window.tab_manager.set_dirty(path, False)
+            
             self.main_window.refresh_tabs()
             self.main_window.update_title()
             return True
@@ -142,7 +144,9 @@ class CodeFileManager:
             if hasattr(editor, 'set_file_path'):
                 editor.set_file_path(path)
                 
-            self.main_window.terminal.write_text(f">>> Dosya Farklı Kaydedildi: {path}\n")
+            if hasattr(self.main_window, 'tab_manager'):
+                self.main_window.tab_manager.set_dirty(path, False)
+                
             self.main_window.refresh_tabs()
             self.main_window.update_title()
             self.config.add_recent_file(path)
