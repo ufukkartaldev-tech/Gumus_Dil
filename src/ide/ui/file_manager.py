@@ -88,12 +88,14 @@ class CodeFileManager:
                                                filetypes=[("Gümüşdil Dosyaları", "*.tr")])
             if not path: return False
             
+            untitled_path = self.main_window.active_tab
             # Eski editörü yeni yola taşı
-            editor = self.main_window.editors.pop(self.main_window.active_tab)
+            editor = self.main_window.editors.pop(untitled_path)
             self.main_window.editors[path] = editor
             if hasattr(self.main_window, 'tab_manager'):
-                self.main_window.tab_manager.editors.pop(self.main_window.active_tab, None)
-                self.main_window.tab_manager.editors[path] = editor
+                if untitled_path in self.main_window.tab_manager.dirty_tabs:
+                    self.main_window.tab_manager.dirty_tabs.remove(untitled_path)
+                    self.main_window.tab_manager.dirty_tabs.add(path)
             self.main_window.active_tab = path
             
         try:
@@ -133,12 +135,15 @@ class CodeFileManager:
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
+            old_path = self.main_window.active_tab
+            
             # Eski editörü yeni yola taşı
-            editor = self.main_window.editors.pop(self.main_window.active_tab)
+            editor = self.main_window.editors.pop(old_path)
             self.main_window.editors[path] = editor
             if hasattr(self.main_window, 'tab_manager'):
-                self.main_window.tab_manager.editors.pop(self.main_window.active_tab, None)
-                self.main_window.tab_manager.editors[path] = editor
+                if old_path in self.main_window.tab_manager.dirty_tabs:
+                    self.main_window.tab_manager.dirty_tabs.remove(old_path)
+                    self.main_window.tab_manager.dirty_tabs.add(path)
             self.main_window.active_tab = path
             
             if hasattr(editor, 'set_file_path'):

@@ -129,7 +129,18 @@ class TabManager:
         """Sekmeyi kapat"""
         if path not in self.editors: return
         
-        # TODO: Kaydetme kontrolü burada yapılabilir
+        # Emniyet Kilidi (Dayı Tavsiyesi)
+        if path in self.dirty_tabs:
+            from tkinter import messagebox
+            filename = os.path.basename(path) if "untitled" not in path else path.replace("untitled_", "Adsız-")
+            ans = messagebox.askyesnocancel("Kaydedilmemiş Değişiklik", f"'{filename}' dosyasında kaydedilmeyen değişiklikler var.\nKaydedip de mi kapatalım, yeğenim?")
+            
+            if ans is None:
+                return # İptal (Kapatma işlemini durdur)
+            elif ans is True:
+                self.main_window.switch_to_tab(path)
+                if not self.main_window.file_manager.save_file():
+                    return # Kaydetme işlemi başarısız veya iptal edildiyse yine kapatma
         
         editor = self.editors.pop(path)
         editor.destroy()
