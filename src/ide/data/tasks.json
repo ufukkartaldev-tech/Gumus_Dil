@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "Görev 1: Merhaba Dünya",
+        "desc": "Yazılım dünyasının kapısını arala! Ekrana 'Merhaba Dünya' yazdıran kodu yaz.",
+        "code": "// Ekrana \"Merhaba Dünya\" yazdır\n\n",
+        "check": "Merhaba Dünya"
+    },
+    {
+        "id": 2,
+        "title": "Görev 2: Değişkenler",
+        "desc": "Bir değişken tanımla ve onu yazdır. Mesela 'isim' değişkenine adını yaz.",
+        "code": "// Değişken tanımla ve yazdır\ndeğişken isim = \"...\"\n\n",
+        "check": ""
+    },
+    {
+        "id": 3,
+        "title": "Görev 3: Basit Matematik",
+        "desc": "İki sayıyı toplayıp ekrana yazdıran bir kod yaz.",
+        "code": "değişken a = 5\ndeğişken b = 10\n// Toplamı yazdır\n",
+        "check": "15"
+    }
+]

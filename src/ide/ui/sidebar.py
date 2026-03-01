@@ -66,12 +66,17 @@ class ExplorerTree(ctk.CTkFrame):
         text = path.name if not is_root else path.name.upper()
         if path.is_dir():
             icon = "📂" 
+            display_text = f"{icon} {text}"
         else:
             ext = path.suffix.lower()
             icons = {'.tr': '💎', '.py': '🐍', '.js': '📜', '.html': '🌐', '.css': '🎨', '.json': '📋', '.md': '📝', '.txt': '📄'}
             icon = icons.get(ext, '📄')
-            
-        display_text = f"{icon} {text}"
+            try:
+                size = path.stat().st_size
+                size_kb = f"{size/1024:.1f} KB"
+            except:
+                size_kb = ""
+            display_text = f"{icon} {text}   [{size_kb}]"
         node_id = self.tree.insert(parent_id, "end", text=display_text, open=is_root)
         self.nodes[node_id] = path
         
@@ -121,7 +126,10 @@ class ExplorerTree(ctk.CTkFrame):
             menu.add_command(label="🖋️ Yeniden Adlandır", command=lambda: self._rename(target_path))
             menu.add_command(label="🗑️ Sil", command=lambda: self._delete(target_path))
             menu.add_separator()
-        menu.add_command(label="🔄 Yenile", command=self.refresh)
+            
+        menu.add_command(label="� Burada Terminal Aç", command=lambda: self._open_in_terminal(target_path))
+        menu.add_separator()
+        menu.add_command(label="�🔄 Yenile", command=self.refresh)
         
         menu.tk_popup(event.x_root, event.y_root)
         
@@ -161,6 +169,17 @@ class ExplorerTree(ctk.CTkFrame):
                 self.refresh()
             except Exception as e: messagebox.showerror("Hata", str(e))
 
+    def _open_in_terminal(self, target_path):
+        import subprocess
+        parent_dir = target_path if target_path.is_dir() else target_path.parent
+        try:
+            if os.name == 'nt':
+                subprocess.Popen(['cmd.exe', '/c', 'start', 'cmd.exe', '/K', f'cd /d {parent_dir}'])
+            else:
+                subprocess.Popen(['x-terminal-emulator', '--working-directory', str(parent_dir)])
+        except Exception as e:
+            messagebox.showerror("Hata", f"Terminal açılamadı:\n{e}")
+
 
 class SearchPanel(ctk.CTkFrame):
     def __init__(self, parent, config, on_file_click):
@@ -179,15 +198,34 @@ class SearchPanel(ctk.CTkFrame):
         query = self.search_entry.get().lower()
         if not query: return
         for widget in self.results_frame.winfo_children(): widget.destroy()
-        root = Path(os.getcwd())
-        for file_path in root.rglob("*.tr"):
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    lines = f.readlines()
-                    for i, line in enumerate(lines):
-                        if query in line.lower():
-                            self._add_result(file_path, i+1, line.strip())
-            except: continue
+        
+        # Arama sırasında UI donmasını engellemek için Thread kullan
+        import threading
+        
+        def _search_thread():
+            root = Path(os.getcwd())
+            results = []
+            for file_path in root.rglob("*.tr"):
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                        for i, line in enumerate(lines):
+                            if query in line.lower():
+                                results.append((file_path, i+1, line.strip()))
+                except: continue
+            
+            # Sonuçları UI thread'inde göster
+            self.after(0, lambda: self._show_results(results))
+            
+        threading.Thread(target=_search_thread, daemon=True).start()
+
+    def _show_results(self, results):
+        if not results:
+            self._add_result(Path("Bulunamadı"), 0, "Arama kriterine uygun sonuç yok.")
+            return
+            
+        for res in results:
+            self._add_result(res[0], res[1], res[2])
 
     def _add_result(self, path, line_no, content):
         theme = self.config.THEMES[self.config.theme]
@@ -204,34 +242,26 @@ class TrainingPanel(ctk.CTkFrame):
         self.on_load_task = on_load_task # callback(task_code, instructions)
         
         # Görev Veritabanı
-        self.tasks = [
-            {
-                "id": 1, 
-                "title": "Görev 1: Merhaba Dünya", 
-                "desc": "Yazılım dünyasının kapısını arala! Ekrana 'Merhaba Dünya' yazdıran kodu yaz.",
-                "code": '// Ekrana "Merhaba Dünya" yazdır\n\n',
-                "check": "Merhaba Dünya"
-            },
-            {
-                "id": 2, 
-                "title": "Görev 2: Değişkenler", 
-                "desc": "Bir değişken tanımla ve onu yazdır. Mesela 'isim' değişkenine adını yaz.",
-                "code": '// Değişken tanımla ve yazdır\ndeğişken isim = "..."\n\n',
-                "check": ""
-            },
-            {
-                "id": 3, 
-                "title": "Görev 3: Basit Matematik", 
-                "desc": "İki sayıyı toplayıp ekrana yazdıran bir kod yaz.",
-                "code": 'değişken a = 5\ndeğişken b = 10\n// Toplamı yazdır\n',
-                "check": "15"
-            }
-        ]
+        self.tasks = []
+        self._load_tasks_from_json()
         
         self.scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.scroll.pack(fill="both", expand=True, padx=5, pady=5)
         
         self._load_tasks_ui()
+        
+    def _load_tasks_from_json(self):
+        import json
+        tasks_file = Path(os.path.dirname(__file__)).parent / "data" / "tasks.json"
+        try:
+            if tasks_file.exists():
+                with open(tasks_file, 'r', encoding='utf-8') as f:
+                    self.tasks = json.load(f)
+            else:
+                print("GYM Görevleri bulunamadı:", tasks_file)
+        except Exception as e:
+            print("GYM Yükleme hatası:", e)
+            self.tasks = []
         
     def _load_tasks_ui(self):
         theme = self.config.THEMES[self.config.theme]
