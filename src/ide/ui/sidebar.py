@@ -252,15 +252,31 @@ class TrainingPanel(ctk.CTkFrame):
         
     def _load_tasks_from_json(self):
         import json
-        tasks_file = Path(os.path.dirname(__file__)).parent / "data" / "tasks.json"
         try:
+            from ..config import DATA_DIR
+            tasks_file = DATA_DIR / "tasks.json"
+            
+            # Eğer userdata dizininde yoksa proje içinden al
+            if not tasks_file.exists():
+                from ..config import IDE_DIR
+                fallback_file = IDE_DIR / "data" / "tasks.json"
+                if fallback_file.exists():
+                    import shutil
+                    shutil.copy(fallback_file, tasks_file)
+                else:
+                    tasks_file = fallback_file
+            
             if tasks_file.exists():
                 with open(tasks_file, 'r', encoding='utf-8') as f:
                     self.tasks = json.load(f)
             else:
-                print("GYM Görevleri bulunamadı:", tasks_file)
+                self.master.master.master.terminal.write_text(f">>> [Uyarı] GYM Görevleri bulunamadı: {tasks_file}\n")
+                self.tasks = []
         except Exception as e:
-            print("GYM Yükleme hatası:", e)
+            try:
+                self.master.master.master.terminal.write_text(f">>> [Hata] GYM Yükleme hatası: {e}\n")
+            except:
+                print("GYM Yükleme hatası:", e)
             self.tasks = []
         
     def _load_tasks_ui(self):
@@ -459,25 +475,35 @@ class Sidebar(ctk.CTkFrame):
     def switch_mode(self, mode):
         self.mode = mode
         
-        # Panelleri Gizle
-        self.explorer_tree.pack_forget()
-        self.search_panel.pack_forget()
-        self.outline_panel.pack_forget()
-        self.memory_panel.pack_forget()
-        self.training_panel.pack_forget()
-        self.ai_panel.pack_forget()
-        self.pardus_panel.pack_forget()
-        self.notes_panel.pack_forget()
-        self.var_watch_panel.pack_forget()
-        self.call_stack_panel.pack_forget()
-        self.transpiler_panel.pack_forget()
-        self.market_panel.pack_forget()
-        self.profiler_panel.pack_forget()
-        self.docs_panel.pack_forget()
-        self.flowchart_panel.pack_forget()
-        self.voxel_editor.pack_forget()
-        self.vizyon_panel.pack_forget()
-        
+        # Tüm panelleri bir sözlükte topla
+        panels = {
+            "explorer": self.explorer_tree,
+            "search": self.search_panel,
+            "outline": self.outline_panel,
+            "training": self.training_panel,
+            "memory": self.memory_panel,
+            "ai": self.ai_panel,
+            "pardus": self.pardus_panel,
+            "notes": self.notes_panel,
+            "variables": self.var_watch_panel,
+            "callstack": self.call_stack_panel,
+            "transpiler": self.transpiler_panel,
+            "market": self.market_panel,
+            "profiler": self.profiler_panel,
+            "docs": self.docs_panel,
+            "flowchart": self.flowchart_panel,
+            "voxel_editor": self.voxel_editor,
+            "vizyon": self.vizyon_panel
+        }
+
+        # Hepsini tek kalemde gizle
+        for p in panels.values():
+            p.pack_forget()
+
+        # Sadece lazım olanı aç
+        if mode in panels:
+            panels[mode].pack(fill="both", expand=True)
+            
         # İlgili Paneli Göster
         label_map = {
             "explorer": "GEZGİN",
@@ -503,68 +529,30 @@ class Sidebar(ctk.CTkFrame):
         # Butonlar sadece explorer'da görünür
         if mode == "explorer":
             self.btn_frame.pack(side="right")
+            self._refresh_explorer()
         else:
             self.btn_frame.pack_forget()
             
-        if mode == "explorer":
-            self.explorer_tree.pack(fill="both", expand=True)
-            self._refresh_explorer()
-        elif mode == "search":
-            self.search_panel.pack(fill="both", expand=True)
-        elif mode == "outline":
-            self.outline_panel.pack(fill="both", expand=True)
-        elif mode == "training":
-            self.training_panel.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
-        elif mode == "memory":
+        # Özel Aksiyonlar
+        if mode == "memory":
             self.label.configure(text="GÜMÜŞHAFIZA")
-            self.memory_panel.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
-        elif mode == "ai":
-            self.ai_panel.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
-        elif mode == "pardus":
-            self.pardus_panel.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "notes":
-            self.notes_panel.pack(fill="both", expand=True)
             self.notes_panel.load_notes() # Her açıldığında yükle
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
-        elif mode == "market":
-            self.market_panel.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "profiler":
-            self.profiler_panel.pack(fill="both", expand=True)
             self.profiler_panel.start_profiling()
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
-        elif mode == "docs":
-            self.docs_panel.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "flowchart":
-            self.flowchart_panel.pack(fill="both", expand=True)
             # Eğer kod varsa, akış şemasını güncelle
             if self.callbacks.get('get_code'):
                 code = self.callbacks['get_code']()
                 self.flowchart_panel.update_flowchart(code)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
-        elif mode == "voxel_editor":
-            self.voxel_editor.pack(fill="both", expand=True)
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "vizyon":
-            self.vizyon_panel.pack(fill="both", expand=True)
             # Simüle telemetri
             self.after(500, lambda: self.vizyon_panel.update_metrics(240, 85, 92, -65))
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "variables":
-            self.var_watch_panel.pack(fill="both", expand=True)
             self.var_watch_panel.refresh()
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "callstack":
-            self.call_stack_panel.pack(fill="both", expand=True)
             self.call_stack_panel.refresh()
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
         elif mode == "transpiler":
-            self.transpiler_panel.pack(fill="both", expand=True)
             # Eğer kod varsa, çeviriyi tetikle
             if self.callbacks.get('get_code'):
                 code = self.callbacks['get_code']()
@@ -582,7 +570,6 @@ class Sidebar(ctk.CTkFrame):
                         self.transpiler_panel.set_code(translated_code)
                     except Exception as e:
                         self.transpiler_panel.set_code(f"# Error: {e}")
-            for widget in self.btn_frame.winfo_children(): widget.destroy()
 
     def set_root(self, path):
         self.current_root = Path(path)
