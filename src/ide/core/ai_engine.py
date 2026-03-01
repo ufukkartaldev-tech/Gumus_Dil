@@ -62,12 +62,55 @@ class GumusIntelligenceEngine:
                 )
                 
         except requests.exceptions.ConnectionError:
-            return (
-                "❌ Bağlantı koptu aslanım! Ollama çalışıyor mu?\n"
-                "Terminali aç, 'ollama serve' yaz, yaylayı ayağa kaldır!"
-            )
+            return self._offline_fallback(query)
         except Exception as e:
             return f"❌ Beklenmedik bir durum oldu yeğenim: {str(e)}"
+            
+    def _offline_fallback(self, query):
+        """Ollama çalışmadığında JSON/JSONL veri setlerinden en yakın cevabı bulur"""
+        import difflib
+        
+        # Olası veri dosyaları
+        dataset_paths = [
+            os.path.join(os.path.dirname(__file__), "..", "data", "ai_egitim_verisi.json"),
+            os.path.join(os.path.dirname(__file__), "..", "..", "..", "gumusdil_dataset.jsonl")
+        ]
+        
+        sorular = []
+        cevaplar = []
+        
+        for p in dataset_paths:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        if p.endswith(".json"):
+                            veri = json.load(f)
+                            for item in veri:
+                                if "talep" in item and "kod" in item:
+                                    sorular.append(item["talep"])
+                                    cevaplar.append(f"```gümüşdil\n{item['kod']}\n```")
+                        elif p.endswith(".jsonl"):
+                            for line in f:
+                                item = json.loads(line)
+                                if "instruction" in item and "output" in item:
+                                    sorular.append(item["instruction"])
+                                    cevaplar.append(item["output"])
+                except Exception:
+                    pass
+                    
+        if sorular:
+            eslesen = difflib.get_close_matches(query, sorular, n=1, cutoff=0.4)
+            if eslesen:
+                idx = sorular.index(eslesen[0])
+                return (
+                    f"⚠️ [Çevrimdışı Mod] Ollama kapalı olduğu için kendi hafızamdan cevaplıyorum:\n\n"
+                    f"{cevaplar[idx]}"
+                )
+                
+        return (
+            "❌ Bağlantı koptu aslanım! Ollama çalışmıyor ve kendi belleğimde de bu sorunun cevabını bulamadım.\n"
+            "Terminali aç, 'ollama serve' yaz, yaylayı ayağa kaldır!"
+        )
 
     def get_system_status(self):
         """Ollama servisinin durumunu kontrol eder"""
