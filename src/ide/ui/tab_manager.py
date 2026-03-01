@@ -44,10 +44,18 @@ class TabManager:
              bottom_line = ctk.CTkFrame(tab_frame, height=2, fg_color=theme['accent'], corner_radius=0)
              bottom_line.pack(side="bottom", fill="x")
 
+        # Gelişmiş Dosya İkonları
+        ext = os.path.splitext(path)[1].lower() if path else ""
+        icons = {
+            '.tr': '💎', '.py': '🐍', '.js': '📜', '.html': '🌐', 
+            '.css': '🎨', '.json': '📋', '.md': '📝', '.txt': '📄',
+        }
+        icon = icons.get(ext, '📄')
+
         # Sekme Butonu
         btn = ctk.CTkButton(
             btn_frame,
-            text=f"📄 {name}",
+            text=f"{icon} {name}",
             width=130,
             height=33,
             fg_color="transparent",
@@ -74,6 +82,10 @@ class TabManager:
         )
         close_btn.pack(side="right", padx=0, pady=0)
         
+        # Orta Tık (Scroll Click) Kapatma Desteği
+        for w in [btn_frame, btn]:
+            w.bind("<Button-2>", lambda e, p=path: self.close_tab(p))
+            
         return tab_frame
 
     def refresh_tabs(self):
@@ -104,9 +116,6 @@ class TabManager:
         self.refresh_tabs()
         self.main_window.update_title()
         self.main_window.update_outline()
-        
-        # Sync Main Window State
-        self.main_window.active_tab = self.active_tab
 
 
     def close_tab(self, path):
@@ -118,17 +127,10 @@ class TabManager:
         editor = self.editors.pop(path)
         editor.destroy()
         
-        # Main window editors dict update
-        if path in self.main_window.editors:
-            del self.main_window.editors[path]
-        
         if self.active_tab == path:
             self.active_tab = list(self.editors.keys())[-1] if self.editors else None
             if self.active_tab:
                 self.editors[self.active_tab].pack(fill="both", expand=True)
-        
-        # Sync Main Window State (önemli!)
-        self.main_window.active_tab = self.active_tab
         
         if not self.editors:
             self.new_file()
@@ -152,8 +154,6 @@ class TabManager:
     def register_editor(self, path, editor_widget):
         """Yeni bir editör kaydet"""
         self.editors[path] = editor_widget
-        self.main_window.editors[path] = editor_widget # Sync
         self.active_tab = path
-        self.main_window.active_tab = path # Sync
 
 
