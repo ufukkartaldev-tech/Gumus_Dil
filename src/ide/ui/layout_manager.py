@@ -105,6 +105,8 @@ class LayoutManager:
         # Butonları ekle (Sadece Temel Araçlar)
         self._add_activity_icon("📂", "Gezgin", "explorer", active=True)
         self._add_activity_icon("🔍", "Ara", "search")
+        self._add_activity_icon("🤖", "Gümüş Zeka", "ai")
+        self._add_activity_icon("📚", "Gümüş Sözlük", "docs")
         
         if not self.config.simple_ui:
             self._add_activity_icon("📜", "Outline", "outline")
@@ -121,8 +123,6 @@ class LayoutManager:
             self._add_activity_icon("🐆", "Pardus", "pardus")
             self._add_activity_icon("📓", "Notlar", "notes")
 
-        self._add_activity_icon("🤖", "Gümüş Zeka", "ai")
-        self._add_activity_icon("📚", "Gümüş Sözlük", "docs")
         self._add_activity_icon("⚙️", "Ayarlar", "settings", side="bottom")
 
     def _add_activity_icon(self, icon, tooltip, mode, side="top", active=False):
