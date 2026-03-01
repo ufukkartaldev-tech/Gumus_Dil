@@ -17,7 +17,7 @@ g++ -std=c++17 -O3 -o gumus.exe ^
     src/compiler/interpreter/property_handlers.cpp ^
     src/compiler/semantic/resolver.cpp ^
     src/compiler/hardware/serial_port.cpp ^
-    -I. -DUNICODE -D_UNICODE -lwininet -lws2_32 -static-libgcc -static-libstdc++
+    -I. -DUNICODE -D_UNICODE -lwininet -lws2_32 -static -static-libgcc -static-libstdc++
 
 if %ERRORLEVEL% NEQ 0 (
     echo.

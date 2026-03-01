@@ -19,7 +19,7 @@ g++ -std=c++17 -o gumus.exe ^
     src/compiler/interpreter/native_functions.cpp ^
     src/compiler/interpreter/objects.cpp ^
     src/compiler/hardware/serial_port.cpp ^
-    -I. -DUNICODE -D_UNICODE -lwininet -static-libgcc -static-libstdc++
+    -I. -DUNICODE -D_UNICODE -lwininet -lws2_32 -static -static-libgcc -static-libstdc++
 
 if %ERRORLEVEL% NEQ 0 (
     echo HATA: Derleme basarisiz!
