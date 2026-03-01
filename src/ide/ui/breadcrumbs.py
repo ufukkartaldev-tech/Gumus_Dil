@@ -59,10 +59,10 @@ class Breadcrumbs(ctk.CTkFrame):
             btn = ctk.CTkButton(
                 self.content,
                 text=f"{icon}{text}",
-                font=("Segoe UI", 11),
+                font=("Segoe UI", 9),
                 fg_color="transparent",
                 hover_color=self.theme['hover'],
-                text_color=self.theme['fg'] if i < len(items)-1 else self.theme['accent'], # Sonuncusu parlak
+                text_color=self.theme['comment'] if i < len(items)-1 else self.theme['accent'], # Öncekiler sönük gri
                 height=22,
                 width=20,
                 corner_radius=4,

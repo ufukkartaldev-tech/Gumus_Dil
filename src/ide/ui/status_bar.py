@@ -27,14 +27,14 @@ class StatusBar(ctk.CTkFrame):
         )
         self.file_label.pack(side="left", padx=5)
         
-        # Orta - Satır/Sütun bilgisi
+        # Orta - Satır/Sütun bilgisi (Şimdi sağa veya merkeze alıyoruz)
         self.middle_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.middle_frame.pack(side="left", fill="y", padx=20)
+        self.middle_frame.pack(side="right", fill="y", padx=20)
         
         self.position_label = ctk.CTkLabel(
             self.middle_frame,
-            text="Satır 1, Sütun 1",
-            font=("Segoe UI", 10),
+            text="Satır: 1  Sütun: 1",
+            font=("Consolas", 10),
             text_color=theme['comment']
         )
         self.position_label.pack(side="left")
@@ -101,7 +101,7 @@ class StatusBar(ctk.CTkFrame):
     
     def update_position(self, line, column):
         """Satır ve sütun bilgisini güncelle"""
-        self.position_label.configure(text=f"Satır {line}, Sütun {column}")
+        self.position_label.configure(text=f"Satır: {line}  Sütun: {column}")
     
     def update_status(self, message, duration=3000):
         """Geçici durum mesajı göster"""

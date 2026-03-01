@@ -58,8 +58,8 @@ class LayoutManager:
         self.main_window.paned_window = tk.PanedWindow(
             self.main_window.workspace_container, 
             orient=tk.HORIZONTAL, 
-            bg=theme['bg'], 
-            sashwidth=4, 
+            bg=theme['border'], 
+            sashwidth=3, 
             sashrelief='flat'
         )
         self.main_window.paned_window.pack(side="left", fill=tk.BOTH, expand=True)
@@ -71,8 +71,8 @@ class LayoutManager:
         self.main_window.right_pane = tk.PanedWindow(
             self.main_window.paned_window, 
             orient=tk.VERTICAL, 
-            bg=theme['bg'], 
-            sashwidth=4, 
+            bg=theme['border'], 
+            sashwidth=3, 
             sashrelief='flat'
         )
         self.main_window.paned_window.add(self.main_window.right_pane, stretch="always")
@@ -127,19 +127,32 @@ class LayoutManager:
 
     def _add_activity_icon(self, icon, tooltip, mode, side="top", active=False):
         theme = self.config.THEMES[self.config.theme]
+        
+        # Container for the indicator and button
+        container = ctk.CTkFrame(self.main_window.activity_bar, fg_color="transparent", height=50)
+        container.pack(side=side, fill="x", pady=0)
+        container.pack_propagate(False)
+        
+        # Sol "Aktif" İşaretçisi (Indicator)
+        indicator = ctk.CTkFrame(container, width=2, fg_color=theme['accent'] if active else "transparent", corner_radius=0)
+        indicator.pack(side="left", fill="y")
+        
+        if not hasattr(self, 'activity_indicators'): self.activity_indicators = {}
+        self.activity_indicators[mode] = indicator
+        
         btn = ctk.CTkButton(
-            self.main_window.activity_bar,
+            container,
             text=icon,
-            width=55,
+            width=53,
             height=50,
-            fg_color=theme['accent'] if active else "transparent",
+            fg_color="transparent",
             hover_color=theme['hover'],
             font=("Segoe UI", 20),
             corner_radius=0,
             text_color="white" if active else theme['comment'],
             command=lambda m=mode: self.on_activity_click(m)
         )
-        btn.pack(side=side, pady=0)
+        btn.pack(side="left", fill="both", expand=True)
         self.activity_buttons[mode] = btn
         
         # Main Window'a da referans ekle (eskisi gibi erişebilsinler diye)
@@ -159,7 +172,11 @@ class LayoutManager:
             theme = self.config.THEMES[self.config.theme]
             for m, btn in self.activity_buttons.items():
                 if m != "settings":
-                    btn.configure(fg_color=theme['accent'] if m == mode else "transparent")
+                    is_active = (m == mode)
+                    btn.configure(text_color="white" if is_active else theme['comment'])
+                    # "Aktif" sol çizgiyi güncelle
+                    if hasattr(self, 'activity_indicators') and m in self.activity_indicators:
+                        self.activity_indicators[m].configure(fg_color=theme['accent'] if is_active else "transparent")
             
             if mode == "outline":
                 self.main_window.update_outline()
@@ -218,7 +235,7 @@ class LayoutManager:
         self.main_window.right_pane.add(self.main_window.bottom_tabs, minsize=150)
         
         # Terminal
-        tab_term = self.main_window.bottom_tabs.add("Terminal")
+        tab_term = self.main_window.bottom_tabs.add("🟢 Terminal")
         self.main_window.terminal = Terminal(tab_term, self.config)
         self.main_window.terminal.pack(fill="both", expand=True)
         
