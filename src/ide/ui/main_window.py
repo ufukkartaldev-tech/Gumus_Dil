@@ -226,8 +226,14 @@ class MainWindow:
         # Palette & Sekme
         self.root.bind("<Control-p>", lambda e: self.show_command_palette())
         self.root.bind("<Control-P>", lambda e: self.show_command_palette())
-        self.root.bind("<Control-w>", lambda e: self.close_tab(self.active_tab))
-        self.root.bind("<Control-W>", lambda e: self.close_tab(self.active_tab))
+        self.root.bind("<Control-w>", lambda e: self.close_tab())
+        self.root.bind("<Control-W>", lambda e: self.close_tab())
+
+    def close_tab(self, path=None):
+        if hasattr(self, 'tab_manager'):
+            path_to_close = path or self.active_tab
+            if path_to_close:
+                self.tab_manager.close_tab(path_to_close)
 
     def new_file(self): self.file_manager.new_file()
     def open_file_dialog(self): self.file_manager.open_file_dialog()
