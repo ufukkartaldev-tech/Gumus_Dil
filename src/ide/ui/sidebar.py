@@ -16,155 +16,150 @@ from .flowchart_panel import FlowchartPanel
 from .voxel_editor import VoxelEditor
 from .vizyon_panel import VizyonPanel
 
-class TreeNode(ctk.CTkFrame):
-    def __init__(self, parent, path, is_file, level, on_file_click, config):
-        super().__init__(parent, fg_color="transparent")
-        self.path = path
-        self.is_file = is_file
-        self.level = level
-        self.on_file_click = on_file_click
-        self.config = config
-        self.is_expanded = False
-        self.loaded = False
-        
-        theme = self.config.THEMES[self.config.theme] if self.config else {}
+from tkinter import ttk, Menu, simpledialog, messagebox
+import shutil
 
-        # Header (Satır)
-        self.header = ctk.CTkFrame(self, fg_color="transparent")
-        self.header.pack(fill="x")
+class ExplorerTree(ctk.CTkFrame):
+    def __init__(self, parent, config, on_file_select):
+        super().__init__(parent, fg_color="transparent")
+        self.config = config
+        self.on_file_select = on_file_select
+        self.current_root = None
+        self.nodes = {} # id -> path
         
-        # İçerik Girintisi (Padding)
-        indent = level * 20
+        theme = self.config.THEMES[self.config.theme]
+        style = ttk.Style()
+        style.theme_use("default")
         
-        # İkon ve Metin
-        text = path.name
+        style.configure("Sidebar.Treeview",
+                        background=theme['sidebar_bg'],
+                        foreground=theme['fg'],
+                        fieldbackground=theme['sidebar_bg'],
+                        borderwidth=0,
+                        rowheight=26,
+                        font=("Segoe UI", 11))
+        style.map("Sidebar.Treeview", 
+                  background=[('selected', theme['hover'])],
+                  foreground=[('selected', theme['accent'])])
+                  
+        self.tree = ttk.Treeview(self, style="Sidebar.Treeview", show="tree", selectmode="browse")
+        self.scrollbar = ctk.CTkScrollbar(self, command=self.tree.yview)
+        self.tree.configure(yscrollcommand=self.scrollbar.set)
         
-        # Colors
-        text_color = theme.get('fg', "gray90")
-        hover_color = theme.get('hover', "gray25")
+        self.tree.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
         
-        if self.is_file:
-            # Gelişmiş Dosya İkonları
+        self.tree.bind("<Double-1>", self._on_double_click)
+        self.tree.bind("<Button-3>", self._on_right_click)
+        self.tree.bind("<<TreeviewOpen>>", self._on_tree_open)
+        
+    def load_root(self, path):
+        self.current_root = Path(path)
+        self.tree.delete(*self.tree.get_children())
+        self.nodes.clear()
+        self._insert_node("", self.current_root, is_root=True)
+
+    def refresh(self):
+        if self.current_root: self.load_root(self.current_root)
+
+    def _insert_node(self, parent_id, path, is_root=False):
+        text = path.name if not is_root else path.name.upper()
+        if path.is_dir():
+            icon = "📂" 
+        else:
             ext = path.suffix.lower()
-            icons = {
-                '.tr': '💎', '.py': '🐍', '.js': '📜', '.html': '🌐', 
-                '.css': '🎨', '.json': '📋', '.md': '📝', '.txt': '📄',
-                '.png': '🖼️', '.jpg': '🖼️', '.svg': '🖼️'
-            }
+            icons = {'.tr': '💎', '.py': '🐍', '.js': '📜', '.html': '🌐', '.css': '🎨', '.json': '📋', '.md': '📝', '.txt': '📄'}
             icon = icons.get(ext, '📄')
             
-            cmd = self._on_click_file
-            self.btn = ctk.CTkButton(self.header, text=f"{icon} {text}", 
-                                   anchor="w", fg_color="transparent", 
-                                   text_color=text_color,
-                                   hover_color=hover_color, height=28,
-                                   font=("Segoe UI", 12),
-                                   command=cmd)
-            # Sağ Tık Menüsü
-            self.btn.bind("<Button-3>", self._show_context_menu)
-            
-        else:
-            icon = "▶" if not self.is_expanded else "▼" 
-            folder_icon = "📁"
-            cmd = self._on_toggle_folder
-            
-            self.btn = ctk.CTkButton(self.header, text=f"{icon} {folder_icon} {text}", 
-                                   anchor="w", fg_color="transparent",
-                                   text_color=text_color, 
-                                   hover_color=hover_color, height=28,
-                                   font=("Segoe UI", 12, "bold"),
-                                   command=cmd)
-            # Klasör Sağ Tık (İleride eklenebilir)
-            
-        self.btn.pack(fill="x", padx=(indent, 0), side="left", expand=True)
-
-        if not self.is_file:
-            self.children_container = ctk.CTkFrame(self, fg_color="transparent")
-            
-    def _show_context_menu(self, event):
-        """Sağ tık menüsü"""
-        import tkinter as tk
-        from tkinter import simpledialog, messagebox
-        import shutil
+        display_text = f"{icon} {text}"
+        node_id = self.tree.insert(parent_id, "end", text=display_text, open=is_root)
+        self.nodes[node_id] = path
         
-        menu = tk.Menu(self, tearoff=0)
-        menu.add_command(label="Yeniden Adlandır", command=self._rename_item)
-        menu.add_command(label="Sil", command=self._delete_item)
-        menu.add_separator()
-        menu.add_command(label="Yolu Kopyala", command=lambda: self.master.clipboard_clear() or self.master.clipboard_append(str(self.path)))
-        
-        try:
-            menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            menu.grab_release()
-
-    def _rename_item(self):
-        from tkinter import simpledialog, messagebox
-        new_name = simpledialog.askstring("Yeniden Adlandır", f"Yeni ismi giriniz ({self.path.name}):", initialvalue=self.path.name)
-        if new_name and new_name != self.path.name:
-            try:
-                new_path = self.path.parent / new_name
-                self.path.rename(new_path)
-                # Basit yenileme: Parent'ı reload et
-                # Sidebar üzerinden reload trigger edilebilir ama şimdilik path'i güncelle
-                self.path = new_path
-                self.btn.configure(text=f"{'💎' if self.is_file else '📁'} {new_name}")
-            except Exception as e:
-                messagebox.showerror("Hata", f"Yeniden adlandırılamadı: {e}")
-
-    def _delete_item(self):
-        from tkinter import messagebox
-        import shutil
-        confirm = messagebox.askyesno("Silme Onayı", f"'{self.path.name}' öğesini silmek istediğinizden emin misiniz?")
-        if confirm:
-            try:
-                if self.path.is_dir():
-                    shutil.rmtree(self.path)
-                else:
-                    self.path.unlink()
-                self.destroy() # UI'dan kaldır
-            except Exception as e:
-                messagebox.showerror("Hata", f"Silinemedi: {e}")
-
-    def _on_click_file(self):
-        if self.on_file_click:
-            self.on_file_click(str(self.path))
-
-    def _on_toggle_folder(self):
-        if self.is_expanded:
-            self._collapse()
-        else:
-            self._expand()
-
-    def _expand(self):
-        self.is_expanded = True
-        self.btn.configure(text=f"▼ 📂 {self.path.name}")
-        self.children_container.pack(fill="x", expand=True)
-        if not self.loaded:
-            self._load_children()
-            self.loaded = True
-
-    def _collapse(self):
-        self.is_expanded = False
-        self.btn.configure(text=f"▶ 📁 {self.path.name}")
-        self.children_container.pack_forget()
-
-    def _load_children(self):
-        try:
-            items = list(self.path.iterdir())
-            items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
-            
-            for item in items:
-                if item.name.startswith('.') or item.name == '__pycache__': continue
-                if item.is_file() and item.suffix not in ['.tr', '.py']: continue
-                    
-                node = TreeNode(self.children_container, item, item.is_file(), self.level + 1, self.on_file_click, self.config)
-                node.pack(fill="x")
+        if path.is_dir():
+            self.tree.insert(node_id, "end", text="yükleniyor...")
+            if is_root: self._load_children(node_id)
                 
-        except Exception as e:
-            print(f"Klasör yükleme hatası: {e}")
-            err = ctk.CTkLabel(self.children_container, text=f"Hata: {e}", text_color="red")
-            err.pack(padx=20)
+    def _on_tree_open(self, event):
+        node_id = self.tree.focus()
+        if node_id: self._load_children(node_id)
+        
+    def _load_children(self, node_id):
+        path = self.nodes.get(node_id)
+        if not path or not path.is_dir(): return
+        
+        children = self.tree.get_children(node_id)
+        if len(children) == 1 and self.tree.item(children[0], "text") == "yükleniyor...":
+            self.tree.delete(children[0])
+            try:
+                items = list(path.iterdir())
+                items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
+                for item in items:
+                    if item.name.startswith('.') or item.name == '__pycache__': continue
+                    self._insert_node(node_id, item)
+            except: pass
+
+    def _on_double_click(self, event):
+        item = self.tree.identify('item', event.x, event.y)
+        if item:
+            path = self.nodes.get(item)
+            if path and path.is_file() and self.on_file_select:
+                self.on_file_select(str(path))
+
+    def _on_right_click(self, event):
+        item = self.tree.identify('item', event.x, event.y)
+        if item:
+            self.tree.selection_set(item)
+            self.tree.focus(item)
+        target_path = self.nodes.get(item) if item else self.current_root
+        if not target_path: return
+        
+        menu = Menu(self, tearoff=0)
+        menu.add_command(label="📄 Yeni Dosya", command=lambda: self._new_file(target_path))
+        menu.add_command(label="📁 Yeni Klasör", command=lambda: self._new_folder(target_path))
+        menu.add_separator()
+        if target_path != self.current_root:
+            menu.add_command(label="🖋️ Yeniden Adlandır", command=lambda: self._rename(target_path))
+            menu.add_command(label="🗑️ Sil", command=lambda: self._delete(target_path))
+            menu.add_separator()
+        menu.add_command(label="🔄 Yenile", command=self.refresh)
+        
+        menu.tk_popup(event.x_root, event.y_root)
+        
+    def _new_file(self, target_path):
+        parent_dir = target_path if target_path.is_dir() else target_path.parent
+        res = simpledialog.askstring("Yeni Dosya", "Dosya adı (.tr vs.):")
+        if res:
+            try:
+                if not res.endswith('.tr') and '.' not in res: res += '.tr'
+                (parent_dir / res).touch()
+                self.refresh()
+                if self.on_file_select: self.on_file_select(str(parent_dir / res))
+            except Exception as e: messagebox.showerror("Hata", str(e))
+                
+    def _new_folder(self, target_path):
+        parent_dir = target_path if target_path.is_dir() else target_path.parent
+        res = simpledialog.askstring("Yeni Klasör", "Klasör adı:")
+        if res:
+            try:
+                (parent_dir / res).mkdir()
+                self.refresh()
+            except Exception as e: messagebox.showerror("Hata", str(e))
+                
+    def _rename(self, target_path):
+        res = simpledialog.askstring("Yeniden Adlandır", "Yeni ad:", initialvalue=target_path.name)
+        if res and res != target_path.name:
+            try:
+                target_path.rename(target_path.parent / res)
+                self.refresh()
+            except Exception as e: messagebox.showerror("Hata", str(e))
+                
+    def _delete(self, target_path):
+        if messagebox.askyesno("Silme Onayı", f"'{target_path.name}' silinecek. Emin misin?"):
+            try:
+                if target_path.is_dir(): shutil.rmtree(target_path)
+                else: target_path.unlink()
+                self.refresh()
+            except Exception as e: messagebox.showerror("Hata", str(e))
 
 
 class SearchPanel(ctk.CTkFrame):
@@ -354,7 +349,7 @@ class Sidebar(ctk.CTkFrame):
         self.content_container = ctk.CTkFrame(self, fg_color="transparent")
         self.content_container.pack(fill="both", expand=True)
         
-        self.explorer_panel = ctk.CTkScrollableFrame(self.content_container, fg_color="transparent")
+        self.explorer_tree = ExplorerTree(self.content_container, config, callbacks['on_file_select'])
         self.search_panel = SearchPanel(self.content_container, config, callbacks['on_file_select'])
         self.outline_panel = OutlinePanel(self.content_container, config, callbacks['on_jump'])
         self.training_panel = TrainingPanel(self.content_container, config, callbacks.get('load_code', lambda c: print(c)))
@@ -423,7 +418,9 @@ class Sidebar(ctk.CTkFrame):
 
     def _setup_explorer_buttons(self):
         for widget in self.btn_frame.winfo_children(): widget.destroy()
-        actions = [("📄+", self._on_new_file), ("📁+", self._on_new_folder), ("🔄", lambda: self.set_root(self.current_root))]
+        actions = [("📄+", lambda: self.explorer_tree._new_file(self.current_root)), 
+                   ("📁+", lambda: self.explorer_tree._new_folder(self.current_root)), 
+                   ("🔄", lambda: self.explorer_tree.refresh())]
         for icon, cmd in actions:
             btn = ctk.CTkButton(self.btn_frame, text=icon, width=24, height=24, fg_color="transparent", 
                                hover_color=self.config.THEMES[self.config.theme]['hover'], font=("Segoe UI", 12), command=cmd)
@@ -433,7 +430,7 @@ class Sidebar(ctk.CTkFrame):
         self.mode = mode
         
         # Panelleri Gizle
-        self.explorer_panel.pack_forget()
+        self.explorer_tree.pack_forget()
         self.search_panel.pack_forget()
         self.outline_panel.pack_forget()
         self.memory_panel.pack_forget()
@@ -480,7 +477,7 @@ class Sidebar(ctk.CTkFrame):
             self.btn_frame.pack_forget()
             
         if mode == "explorer":
-            self.explorer_panel.pack(fill="both", expand=True)
+            self.explorer_tree.pack(fill="both", expand=True)
             self._refresh_explorer()
         elif mode == "search":
             self.search_panel.pack(fill="both", expand=True)
@@ -560,74 +557,11 @@ class Sidebar(ctk.CTkFrame):
     def set_root(self, path):
         self.current_root = Path(path)
         self.label.configure(text=self.current_root.name[:15].upper())
-        
-        for widget in self.explorer_panel.winfo_children():
-            widget.destroy()
-            
-        self._load_root_contents()
-
-
-    def _load_root_contents(self):
-        try:
-            items = list(self.current_root.iterdir())
-            items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
-            
-            for item in items:
-                if item.name.startswith('.') or item.name == '__pycache__': continue
-                if item.is_file() and item.suffix not in ['.tr', '.py']: continue
-                
-                # Level 0 nodes
-                node = TreeNode(self.explorer_panel, item, item.is_file(), 0, self.callbacks['on_file_select'], self.config)
-                node.pack(fill="x")
-
-        except Exception as e:
-            print(f"Root yükleme hatası: {e}")
-    def _on_new_file(self):
-        """Yeni bir .tr dosyası oluştur"""
-        dialog = ctk.CTkInputDialog(text="Dosya Adı (.tr):", title="Yeni Dosya")
-        filename = dialog.get_input()
-        
-        if filename:
-            if not filename.endswith(".tr"):
-                filename += ".tr"
-            
-            new_path = self.current_root / filename
-            try:
-                if new_path.exists():
-                    from tkinter import messagebox
-                    messagebox.showwarning("Uyarı", "Bu isimde bir dosya zaten var!")
-                    return
-                
-                # Dosyayı oluştur
-                new_path.touch()
-                self.set_root(self.current_root) # Listeyi yenile
-                
-                # Yeni dosyayı aç
-                if self.callbacks['on_file_select']:
-                    self.callbacks['on_file_select'](str(new_path))
-
-                    
-            except Exception as e:
-                from tkinter import messagebox
-                messagebox.showerror("Hata", f"Dosya oluşturulamadı: {e}")
-
-    def _on_new_folder(self):
-        """Yeni bir klasör oluştur"""
-        dialog = ctk.CTkInputDialog(text="Klasör Adı:", title="Yeni Klasör")
-        folder_name = dialog.get_input()
-        
-        if folder_name:
-            new_path = self.current_root / folder_name
-            try:
-                new_path.mkdir(exist_ok=True)
-                self.set_root(self.current_root) # Listeyi yenile
-            except Exception as e:
-                from tkinter import messagebox
-                messagebox.showerror("Hata", f"Klasör oluşturulamadı: {e}")
+        self.explorer_tree.load_root(self.current_root)
 
     def _refresh_explorer(self):
         """Gezgini yenile"""
-        self.set_root(self.current_root)
+        self.explorer_tree.refresh()
 
     def update_variables(self, vars_json):
         """Gelen canlı değişken verilerini panelde güncelle"""
