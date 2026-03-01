@@ -30,8 +30,6 @@ class MainWindow:
     def __init__(self, root, config):
         self.root = root
         self.config = config
-        self.editors = {} # {path: editor_widget}
-        self.active_tab = None # current path
         self.last_run_file = None
         self.memory_buffer = []
         self.is_collecting_memory = False
@@ -431,6 +429,26 @@ class MainWindow:
         except Exception as e:
             print(f"Kapanış hatası: {e}")
             self.root.destroy()  # Yine de kapat
+
+    @property
+    def editors(self):
+        """Tab_manager'in editorlerini dondurur (Tek kaynak)"""
+        if hasattr(self, 'tab_manager'):
+            return self.tab_manager.editors
+        return {}
+        
+    @property
+    def active_tab(self):
+        """Tab_manager'in aktif sekmesini dondurur (Tek kaynak)"""
+        if hasattr(self, 'tab_manager'):
+            return self.tab_manager.active_tab
+        return None
+        
+    @active_tab.setter
+    def active_tab(self, path):
+        """Geriye donuk uyumluluk icin (bazı moduller buna dege er atayabilir)"""
+        if hasattr(self, 'tab_manager'):
+            self.tab_manager.active_tab = path
 
 if __name__ == "__main__":
     from ..config import Config
