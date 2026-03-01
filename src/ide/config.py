@@ -342,10 +342,10 @@ class Config:
         else:
             self.theme = 'pardus_dark' # Pardus/Linux için yerel tema
         
-        # Mod ayarları
-        self.show_sidebar = (mode == 'pro')
-        self.show_ast = (mode == 'pro')
-        self.simple_ui = (mode == 'ogrenci')
+        # Mod ayarları (Sadece Öğrenci / Basit Arayüz)
+        self.show_sidebar = False
+        self.show_ast = False
+        self.simple_ui = True
         self.show_welcome = True  # İlk açılışta hoş geldin ekranını göster (Pardus farkındalığı için)
         self.animations_enabled = True  # Animasyonlar
         self.recent_files = [] # Son kullanılan dosyalar

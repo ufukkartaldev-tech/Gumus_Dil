@@ -49,10 +49,8 @@ def main():
             pass
 
     
-    # Komut satırı argümanı kontrolü
+    # Sadece sade arayüzlü öğrenci modu aktif
     mode = 'ogrenci'
-    if len(sys.argv) > 1:
-        mode = sys.argv[1].lower()
         
     ctk.set_appearance_mode("Dark")
     ctk.set_default_color_theme("blue")

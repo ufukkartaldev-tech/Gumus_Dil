@@ -47,7 +47,7 @@ class MainWindow:
         self.plugin_manager = PluginManager(self)
         
         self.root.title(f"💎 Gümüşdil IDE - {config.mode.upper()}")
-        self.root.geometry("1400x900" if config.mode == 'pro' else "1000x800")
+        self.root.geometry("1000x800")
         
         # Grid configure for root to expand
         self.root.grid_rowconfigure(0, weight=1)
