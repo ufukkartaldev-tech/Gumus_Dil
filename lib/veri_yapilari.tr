@@ -295,11 +295,10 @@ sınıf HashTablosu {
     fonksiyon hash(anahtar) {
         // Basit hash fonksiyonu
         değişken toplam = 0
-        değişken i = 0
         değişken str = metin(anahtar)
         
         // String uzunluğunu kullan
-        toplam = str.uzunluk % oz.kapasite
+        toplam = uzunluk(str) % oz.kapasite
         dön toplam
     }
     
@@ -318,9 +317,11 @@ sınıf HashTablosu {
             }
         }
         
+        eğer (oz.anahtarlar[indeks] == bos) {
+            oz.boyut = oz.boyut + 1
+        }
         oz.anahtarlar[indeks] = anahtar
         oz.degerler[indeks] = deger
-        oz.boyut = oz.boyut + 1
         dön dogru
     }
     

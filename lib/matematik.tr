@@ -5,50 +5,47 @@
 
 // Temel Sabitler
 // Temel Sabitler
-// Temel Sabitler
-değişken mat_PI = 3
-değişken mat_E = 2
+deÄŸiÅŸken mat_PI = 3.14159265359
+deÄŸiÅŸken mat_E = 2.71828182846
 
 // Temel Fonksiyonlar (Native 'karekok' ve 'rastgele' zaten var)
 
-fonksiyon mat_mutlak_değer(n) {
-    eğer (n < 0) { dön 0 - n }
-    dön n
+fonksiyon mat_mutlak_deÄŸer(n) {
+    eÄŸer (n < 0) { dÃ¶n 0 - n }
+    dÃ¶n n
 }
 
-fonksiyon mat_üs(taban, kuvvet) {
-    değişken sonuc = 1
-    değişken i = 0
-    döngü (i < kuvvet) {
+fonksiyon mat_Ã¼s(taban, kuvvet) {
+    deÄŸiÅŸken sonuc = 1
+    deÄŸiÅŸken i = 0
+    dÃ¶ngÃ¼ (i < kuvvet) {
         sonuc = sonuc * taban
         i = i + 1
     }
-    dön sonuc
+    dÃ¶n sonuc
 }
 
 fonksiyon mat_faktoriyel(n) {
-    eğer (n <= 1) { dön 1 }
-    dön n * mat_faktoriyel(n - 1)
+    eÄŸer (n <= 1) { dÃ¶n 1 }
+    dÃ¶n n * mat_faktoriyel(n - 1)
 }
 
 fonksiyon mat_min(a, b) {
-    eğer (a < b) { dön a }
-    dön b
+    eÄŸer (a < b) { dÃ¶n a }
+    dÃ¶n b
 }
 
 fonksiyon mat_max(a, b) {
-    eğer (a > b) { dön a }
-    dön b
+    eÄŸer (a > b) { dÃ¶n a }
+    dÃ¶n b
 }
 
 fonksiyon mat_cift_mi(n) {
-    değişken yarisi = n / 2
-    değişken kontrol = yarisi * 2
-    eğer (kontrol == n) { dön doğru }
-    dön yanlış
+    eÄŸer (n % 2 == 0) { dÃ¶n doÄŸru }
+    dÃ¶n yanlÄ±ÅŸ
 }
 
 fonksiyon mat_tek_mi(n) {
-    dön !mat_cift_mi(n)
+    dÃ¶n !mat_cift_mi(n)
 }
 
