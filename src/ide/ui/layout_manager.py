@@ -102,24 +102,27 @@ class LayoutManager:
         self.main_window.activity_bar.pack(side="left", fill="y")
         self.main_window.activity_bar.pack_propagate(False)
 
-        # Butonları ekle
+        # Butonları ekle (Sadece Temel Araçlar)
         self._add_activity_icon("📂", "Gezgin", "explorer", active=True)
         self._add_activity_icon("🔍", "Ara", "search")
-        self._add_activity_icon("📜", "Outline", "outline")
-        self._add_activity_icon("💎", "Hafıza", "memory")
-        self._add_activity_icon("🏋️", "Gümüş GYM", "training")
-        self._add_activity_icon("🔬", "Variables", "variables")
-        self._add_activity_icon("📚", "Call Stack", "callstack")
+        
+        if not self.config.simple_ui:
+            self._add_activity_icon("📜", "Outline", "outline")
+            self._add_activity_icon("💎", "Hafıza", "memory")
+            self._add_activity_icon("🏋️", "Gümüş GYM", "training")
+            self._add_activity_icon("🔬", "Variables", "variables")
+            self._add_activity_icon("📚", "Call Stack", "callstack")
+            self._add_activity_icon("🐍", "Python Çevirici", "transpiler")
+            self._add_activity_icon("🛒", "Gümüş Pazar", "market")
+            self._add_activity_icon("📊", "Gümüş Analiz", "profiler")
+            self._add_activity_icon("🌿", "Gümüş Akış", "flowchart")
+            self._add_activity_icon("🎮", "Sahne Editörü", "voxel_editor")
+            self._add_activity_icon("📡", "Gümüş Vizyon", "vizyon")
+            self._add_activity_icon("🐆", "Pardus", "pardus")
+            self._add_activity_icon("📓", "Notlar", "notes")
+
         self._add_activity_icon("🤖", "Gümüş Zeka", "ai")
-        self._add_activity_icon("🐍", "Python Çevirici", "transpiler")
-        self._add_activity_icon("🛒", "Gümüş Pazar", "market")
-        self._add_activity_icon("📊", "Gümüş Analiz", "profiler")
         self._add_activity_icon("📚", "Gümüş Sözlük", "docs")
-        self._add_activity_icon("🌿", "Gümüş Akış", "flowchart")
-        self._add_activity_icon("🎮", "Sahne Editörü", "voxel_editor")
-        self._add_activity_icon("📡", "Gümüş Vizyon", "vizyon")
-        self._add_activity_icon("🐆", "Pardus", "pardus")
-        self._add_activity_icon("📓", "Notlar", "notes")
         self._add_activity_icon("⚙️", "Ayarlar", "settings", side="bottom")
 
     def _add_activity_icon(self, icon, tooltip, mode, side="top", active=False):
@@ -222,10 +225,14 @@ class LayoutManager:
         # Diğer Paneller
         panels = [
             ("Tuval (Görsel)", CanvasPanel, 'canvas_panel'),
-            ("Oyun (Voxel)", GameView, 'game_view'),
-            ("mimari (Fabrika)", FactorySimulation, 'mimari_view'),
-            ("Donanım (GPIO)", GPIOPanel, 'gpio_panel')
         ]
+        
+        if not self.config.simple_ui:
+            panels.extend([
+                ("Oyun (Voxel)", GameView, 'game_view'),
+                ("mimari (Fabrika)", FactorySimulation, 'mimari_view'),
+                ("Donanım (GPIO)", GPIOPanel, 'gpio_panel')
+            ])
         
         for title, cls, attr in panels:
             tab = self.main_window.bottom_tabs.add(title)
