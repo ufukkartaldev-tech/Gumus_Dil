@@ -439,7 +439,7 @@ import json
 # ==================== SINGLETON PATTERN ====================
 # Tüm IDE bileşenleri aynı Config nesnesini kullanır
 # Bu sayede ayarlar merkezi bir yerden yönetilir
-default_config = Config(mode='pro')
+default_config = Config(mode='ogrenci')
 
 # Kullanım:
 # from ..config import default_config
