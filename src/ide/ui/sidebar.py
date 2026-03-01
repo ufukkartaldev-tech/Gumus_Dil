@@ -101,7 +101,8 @@ class ExplorerTree(ctk.CTkFrame):
                 for item in items:
                     if item.name.startswith('.') or item.name == '__pycache__': continue
                     self._insert_node(node_id, item)
-            except: pass
+            except Exception as e:
+                print(f">>> [GEZGİN HATA] Klasör okunamadı: {path} -> {e}")
 
     def _on_double_click(self, event):
         item = self.tree.identify('item', event.x, event.y)
@@ -418,7 +419,12 @@ class Sidebar(ctk.CTkFrame):
         self.notes_panel = NotesPanel(self.content_container, config)
         
         # Debugger Manager
-        self.debugger = DebuggerManager(compiler_path="bin/gumus.exe")
+        try:
+            from ..config import COMPILER_PATH
+            comp_path = str(COMPILER_PATH)
+        except:
+            comp_path = str(Path(__file__).resolve().parent.parent.parent.parent / "bin" / "gumus.exe")
+        self.debugger = DebuggerManager(compiler_path=comp_path)
         
         # Pardus Paneli
         self.pardus_panel = PardusPanel(self.content_container, config)
@@ -459,24 +465,8 @@ class Sidebar(ctk.CTkFrame):
             on_frame_click=lambda frame: callbacks.get('on_jump', lambda x: None)(frame.line_number)
         )
         
-        self.switch_mode("explorer")
-
-
-    def _setup_explorer_buttons(self):
-        for widget in self.btn_frame.winfo_children(): widget.destroy()
-        actions = [("📄+", lambda: self.explorer_tree._new_file(self.current_root)), 
-                   ("📁+", lambda: self.explorer_tree._new_folder(self.current_root)), 
-                   ("🔄", lambda: self.explorer_tree.refresh())]
-        for icon, cmd in actions:
-            btn = ctk.CTkButton(self.btn_frame, text=icon, width=24, height=24, fg_color="transparent", 
-                               hover_color=self.config.THEMES[self.config.theme]['hover'], font=("Segoe UI", 12), command=cmd)
-            btn.pack(side="left", padx=1)
-
-    def switch_mode(self, mode):
-        self.mode = mode
-        
-        # Tüm panelleri bir sözlükte topla
-        panels = {
+        # Tüm panelleri performansı korumak için bir kere tanımlıyoruz (Oluşum Mimarisi)
+        self.panels = {
             "explorer": self.explorer_tree,
             "search": self.search_panel,
             "outline": self.outline_panel,
@@ -495,14 +485,30 @@ class Sidebar(ctk.CTkFrame):
             "voxel_editor": self.voxel_editor,
             "vizyon": self.vizyon_panel
         }
+        
+        self.switch_mode("explorer")
 
-        # Hepsini tek kalemde gizle
-        for p in panels.values():
+
+    def _setup_explorer_buttons(self):
+        for widget in self.btn_frame.winfo_children(): widget.destroy()
+        actions = [("📄+", lambda: self.explorer_tree._new_file(self.current_root)), 
+                   ("📁+", lambda: self.explorer_tree._new_folder(self.current_root)), 
+                   ("🔄", lambda: self.explorer_tree.refresh())]
+        for icon, cmd in actions:
+            btn = ctk.CTkButton(self.btn_frame, text=icon, width=24, height=24, fg_color="transparent", 
+                               hover_color=self.config.THEMES[self.config.theme]['hover'], font=("Segoe UI", 12), command=cmd)
+            btn.pack(side="left", padx=1)
+
+    def switch_mode(self, mode):
+        self.mode = mode
+        
+        # Önceden yüklenmiş panelleri tek kalemde gizle
+        for p in self.panels.values():
             p.pack_forget()
 
-        # Sadece lazım olanı aç
-        if mode in panels:
-            panels[mode].pack(fill="both", expand=True)
+        # İstek yapılan paneli göster
+        if mode in self.panels:
+            self.panels[mode].pack(fill="both", expand=True)
             
         # İlgili Paneli Göster
         label_map = {
@@ -556,7 +562,7 @@ class Sidebar(ctk.CTkFrame):
             # Eğer kod varsa, çeviriyi tetikle
             if self.callbacks.get('get_code'):
                 code = self.callbacks['get_code']()
-                if code:
+                if code and code.strip():
                     target_lang = self.transpiler_panel.lang_var.get()
                     try:
                         if target_lang == "Python":
