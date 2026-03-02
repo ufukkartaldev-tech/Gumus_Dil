@@ -362,6 +362,7 @@ class CodeEditor(ctk.CTkFrame):
         self._textbox.bind("<Return>", self._on_return)
         self._textbox.bind("<Tab>", self._on_tab_press)
         self._textbox.bind("<Button-3>", self._show_context_menu)
+        self._textbox.bind("<<Paste>>", self._on_paste)
         
         # Shortcuts
         self._textbox.bind("<Control-f>", self.show_find_dialog)
@@ -608,6 +609,14 @@ class CodeEditor(ctk.CTkFrame):
             elif event.keysym == "Escape":
                 self.hide_suggestion_box()
                 return "break"
+            elif event.keysym == "Return" or event.keysym == "Tab":
+                if self.suggestion_box.curselection():
+                    self._apply_suggestion()
+                    return "break"
+        
+        # Undo history için separator ekle (Her kelime bitiminde veya enter'da)
+        if event.char in (' ', '\n', '.', '(', ')'):
+            self._textbox.edit_separator()
         
         # Otomatik Türkçe Karakter Düzeltme (Hafif İpucu)
         # Örn: eger -> eğer (Sadece kelime bitiminde boşluk bırakınca veya enterlayınca tetiklenebilir ama karmaşık)
@@ -656,6 +665,11 @@ class CodeEditor(ctk.CTkFrame):
                 break
             parent = parent.master
 
+    def _on_paste(self, event=None):
+        """Yapıştırma işleminden sonra tam vurgulama yap"""
+        self.after(10, lambda: self._trigger_highlight(full=True))
+        self._textbox.edit_separator()
+
     def _highlight_current_line(self):
         """Aktif satırı vurgula"""
         self._textbox.tag_remove("current_line", "1.0", tk.END)
@@ -675,106 +689,57 @@ class CodeEditor(ctk.CTkFrame):
         except:
             pass
         
-    def _trigger_highlight(self, delay=100):
+    def _trigger_highlight(self, delay=100, full=False):
+        """
+        Gecikmeli vurgulama. 
+        full=False: Sadece aktif satırı vurgular (Hızlı)
+        full=True: Tüm dosyayı vurgular (Yavaş ama tam tutarlılık için)
+        """
         if self._highlight_timer:
             self.after_cancel(self._highlight_timer)
             
         def job():
-            self.highlighter.highlight()
+            if full:
+                self.highlighter.highlight()
+            else:
+                curr_line = self._textbox.index("insert").split('.')[0]
+                self.highlighter.highlight_line(curr_line)
+                
             self._run_linter() # Canlı Hata Denetimi
             self.update_breadcrumbs()
             
-            # Auto-suggestion logic
-            try:
-                 current_index = self._textbox.index(tk.INSERT)
-                 line_start = f"{current_index.split('.')[0]}.0"
-                 line_text = self._textbox.get(line_start, current_index)
-                 
-                 wb = re.search(r'([a-zA-Z_ığüşöçİĞÜŞÖÇ]+)$', line_text)
-                 if wb:
-                     word = wb.group(1)
-                     if len(word) >= 2:
-                         self.show_suggestion_box(word)
-                     else:
-                         self.hide_suggestion_box()
-                 else:
-                     self.hide_suggestion_box()
-            except:
-                 pass
+            # Autocompletion logic moved to independent trigger or kept here
+            self._check_autocompletion()
             
         self._highlight_timer = self.after(delay, job)
+
+    def _check_autocompletion(self):
+        """İmleç altındaki kelimeye göre öneri kutusunu yönetir"""
+        try:
+             current_index = self._textbox.index(tk.INSERT)
+             line_start = f"{current_index.split('.')[0]}.0"
+             line_text = self._textbox.get(line_start, current_index)
+             
+             # Sadece kelime yazılırken (alfanümerik + türkçe karakterler)
+             wb = re.search(r'([a-zA-Z_ığüşöçİĞÜŞÖÇ]+)$', line_text)
+             if wb:
+                 word = wb.group(1)
+                 if len(word) >= 2:
+                     self.show_suggestion_box(word)
+                 else:
+                     self.hide_suggestion_box()
+             else:
+                 self.hide_suggestion_box()
+        except:
+             pass
         
         # Trigger autosuggestion if typing word chars
         # ... (Suggestion logic) ...
-    def show_suggestion_box(self, word):
-        """Öneri kutusunu imleç konumunda göster"""
-        if not hasattr(self, 'suggestion_frame'):
-            # Lazy creation
-            self.suggestion_frame = tk.Frame(self._textbox, highlightthickness=1, bd=0)
-            self.suggestion_box = tk.Listbox(
-                self.suggestion_frame, 
-                font=("Consolas", 10), 
-                bd=0, 
-                highlightthickness=0,
-                bg="#2d2d2d", 
-                fg="#d4d4d4",
-                selectbackground="#37373d"
-            )
-            self.suggestion_box.pack()
-            self.suggestion_box.bind("<Button-1>", lambda e: self._on_suggestion_select())
-            self.suggestion_box.bind("<Double-Button-1>", lambda e: self.insert_suggestion())
-            
-        # Kelimeye göre filtrele
-        keywords = [
-            "yazdır", "eğer", "değilse", "döngü", "fonksiyon", "değişken", "sınıf", "dön", 
-            "doğru", "yanlış", "yok", "dahil et", "dene", "yakala",
-            "dosya_oku", "dosya_yaz", "rastgele_sayı", "rastgele_ondalık", "bekle", "temizle", "mutlak",
-            "uzunluk", "metin", "sayı", "girdi",
-            "daire_çiz", "dikdörtgen_çiz", "çizgi_çiz", "tuval_temizle",
-            "arayüz", "veritabanı", "görüntü_işleme", "çizim", "oyun", "donanım", "kripto", "json", "istatistik",
-            "web_isteği", "ses", "işlemci", "günlük", "test", "sıkıştırma", "eşleştirme", "csv", "xml", "ikili",
-            "bulut", "blokzincir", "kuantum", "dil_işleme", "bilimsel", "soket", "eşzamanlı", "görselleştirme", "serileştirme", "yapılandırma", "zaman_dilimi",
-            "harita", "belge", "hızlandırıcı", "seri_port", "transfer"
-        ]
-        matches = [k for k in keywords if k.startswith(word)]
-        
-        if not matches:
-            self.hide_suggestion_box()
-            return
-            
-        self.suggestion_box.delete(0, tk.END)
-        for m in matches:
-            self.suggestion_box.insert(tk.END, m)
-        self.suggestion_box.selection_set(0)
-        
-        # Pozisyonla
-        bbox = self._textbox.bbox(tk.INSERT)
-        if bbox:
-            x, y, w, h = bbox
-            self.suggestion_frame.place(x=x, y=y + h)
-            self.suggestion_frame.lift()
+    # --- Autocomplete & Suggestions ---
+    # Redundant methods removed, combined version exists below.
 
-    def hide_suggestion_box(self):
-        if hasattr(self, 'suggestion_frame'):
-            self.suggestion_frame.place_forget()
-
-    def insert_suggestion(self):
-        if not hasattr(self, 'suggestion_box'): return
-        selection = self.suggestion_box.curselection()
-        if selection:
-            suggestion = self.suggestion_box.get(selection[0])
-            # Mevcut kelimeyi sil ve öneriyi ekle
-            current_index = self._textbox.index(tk.INSERT)
-            line_start = f"{current_index.split('.')[0]}.0"
-            line_text = self._textbox.get(line_start, current_index)
-            
-            wb = re.search(r'([a-zA-Z_ığüşöçİĞÜŞÖÇ]+)$', line_text)
-            if wb:
-                start_word = f"{current_index.split('.')[0]}.{wb.start()}"
-                self._textbox.delete(start_word, current_index)
-                self._textbox.insert(start_word, suggestion)
-            
-        self.hide_suggestion_box()
+    # --- Autocomplete & Suggestions ---
+    # Unified version exists below (_apply_suggestion).
 
     def _on_suggestion_select(self, event=None):
         pass
@@ -799,7 +764,7 @@ class CodeEditor(ctk.CTkFrame):
         import threading
         threading.Thread(target=play_mechanical_sound, daemon=True).start()
 
-        content = self.get("1.0", tk.END)
+        content = self.get("1.0", 'end-1c')
         formatted = GumusFormatter.format(content)
         
         # Undo history korumak için replace et
@@ -818,7 +783,7 @@ class CodeEditor(ctk.CTkFrame):
 
     def _run_linter(self):
         """GümüşDil Canlı Hata Denetimi (Linter)"""
-        text = self.get("1.0", tk.END)
+        text = self.get("1.0", 'end-1c')
         errors = []
         
         # Yasaklı Kelimeler (İngilizce/ASCII -> Türkçe Doğrusu)
@@ -1027,7 +992,7 @@ class CodeEditor(ctk.CTkFrame):
             pass
 
         # 2. Dinamik Semboller (Açık dosyadan)
-        text = self.get("1.0", tk.END)
+        text = self.get("1.0", 'end-1c')
         extracted_symbols = SymbolExtractor.extract_from_text(text)
         
         all_candidates = {} # name -> meta
@@ -1396,7 +1361,7 @@ class CodeEditor(ctk.CTkFrame):
         replacement = self.replace_entry.get()
         if not query: return
         
-        text = self._textbox.get("1.0", tk.END)
+        text = self._textbox.get("1.0", 'end-1c')
         new_text = text.replace(query, replacement)
         
         self._textbox.delete("1.0", tk.END)
@@ -1544,7 +1509,7 @@ class CodeEditor(ctk.CTkFrame):
             # Not: Bu basit bir replace işlemidir, scope analizi yapmaz.
             # Gerçek refactoring için parser gerekir ama şimdilik "Find & Replace All" mantığı yeterli.
             
-            content = self._textbox.get("1.0", tk.END)
+            content = self._textbox.get("1.0", 'end-1c')
             
             # Regex ile tam kelime eşleşmesi (whole word search)
             pattern = re.compile(r'\b' + re.escape(target_word) + r'\b')
