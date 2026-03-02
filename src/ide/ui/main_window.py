@@ -274,8 +274,22 @@ class MainWindow:
         self.root.title(title)
         
     def update_outline(self, event=None):
+        """Aktif dosyadaki sembolleri (fonksiyon, sınıf vb.) ayıklar ve sidebar'a gönderir."""
+        editor = self.get_current_editor()
+        if not editor: return
+        
         if hasattr(self, 'sidebar') and hasattr(self.sidebar, 'update_outline'):
-            self.sidebar.update_outline()
+            text = editor.get("1.0", 'end-1c')
+            symbols = SymbolExtractor.extract_from_text(text)
+            self.sidebar.update_outline(symbols)
+
+    def load_code(self, code):
+        """Editördeki mevcut kodu temizler ve yenisini yükler (GYM vb. için)"""
+        editor = self.get_current_editor()
+        if editor:
+            editor.delete("1.0", tk.END)
+            editor.insert("1.0", code)
+            self.show_toast("💎 Kod başarıyla yüklendi!", "success")
             
     def load_autosave(self): pass
     
