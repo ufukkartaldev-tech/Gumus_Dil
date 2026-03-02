@@ -148,8 +148,8 @@ class GumusToPythonTranspiler:
         self.indent_level -= 1
 
     def visit_PrintStmt(self, node):
-        val = self.visit_expr(node.expression)
-        self.emit(f"print({val})")
+        args_str = [self.visit_expr(expr) for expr in node.expressions]
+        self.emit(f"print({', '.join(args_str)})")
 
     def visit_ReturnStmt(self, node):
         if node.value:
