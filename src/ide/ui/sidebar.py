@@ -102,7 +102,7 @@ class ExplorerTree(ctk.CTkFrame):
                     if item.name.startswith('.') or item.name == '__pycache__': continue
                     self._insert_node(node_id, item)
             except Exception as e:
-                print(f">>> [GEZGİN HATA] Klasör okunamadı: {path} -> {e}")
+                messagebox.showerror("Gezgin Hatası", f"Klasör okunamadı: {path}\n{e}")
 
     def _on_double_click(self, event):
         item = self.tree.identify('item', event.x, event.y)
@@ -128,7 +128,7 @@ class ExplorerTree(ctk.CTkFrame):
             menu.add_command(label="🗑️ Sil", command=lambda: self._delete(target_path))
             menu.add_separator()
             
-        menu.add_command(label="� Burada Terminal Aç", command=lambda: self._open_in_terminal(target_path))
+        menu.add_command(label="�💻 Burada Terminal Aç", command=lambda: self._open_in_terminal(target_path))
         menu.add_separator()
         menu.add_command(label="�🔄 Yenile", command=self.refresh)
         
@@ -204,9 +204,10 @@ class SearchPanel(ctk.CTkFrame):
         import threading
         
         def _search_thread():
-            root = Path(os.getcwd())
+            # Gezginin mevcut kök dizinini kullan (veya çalışma dizini)
+            search_root = self.master.current_root if hasattr(self.master, 'current_root') else Path(os.getcwd())
             results = []
-            for file_path in root.rglob("*.tr"):
+            for file_path in search_root.rglob("*.tr"):
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         lines = f.readlines()
@@ -399,7 +400,7 @@ class Sidebar(ctk.CTkFrame):
         self.explorer_tree = ExplorerTree(self.content_container, config, callbacks['on_file_select'])
         self.search_panel = SearchPanel(self.content_container, config, callbacks['on_file_select'])
         self.outline_panel = OutlinePanel(self.content_container, config, callbacks['on_jump'])
-        self.training_panel = TrainingPanel(self.content_container, config, callbacks.get('load_code', lambda c: print(c)))
+        self.training_panel = TrainingPanel(self.content_container, config, callbacks.get('load_code', lambda c: print(f"GYM: {c}")))
         
         # Transpiler Panel
         self.transpiler_panel = TranspilerPanel(
@@ -542,6 +543,9 @@ class Sidebar(ctk.CTkFrame):
         # Özel Aksiyonlar
         if mode == "memory":
             self.label.configure(text="GÜMÜŞHAFIZA")
+        elif mode == "outline":
+            if self.callbacks.get('on_refresh_outline'):
+                self.callbacks['on_refresh_outline']()
         elif mode == "notes":
             self.notes_panel.load_notes() # Her açıldığında yükle
         elif mode == "profiler":
@@ -581,6 +585,11 @@ class Sidebar(ctk.CTkFrame):
         self.current_root = Path(path)
         self.label.configure(text=self.current_root.name[:15].upper())
         self.explorer_tree.load_root(self.current_root)
+
+    def update_outline(self, symbols):
+        """Dışarıdan gelen sembolleri anahat (outline) panelinde göster"""
+        if hasattr(self, 'outline_panel'):
+            self.outline_panel.update_outline(symbols)
 
     def _refresh_explorer(self):
         """Gezgini yenile"""

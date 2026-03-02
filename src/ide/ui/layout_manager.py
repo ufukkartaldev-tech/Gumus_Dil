@@ -187,6 +187,8 @@ class LayoutManager:
                 'on_file_select': self.main_window.open_file_from_path,
                 'on_jump': self.main_window.jump_to_line,
                 'on_apply_code': self.main_window.apply_code_snippet,
+                'load_code': self.main_window.load_code,
+                'on_refresh_outline': self.main_window.update_outline,
                 'get_code': lambda: self.main_window.get_current_editor().get('1.0', tk.END) if self.main_window.get_current_editor() else ""
             }
             self.main_window.sidebar = Sidebar(self.main_window.paned_window, self.config, callbacks)
