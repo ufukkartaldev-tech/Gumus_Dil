@@ -6,7 +6,7 @@
             "map",
             "harita"
         ],
-        "answer": "Sözlükler, anahtar-değer ikililerini saklamak içindir yeğenim. Süslü parantez ile tanımlanır.\n\nÖrnek:\n```\ndeğişken kişi = { \"isim\": \"Ahmet\", \"yaş\": 25 };\nyazdır(kişi[\"isim\"]); // Ahmet\n```"
+        "answer": "Sözlükler, anahtar-değer ikililerini saklamak içindir yeğenim. Süslü parantez ile tanımlanır.\n\nÖrnek:\n```\ndeğişken kişi = { \"isim\": \"Ahmet\", \"yaş\": 25 }\nyazdır(kişi[\"isim\"]) // Ahmet\n```"
     },
     {
         "keywords": [
@@ -16,7 +16,7 @@
             "kaydet",
             "file"
         ],
-        "answer": "Dosya işlemleri için native fonksiyonlar emrine amade!\n\n**Okuma:**\n`değişken içerik = dosya_oku(\"veri.txt\");`\n\n**Yazma (Üzerine yazar):**\n`dosya_yaz(\"log.txt\", \"İşlem tamam.\");`\n\n**Ekleme (Sonuna ekler):**\n`dosya_ekle(\"log.txt\", \"\\nYeni satır.\");`"
+        "answer": "Dosya işlemleri için native fonksiyonlar emrine amade!\n\n**Okuma:**\n`değişken içerik = dosya_oku(\"veri.txt\")`\n\n**Yazma (Üzerine yazar):**\n`dosya_yaz(\"log.txt\", \"İşlem tamam.\")`\n\n**Ekleme (Sonuna ekler):**\n`dosya_ekle(\"log.txt\", \"\\nYeni satır.\")`"
     },
     {
         "keywords": [
@@ -26,7 +26,7 @@
             "ekle",
             "sil"
         ],
-        "answer": "Listeler köşeli parantez kullanır.\n\nÖrnek:\n```\ndeğişken sayılar = [10, 20];\nekle(sayılar, 30); // [10, 20, 30]\nsil(sayılar, 0);   // [20, 30] (0. indeksi siler)\nyazdır(uzunluk(sayılar)); // 2\n```"
+        "answer": "Listeler köşeli parantez kullanır.\n\nÖrnek:\n```\ndeğişken sayılar = [10, 20]\nekle(sayılar, 30) // [10, 20, 30]\nsil(sayılar, 0)   // [20, 30] (0. indeksi siler)\nyazdır(uzunluk(sayılar)) // 2\n```"
     },
     {
         "keywords": [
@@ -40,7 +40,7 @@
             "lowercase",
             "split"
         ],
-        "answer": "Metinlerle oynamak çocuk oyuncağı:\n\n*   `buyuk(\"merhaba\")` -> \"MERHABA\"\n*   `kucuk(\"GÜMÜŞ\")` -> \"gümüş\"\n*   `parcala(\"elma,armut\", \",\")` -> [\"elma\", \"armut\"]\n*   `metin(123)` -> \"123\""
+        "answer": "Metinlerle oynamak çocuk oyuncağı:\n\n*   `büyük(\"merhaba\")` -> \"MERHABA\"\n*   `küçük(\"GÜMÜŞ\")` -> \"gümüş\"\n*   `parçala(\"elma,armut\", \",\")` -> [\"elma\", \"armut\"]\n*   `metin(123)` -> \"123\""
     },
     {
         "keywords": [
@@ -78,11 +78,11 @@
             "sayı",
             "rastgele",
             "random",
-            "karekok",
+            "karekök",
             "sin",
             "cos"
         ],
-        "answer": "Matematik kütüphanesi henüz tam yüklenmedi ama temel işlemler hazır.\n*   `sayi(\"123\")` -> 123 (Metni sayıya çevirir)\n*   Daha fazlası için C++ `native_functions.cpp` dosyasına bakabilirsin."
+        "answer": "Matematik kütüphanesi henüz tam yüklenmedi ama temel işlemler hazır.\n*   `sayı(\"123\")` -> 123 (Metni sayıya çevirir)\n*   Daha fazlası için C++ `native_functions.cpp` dosyasına bakabilirsin."
     },
     {
         "keywords": [
@@ -138,7 +138,7 @@
             "değilse",
             "else"
         ],
-        "answer": "Karar vermek için `eğer` ve `değilse` kullanılır. Blokları `{ }` ile sarmayı unutma.\n\n```\neğer (puan > 50) {\n    yazdır(\"Geçtin!\");\n} değilse {\n    yazdır(\"Kaldın...\");\n}\n```"
+        "answer": "Karar vermek için `eğer` ve `değilse` kullanılır. Blokları `{ }` ile sarmayı unutma.\n\n```\neğer (puan > 50) {\n    yazdır(\"Geçtin!\")\n} değilse {\n    yazdır(\"Kaldın...\")\n}\n```"
     },
     {
         "keywords": [
@@ -149,7 +149,7 @@
             "dön",
             "return"
         ],
-        "answer": "Fonksiyonlar kod tekrarını önler. `fonksiyon` ile tanımla, `dön` ile değer ver.\n\n```\nfonksiyon topla(a, b) {\n    dön a + b;\n}\nyazdır(topla(5, 3)); // 8\n```"
+        "answer": "Fonksiyonlar kod tekrarını önler. `fonksiyon` ile tanımla, `dön` ile değer ver.\n\n```\nfonksiyon topla(a, b) {\n    dön a + b\n}\nyazdır(topla(5, 3)) // 8\n```"
     },
     {
         "keywords": [
@@ -159,7 +159,7 @@
             "veri",
             "tür"
         ],
-        "answer": "Değişken tanımlamak için `değişken` anahtar kelimesi kullanılır. Tür belirtmene gerek yok, GümüşDil anlar (Dinamik Tip).\n\n`değişken ad = \"Ahmet\";`\n`değişken yas = 25;`"
+        "answer": "Değişken tanımlamak için `değişken` anahtar kelimesi kullanılır. Tür belirtmene gerek yok, GümüşDil anlar (Dinamik Tip).\n\n`değişken ad = \"Ahmet\"`\n`değişken yaş = 25`"
     },
     {
         "keywords": [
@@ -171,7 +171,7 @@
             "bölü",
             "mod"
         ],
-        "answer": "Matematik her yerde!\n`+` (Topla), `-` (Çıkar), `*` (Çarp), `/` (Böl), `%` (Kalan/Mod).\n\nArtırma: `i++` veya `++i`\nAzaltma: `i--` veya `--i`"
+        "answer": "Matematik her yerde!\n`+` (Topla), `-` (Çıkar), `*` (Çarp), `/` (Böl), `%` (Kalan/Mod).\n\nÖrnek: `değişken sonuç = (5 + 3) * 2`"
     },
     {
         "keywords": [
@@ -252,4 +252,3 @@
         "answer": "GümüşDil, TÜBİTAK Pardus ile tam uyumludur. 'Leopar' teması ve '.deb' paketleme araçları ile yerli ekosisteme tam destek veriyoruz. Pardus panelinden sistem bilgilerini anlık izleyebilirsin."
     }
 ]
-

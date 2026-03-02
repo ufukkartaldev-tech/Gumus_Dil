@@ -77,22 +77,21 @@ class ErrorInterceptor:
                 (r"Expected (.+) but got (.+) at line (\d+)", "Beklenmeyen token"),
             ],
             ErrorType.RUNTIME: [
-                (r"Runtime Error: (.+) \(Satir: (\d+)\)", "Çalışma zamanı hatası"),
-                (r"Tanimlanmamis degisken: '(.+)'", "Tanımsız değişken"),
-                (r"Division by zero at line (\d+)", "Sıfıra bölme"),
+                (r"Simülasyon Hatası: (.+) \(Satir: (\d+)\)", "Çalışma zamanı hatası"),
+                (r"Tanımsız değişken veya fonksiyon: '(.+)'", "Tanımsız değişken/işlev"),
+                (r"Sıfıra bölme hatası: (.+)", "Sıfıra bölme"),
             ],
             ErrorType.LINKER: [
-                (r"undefined reference to `(.+)'", "Tanımsız referans"),
-                (r"LNK2019: unresolved external symbol (.+)", "Çözülmemiş sembol"),
-                (r"ld returned (\d+) exit status", "Linker hatası"),
+                (r"Tanımsız referans (.+)", "Tanımsız referans"),
+                (r"unresolved external symbol (.+)", "Çözülmemiş sembol"),
             ],
             ErrorType.LOGIC: [
-                (r"Infinite loop detected at line (\d+)", "Sonsuz döngü"),
-                (r"Stack overflow at line (\d+)", "Stack taşması"),
+                (r"Sonsuz döngü tespit edildi Satır: (\d+)", "Sonsuz döngü"),
+                (r"Yığın taşması Satır: (\d+)", "Yığın taşması"),
             ],
         }
         
-        # Türkçe hata mesajları için pattern'ler
+        # Türkçe hata mesajları için pattern'ler (Yanlış kelimeleri yakalayıp düzeltmek için)
         self.turkish_patterns = {
             "degisken": "değişken",
             "dongu": "döngü",
@@ -100,6 +99,14 @@ class ErrorInterceptor:
             "degilse": "değilse",
             "yazdir": "yazdır",
             "fonksiyon": "fonksiyon",
+            "yas": "yaş",
+            "sirala": "sırala",
+            "icerir": "içerir",
+            "buyuk": "büyük",
+            "kucuk": "küçük",
+            "don": "dön",
+            "kir": "kır",
+            "sinif": "sınıf"
         }
         
     def intercept_compiler_output(self, output: str, file_path: str = "") -> Optional[ErrorInfo]:

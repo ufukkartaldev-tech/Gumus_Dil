@@ -8,8 +8,8 @@ class AutoCompleter:
         self.keywords = [
             "yazdır", "eğer", "değilse", "döngü", "fonksiyon", "değişken", "sınıf", "dön", 
             "doğru", "yanlış", "yok", "dahil_et", "dene", "yakala", "ve", "veya", "öz", "miras",
-            "dosya_oku", "dosya_yaz", "dosya_ekle", "dosya_varmi", "bekle", "temizle", 
-            "uzunluk", "metin", "sayı", "girdi", "zaman", "tip", "sistem"
+            "dosya_oku", "dosya_yaz", "dosya_ekle", "dosya_varmı", "bekle", "temizle", 
+            "uzunluk", "metin", "sayı", "girdi", "zaman", "tip", "sistem", "büyük", "küçük", "içerir"
         ]
         self.snippets = {
             "eğer": " () {\n    \n}",

@@ -72,9 +72,9 @@ class CompilerRunner:
         # FALLBACK: Simülatör
         if not CompilerRunner.is_compiler_viable():
             simulator_script = PROJECT_ROOT / "src" / "ide" / "core" / "run_simulator.py"
-            # --dump-memory argumentini simülatör şimdilik yoksayacak veya ilerde ekleyebiliriz
+            # --trace argumentini simülatöre geç (Görsel izleme için)
             process = subprocess.Popen(
-                [sys.executable, str(simulator_script), str(source_file)],
+                [sys.executable, str(simulator_script), "--trace", str(source_file)],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

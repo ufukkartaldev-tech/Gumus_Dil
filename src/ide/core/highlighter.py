@@ -16,15 +16,15 @@ class GumusLexer(RegexLexer):
             (r'#.*?$', Comment.Single),
             (r'"(\\\\|\\"|[^"])*"', String),
             (r'\'(\\\\|\\\'|[^\\\'])*\'', String),
-            # Keywords (Both accented and unaccented)
-            (r'\b(fonksiyon|eğer|eger|değilse|degilse|yoksa|döngü|dongu|dön|don|kır|kir|devam|sınıf|sinif|miras|öz|oz|temel|dahil_et|değişken|degisken|modül|modul|dene|deneme|yakala|ve|veya|ben|kurucu|kır|devam)\b', Keyword),
-            (r'\b(doğru|dogru|yanlış|yanlis|yok)\b', Keyword.Constant),
+            # Keywords (Strict Turkish)
+            (r'\b(fonksiyon|eğer|değilse|yoksa|döngü|dön|kır|devam|sınıf|miras|öz|temel|dahil_et|değişken|modül|dene|yakala|ve|veya|ben|kurucu)\b', Keyword),
+            (r'\b(doğru|yanlış|yok)\b', Keyword.Constant),
             # Builtins
-            (r'\b(yazdır|yazdir|girdi|uzunluk|sayı|sayi|metin|zaman|karekök|karekok|tip|ekle|sil|sırala|sirala|rastgele|ters_cevir|icerir|buyuk|kucuk|parcala|bul|kirp|yer_degistir|dosya_oku|dosya_yaz|dosya_ekle|dosya_varmi|bekle|sistem)\b', Name.Builtin),
+            (r'\b(yazdır|girdi|uzunluk|sayı|metin|zaman|karekök|tip|ekle|sil|sırala|rastgele|ters_çevir|içerir|büyük|küçük|parçala|bul|kırp|yer_değiştir|dosya_oku|dosya_yaz|dosya_ekle|dosya_varmı|bekle|sistem)\b', Name.Builtin),
             # Function calls
             (r'([a-zA-Z_üğışçöÜĞİŞÇÖ][a-zA-Z0-9_üğışçöÜĞİŞÇÖ]*)(\s*)(\()', bygroups(Name.Function, Text, Punctuation)),
             # Class definitions
-            (r'\b(sınıf|sinif)(\s+)([a-zA-Z_üğışçöÜĞİŞÇÖ][a-zA-Z0-9_üğışçöÜĞİŞÇÖ]*)', bygroups(Keyword, Text, Name.Class)),
+            (r'\b(sınıf)(\s+)([a-zA-Z_üğışçöÜĞİŞÇÖ][a-zA-Z0-9_üğışçöÜĞİŞÇÖ]*)', bygroups(Keyword, Text, Name.Class)),
 
             # Operators
             (r'(\+|\-|\*|\/|%|=|<|>|!|&|\|)', Operator),

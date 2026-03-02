@@ -11,7 +11,7 @@
     },
     {
         "talep": "1'den 5'e kadar olan sayıları döngü ile yazdır.",
-        "kod": "değişken sayac = 1\ndöngü (sayac <= 5) {\n    yazdır(sayac)\n    sayac = sayac + 1\n}",
+        "kod": "değişken sayaç = 1\ndöngü (sayaç <= 5) {\n    yazdır(sayaç)\n    sayaç = sayaç + 1\n}",
         "çıktı": "1\n2\n3\n4\n5"
     },
     {
@@ -26,7 +26,7 @@
     },
     {
         "talep": "Matematik kütüphanesini kullanarak 16'nın karekökünü hesapla.",
-        "kod": "dahil et matematik\ndeğişken deger = 16\nyazdır(karekök(deger))",
+        "kod": "dahil et matematik\ndeğişken değer = 16\nyazdır(karekök(değer))",
         "çıktı": "4.0"
     },
     {

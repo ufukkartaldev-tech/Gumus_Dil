@@ -4,11 +4,11 @@ import re
 class SymbolExtractor:
     """Gümüşdil kodundan fonksiyon, sınıf ve değişkenleri ayıklar"""
     
-    # Regex kalıpları (Hem Türkçe karakterli hem de karaktersiz versiyonları destekler)
-    CLASS_PATTERN = re.compile(r'\b(sınıf|sinif)\s+([a-zA-Z_ığüşöçİĞÜŞÖÇ][a-zA-Z0-9_ığüşöçİĞÜŞÖÇ]*)')
+    # Regex kalıpları (Strict Turkish)
+    CLASS_PATTERN = re.compile(r'\b(sınıf)\s+([a-zA-Z_ığüşöçİĞÜŞÖÇ][a-zA-Z0-9_ığüşöçİĞÜŞÖÇ]*)')
     # Fonksiyon Kontrolü (Parametreleri de yakalar)
     FUNC_PATTERN = re.compile(r'\b(fonksiyon)\s+([a-zA-Z_ığüşöçİĞÜŞÖÇ][a-zA-Z0-9_ığüşöçİĞÜŞÖÇ]*)\s*\((.*?)\)')
-    VAR_PATTERN = re.compile(r'\b(değişken|degisken|var)\s+([a-zA-Z_ığüşöçİĞÜŞÖÇ][a-zA-Z0-9_ığüşöçİĞÜŞÖÇ]*)')
+    VAR_PATTERN = re.compile(r'\b(değişken)\s+([a-zA-Z_ığüşöçİĞÜŞÖÇ][a-zA-Z0-9_ığüşöçİĞÜŞÖÇ]*)')
 
     @staticmethod
     def extract_from_text(text):

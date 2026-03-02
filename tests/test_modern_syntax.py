@@ -1,4 +1,4 @@
-powershell -Command "Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -OutFile 'vcredist_x64.exe'"# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 GümüşDil Modern Syntax Unit Tests
 Test-Driven Development: Önce test, sonra kod!
@@ -60,9 +60,9 @@ class TestRunner:
                     elif expected_output in output:
                         return True, f"Beklenen çıktı alındı: {expected_output}"
                     else:
-                        return False, f"Çıktı eşleşmedi. Beklenen: {expected_output}, Alınan: {output[:100]}"
+                        return False, f"Çıktı eşleşmedi. Beklenen: {expected_output}, Alınan: {output[:100]} | Stderr: {error}"
                 else:
-                    return False, f"Kod hata verdi: {error[:100]}"
+                    return False, f"Kod hata verdi: {error[:100]} | Stderr: {error}"
         
         except subprocess.TimeoutExpired:
             return False, "Timeout - kod çok uzun sürdü"
