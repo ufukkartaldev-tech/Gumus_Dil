@@ -10,8 +10,10 @@ class GumusSimulator:
         self.functions = {}
         self.output_callback = output_callback if output_callback else print
         self.running = True
-        self.trace_enabled = True # Görsel hata ayıklama için izleme
+        self.trace_enabled = False # Görsel hata ayıklama için izleme (IDE tarafından açılır)
         self.execution_delay = 0.05 # Adım adım izleme için gecikme (ms)
+        self.return_value = None
+        self.return_triggered = False
 
     def log(self, message):
         if self.output_callback:
@@ -43,7 +45,7 @@ class GumusSimulator:
     def execute_block(self, lines, start, end):
         """Bir kod bloğunu çalıştır (döngü ve if için)"""
         i = start
-        while i < end and self.running:
+        while i < end and self.running and not self.return_triggered:
             line_raw = lines[i]
             line = line_raw.strip()
             
@@ -93,7 +95,6 @@ class GumusSimulator:
             
             # If-else bloğu
             if line.startswith('eğer ') or line.startswith('eğer('):
-                self.log(f"DEBUG: If bloğu bulundu: {line}")
                 new_i = self.execute_if(lines, i - 1, end)
                 i = new_i
                 continue
@@ -156,7 +157,9 @@ class GumusSimulator:
         
         if next_line_idx < end:
             check_line = lines[next_line_idx].strip()
-            if check_line.startswith('değilse') or check_line.startswith('yoksa'):
+            # '}' karakterini temizleyip kontrol et ( "} değilse {" durumu için )
+            clean_check = check_line.replace('}', '').strip()
+            if clean_check.startswith('değilse') or clean_check.startswith('yoksa'):
                 found_else = True
                 i = next_line_idx
                 else_line = check_line
@@ -277,40 +280,49 @@ class GumusSimulator:
         
         func = self.functions[func_name]
         
-        # Parametreleri değişkenlere ata
+        # Parametreleri değişkenlere ata (Scope koruması için kopya al)
         old_vars = self.variables.copy()
         for param, arg in zip(func['params'], args):
             self.variables[param] = arg
         
         # Fonksiyon gövdesini çalıştır
-        result = None
-        for line in func['body'].split('\n'):
-            line = line.strip()
-            if not line or line.startswith('//'):
-                continue
-            
-            # dön statement'ı
-            if line.startswith('dön '):
-                expr = line[4:].strip()
-                result = self.evaluate(expr)
-                break
-            
-            self.execute_line(line)
+        body_lines = func['body'].split('\n')
         
-        # Değişkenleri geri yükle
+        # Önceki return durumunu sakla (Recursion için kritik)
+        prev_return_val = self.return_value
+        prev_return_triggered = self.return_triggered
+        self.return_value = None
+        self.return_triggered = False
+        
+        self.execute_block(body_lines, 0, len(body_lines))
+        
+        result = self.return_value
+        
+        # Durumu ve değişkenleri geri yükle
+        self.return_value = prev_return_val
+        self.return_triggered = prev_return_triggered
         self.variables = old_vars
+        
         return result
 
     def execute_line(self, line):
         # Yorum temizle
         if '//' in line:
-            line = line.split('//')[0].strip()
-        
-        # Noktalı virgül temizliği (Otomatik düzeltme)
-        if line.rstrip().endswith(';'):
-            line = line.rstrip()[:-1]
+            line = line.split('//')[0]
         
         line = line.strip()
+        if not line: return
+        
+        # Noktalı virgül yasağı (Modern GümüşDil)
+        if line.endswith(';'):
+            raise SyntaxError("Modern GümüşDil'de noktalı virgül yasaktır yeğenim! Sil o çirkin çizgiyi.")
+        
+        # 0. Dön (Return)
+        if line.startswith('dön '):
+            expr = line[4:].strip()
+            self.return_value = self.evaluate(expr)
+            self.return_triggered = True
+            return
 
         # 1. Yazdır
         if line.startswith('yazdır('):
@@ -433,8 +445,8 @@ class GumusSimulator:
         
         # Native fonksiyonlar
         safe_dict['metin'] = str
-        safe_dict['sayı'] = int
-        safe_dict['karekok'] = math.sqrt
+        safe_dict['sayı'] = float # float daha mantıklı genel sayılar için
+        safe_dict['karekök'] = math.sqrt
         safe_dict['rastgele'] = random.random
         safe_dict['zaman'] = time.time
         safe_dict['girdi'] = input

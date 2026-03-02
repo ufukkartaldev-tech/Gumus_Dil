@@ -965,7 +965,7 @@ class CodeEditor(ctk.CTkFrame):
             "dene": {"type": "kwd", "doc": "Hata yakalama bloğu başlatır."},
             "yakala": {"type": "kwd", "doc": "Yakalanan hatayı işler."},
             "uzunluk": {"type": "func", "doc": "Listenin veya metnin uzunluğunu döner."},
-            "sayi": {"type": "func", "doc": "Değeri sayıya çevirir."},
+            "sayı": {"type": "func", "doc": "Değeri sayıya çevirir."},
             "metin": {"type": "func", "doc": "Değeri metne çevirir."},
             "zaman": {"type": "func", "doc": "Sistem zamanını döner."},
         }

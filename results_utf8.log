@@ -1,0 +1,113 @@
+﻿G├╝m├╝┼şDil Modern Syntax Unit Tests
+============================================================
+
+Kategori 1: Noktal─▒ Virg├╝l Yasa─ş─▒
+
+Test: Noktal─▒ virg├╝l kullan─▒m─▒ HATA vermeli
+   Kod: yazd─▒r("Test");...
+   Hata bekliyorduk ama kod ├ğal─▒┼şt─▒!
+
+Test: Noktal─▒ virg├╝l olmadan ├ğal─▒┼şmal─▒
+   Kod: yazd─▒r("Test")...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: Test
+
+Test: De─şi┼şken tan─▒mlama - noktal─▒ virg├╝l yasak
+   Kod: de─şi┼şken x = 5;...
+   Hata bekliyorduk ama kod ├ğal─▒┼şt─▒!
+
+Test: De─şi┼şken tan─▒mlama - modern s├Âzdizimi
+   Kod: de─şi┼şken x = 5
+yazd─▒r(x)...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: 5
+
+Kategori 2: String Birle┼ştirme
+
+Test: Basit string birle┼ştirme
+   Kod: yazd─▒r("Merhaba " + "D├╝nya")...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: Merhaba D├╝nya
+
+Test: De─şi┼şkenle string birle┼ştirme
+   Kod: de─şi┼şken isim = "Ufuk"
+yazd─▒r("Selam " + isim)...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: Selam Ufuk
+
+Test: ├çoklu string birle┼ştirme
+   Kod: yazd─▒r("A" + "B" + "C")...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: ABC
+
+Kategori 3: Fonksiyonlar
+
+Test: Basit fonksiyon tan─▒mlama ve ├ğa─ş─▒rma
+   Kod: fonksiyon selamla() {
+    yazd─▒r("Merhaba")
+}
+selamla()...
+   ├ç─▒kt─▒ e┼şle┼şmedi. Beklenen: Merhaba, Al─▒nan: ­şÜÇ G├£M├£┼Ş S─░M├£LAT├ûR (Python Motoru) Devrede: unit_test.tr
+DEBUG_EXEC: selamla()
+
+Test: Parametreli fonksiyon
+   Kod: fonksiyon topla(a, b) {
+    d├Ân a + b
+}
+yazd─▒r(topla(3, 5))...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: 8
+
+Kategori 4: D├Âng├╝ler
+
+Test: Basit d├Âng├╝
+   Kod: de─şi┼şken i = 0
+d├Âng├╝ (i < 3) {
+    yazd─▒r(i)
+    i = i + 1
+}...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: 0
+
+Kategori 5: Ko┼şullar
+
+Test: Basit if ko┼şulu
+   Kod: de─şi┼şken x = 5
+e─şer (x > 3) {
+    yazd─▒r("B├╝y├╝k")
+}...
+   Beklenen ├ğ─▒kt─▒ al─▒nd─▒: B├╝y├╝k
+
+Test: If-else ko┼şulu
+   Kod: de─şi┼şken x = 2
+e─şer (x > 3) {
+    yazd─▒r("B├╝y├╝k")
+} de─şilse ...
+   ├ç─▒kt─▒ e┼şle┼şmedi. Beklenen: K├╝├ğ├╝k, Al─▒nan: ­şÜÇ G├£M├£┼Ş S─░M├£LAT├ûR (Python Motoru) Devrede: unit_test.tr
+DEBUG_EXEC: de─şi┼şken x = 2
+
+Kategori 6: Karma┼ş─▒k Senaryolar
+
+Test: Fibonacci (basit versiyon)
+   Kod: fonksiyon fib(n) {
+    e─şer (n <= 1) {
+        d├Ân n
+    }
+ ...
+   ├ç─▒kt─▒ e┼şle┼şmedi. Beklenen: 5, Al─▒nan: ­şÜÇ G├£M├£┼Ş S─░M├£LAT├ûR (Python Motoru) Devrede: unit_test.tr
+DEBUG_EXEC: d├Ân fib(n - 1) + fib(n - 2)
+DEBU
+
+============================================================
+TEST SONU├çLARI
+============================================================
+Ba┼şar─▒l─▒: 8
+Ba┼şar─▒s─▒z: 5
+Toplam: 13
+Ba┼şar─▒ Oran─▒: 61.5%
+============================================================
+
+BA┼ŞARISIZ TESTLER:
+   - Noktal─▒ virg├╝l kullan─▒m─▒ HATA vermeli: Hata bekliyorduk ama kod ├ğal─▒┼şt─▒!
+   - De─şi┼şken tan─▒mlama - noktal─▒ virg├╝l yasak: Hata bekliyorduk ama kod ├ğal─▒┼şt─▒!
+   - Basit fonksiyon tan─▒mlama ve ├ğa─ş─▒rma: ├ç─▒kt─▒ e┼şle┼şmedi. Beklenen: Merhaba, Al─▒nan: ­şÜÇ G├£M├£┼Ş S─░M├£LAT├ûR (Python Motoru) Devrede: unit_test.tr
+DEBUG_EXEC: selamla()
+   - If-else ko┼şulu: ├ç─▒kt─▒ e┼şle┼şmedi. Beklenen: K├╝├ğ├╝k, Al─▒nan: ­şÜÇ G├£M├£┼Ş S─░M├£LAT├ûR (Python Motoru) Devrede: unit_test.tr
+DEBUG_EXEC: de─şi┼şken x = 2
+   - Fibonacci (basit versiyon): ├ç─▒kt─▒ e┼şle┼şmedi. Beklenen: 5, Al─▒nan: ­şÜÇ G├£M├£┼Ş S─░M├£LAT├ûR (Python Motoru) Devrede: unit_test.tr
+DEBUG_EXEC: d├Ân fib(n - 1) + fib(n - 2)
+DEBU
+

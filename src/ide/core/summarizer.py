@@ -46,12 +46,12 @@ class GumusSummarizer:
             summary += f"- **Hafıza:** {len(variables)} adet kavanoz (değişken) mevcut.\n"
 
         # 3. Mantıksal Tahmin
-        if any(word in code_text for word in ["döngü", "dongu", "eğer", "eger"]):
+        if any(word in code_text for word in ["döngü", "eğer"]):
             summary += "\n--- \n"
-            if "döngü" in code_text or "dongu" in code_text:
+            if "döngü" in code_text:
                 summary += "• İçerideki döngülerle işler otomatiğe bağlanmış.\n"
-            if "eğer" in code_text or "eger" in code_text:
-                summary += "• Karar mekanizmimarirıyla kodun iradesi güçlendirilmiş.\n"
+            if "eğer" in code_text:
+                summary += "• Karar mekanizmalarıyla kodun iradesi güçlendirilmiş.\n"
 
         # 4. Final Notu
         summary += "\n**Dayı'nın Notu:** "

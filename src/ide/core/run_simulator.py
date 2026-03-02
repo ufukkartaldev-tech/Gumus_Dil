@@ -26,6 +26,12 @@ sys.path.insert(0, project_root)
 from src.ide.core.simulator import GumusSimulator
 
 if __name__ == "__main__":
+    # Argümanları kontrol et
+    trace_mode = False
+    if "--trace" in sys.argv:
+        trace_mode = True
+        sys.argv.remove("--trace")
+
     if len(sys.argv) < 2:
         print("Dosya belirtilmedi.")
         sys.exit(1)
@@ -37,12 +43,14 @@ if __name__ == "__main__":
         sys.exit(1)
         
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, 'r', encoding='utf-8-sig') as f:
             code = f.read()
             
         # Simülatörü başlat
-        print(f"🚀 GÜMÜŞ SİMÜLATÖR (Python Motoru) Devrede: {os.path.basename(file_path)}")
+        sys.stderr.write(f"🚀 GÜMÜŞ SİMÜLATÖR (Python Motoru) Devrede: {os.path.basename(file_path)}\n")
         sim = GumusSimulator()
+        if trace_mode:
+            sim.trace_enabled = True
         
         # Simülatör print fonksiyonu stdout'a yazar, IDE bunu yakalar.
         sim.run(code)
