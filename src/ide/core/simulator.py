@@ -328,8 +328,19 @@ class GumusSimulator:
                     paren_count -= 1
             
             content = line[start_idx:end_idx]
+            if not content.strip():
+                self.log("")
+                return
             val = self.evaluate(content)
-            self.log(val)
+            
+            # 💎 Temiz Çıktı (Clean Output) Mantığı
+            # Eğer birden fazla argüman varsa (virgülle ayrılmış), eval tuple döndürür.
+            # Bunları parantezsiz, boşlukla birleştirerek basalım.
+            if isinstance(val, tuple):
+                clean_val = " ".join(map(str, val))
+                self.log(clean_val)
+            else:
+                self.log(val)
             return
 
         # 2. Değişken Tanımlama

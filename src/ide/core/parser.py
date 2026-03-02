@@ -73,11 +73,11 @@ class WhileStmt(ASTNode):
         return { "type": "WhileStmt", "children": [self.condition.to_json(), self.body.to_json()] }
 
 class PrintStmt(ASTNode):
-    def __init__(self, expression):
-        self.expression = expression
+    def __init__(self, expressions):
+        self.expressions = expressions
         
     def to_json(self):
-        return { "type": "PrintStmt", "children": [self.expression.to_json()] }
+        return { "type": "PrintStmt", "children": [e.to_json() for e in self.expressions] }
 
 class ReturnStmt(ASTNode):
     def __init__(self, value):
@@ -249,9 +249,13 @@ class GumusParser:
 
     def print_statement(self):
         self.consume(TokenType.LPAREN, "Yazdır için parantez aç.")
-        value = self.expression()
+        expressions = []
+        if not self.check(TokenType.RPAREN):
+            while True:
+                expressions.append(self.expression())
+                if not self.match(TokenType.COMMA): break
         self.consume(TokenType.RPAREN, "Yazdır sonrası parantez kapat.")
-        return PrintStmt(value)
+        return PrintStmt(expressions)
 
     def return_statement(self):
         keyword = self.previous()
