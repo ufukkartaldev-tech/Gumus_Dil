@@ -99,7 +99,7 @@ class CodeFileManager:
             self.main_window.active_tab = path
             
         try:
-            content = self.main_window.editors[path].get('1.0', tk.END)
+            content = self.main_window.editors[path].get('1.0', 'end-1c')
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(content)
             
@@ -130,7 +130,7 @@ class CodeFileManager:
         try:
             # Yeni dosya olarak kaydet ama sekme ID'sini güncelleme (Save Copy As gibi mi yoksa Rename gibi mi?)
             # Standart davranış: Sekmeyi yeni dosyaya dönüştür
-            content = self.main_window.editors[self.main_window.active_tab].get('1.0', tk.END)
+            content = self.main_window.editors[self.main_window.active_tab].get('1.0', 'end-1c')
             
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(content)
@@ -169,7 +169,7 @@ class CodeFileManager:
             for path in list(self.main_window.tab_manager.dirty_tabs):
                 if "untitled" not in path:
                     try:
-                        content = self.main_window.editors[path].get('1.0', tk.END)
+                        content = self.main_window.editors[path].get('1.0', 'end-1c')
                         with open(path, 'w', encoding='utf-8') as f:
                             f.write(content)
                         self.main_window.tab_manager.set_dirty(path, False)

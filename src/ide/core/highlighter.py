@@ -67,20 +67,35 @@ class SyntaxHighlighter:
         for token, color in self.tag_colors.items():
             self.text_widget.tag_config(str(token), foreground=color)
 
-    def highlight(self, event=None):
+    def highlight(self):
+        """Tüm dosyayı vurgula (Dosya açıldığında veya büyük değişikliklerde)"""
+        self.highlight_range("1.0", "end-1c")
+
+    def highlight_line(self, line_index):
+        """Sadece belirli bir satırı vurgula (Performans için)"""
+        line_start = f"{line_index}.0"
+        line_end = f"{line_index}.end"
+        self.highlight_range(line_start, line_end)
+
+    def highlight_range(self, start, end):
+        """Belirli bir aralığı vurgula"""
         if not self.text_widget: return
         
-        # Tüm içeriği al
-        code = self.text_widget.get("1.0", "end-1c")
-        
-        # Mevcut tagleri temizle (Sadece syntax taglerini)
-        for token in self.tag_colors.keys():
-            self.text_widget.tag_remove(str(token), "1.0", "end")
+        try:
+            code = self.text_widget.get(start, end)
+            
+            # Aralıktaki eski tagleri temizle
+            for token in self.tag_colors.keys():
+                self.text_widget.tag_remove(str(token), start, end)
 
-        # Lexer ile analiz et
-        self.text_widget.mark_set("range_start", "1.0")
-        for token, content in lex(code, self.lexer):
-            self.text_widget.mark_set("range_end", f"range_start + {len(content)}c")
-            self.text_widget.tag_add(str(token), "range_start", "range_end")
-            self.text_widget.mark_set("range_start", "range_end")
+            # Lexer ile analiz et
+            offset = 0
+            for token, content in lex(code, self.lexer):
+                if content:
+                    t_start = f"{start} + {offset}c"
+                    t_end = f"{start} + {offset + len(content)}c"
+                    self.text_widget.tag_add(str(token), t_start, t_end)
+                    offset += len(content)
+        except Exception as e:
+            print(f"Highlight error: {e}")
 

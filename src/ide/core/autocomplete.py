@@ -5,6 +5,12 @@ class AutoCompleter:
     """GümüşDil Otomatik Tamamlama ve Snippet Mantığı"""
     
     def __init__(self):
+        self.keywords = [
+            "yazdır", "eğer", "değilse", "döngü", "fonksiyon", "değişken", "sınıf", "dön", 
+            "doğru", "yanlış", "yok", "dahil_et", "dene", "yakala", "ve", "veya", "öz", "miras",
+            "dosya_oku", "dosya_yaz", "dosya_ekle", "dosya_varmi", "bekle", "temizle", 
+            "uzunluk", "metin", "sayı", "girdi", "zaman", "tip", "sistem"
+        ]
         self.snippets = {
             "eğer": " () {\n    \n}",
             "değilse": " {\n    \n}",
@@ -13,13 +19,9 @@ class AutoCompleter:
             "fonksiyon": " isim() {\n    \n    dön \n}",
             "sınıf": " İsim {\n    kurucu() {\n        \n    }\n}",
             "dene": " {\n    \n} yakala(hata) {\n    yazdır(hata)\n}",
-            "robotik": ".robot_baslat()\nrobot_hareket(\"ileri\")",
-            "muzik": ".nota_cal(\"DO\")",
             "yazdır": "(\"\")",
             "değişken": " isim = ",
-            "dahil_et": "(\".tr\")",
-            "doğru": "",
-            "yanlış": ""
+            "dahil_et": "(\".tr\")"
         }
         
     def get_snippet(self, word):
@@ -51,7 +53,10 @@ class AutoCompleter:
             if key.startswith(prefix):
                 suggestions.append((key, {"type": "snippet", "doc": "Kod Bloğu"}))
                 
-        # TODO: Daha gelişmiş analiz (değişkenler, fonksiyonlar vb.) eklenebilir
+        # Anahtar kelimeleri ekle (Henüz snippet'i yoksa)
+        for key in self.keywords:
+            if key.startswith(prefix) and key not in self.snippets:
+                suggestions.append((key, {"type": "keyword", "doc": "Yerleşik Anahtar Kelime"}))
         
         return suggestions
 
