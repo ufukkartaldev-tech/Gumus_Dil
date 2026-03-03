@@ -7,7 +7,7 @@ from .memory_view_v2 import MemoryViewV2 as MemoryView
 from .ai_panel import AIPanel
 from .notes_panel import NotesPanel
 from ..core.debugger import DebuggerManager
-from .debug_panels import VariableWatchPanel, CallStackPanel, DebugControlBar
+from .debug_panels import VariableWatchPanel, CallStackPanel
 from .pardus_panel import PardusPanel
 from .market_panel import MarketPanel
 from .profiler_panel import ProfilerPanel
@@ -16,404 +16,12 @@ from .flowchart_panel import FlowchartPanel
 from .voxel_editor import VoxelEditor
 from .vizyon_panel import VizyonPanel
 
-from tkinter import ttk, Menu, simpledialog, messagebox
-import shutil
-
-class ExplorerTree(ctk.CTkFrame):
-    def __init__(self, parent, config, on_file_select):
-        super().__init__(parent, fg_color="transparent")
-        self.config = config
-        self.on_file_select = on_file_select
-        self.current_root = None
-        self.nodes = {} # id -> path
-        
-        theme = self.config.THEMES[self.config.theme]
-        style = ttk.Style()
-        style.theme_use("default")
-        
-        style.configure("Sidebar.Treeview",
-                        background=theme['sidebar_bg'],
-                        foreground=theme['fg'],
-                        fieldbackground=theme['sidebar_bg'],
-                        borderwidth=0,
-                        rowheight=26,
-                        font=("Segoe UI", 11))
-        style.map("Sidebar.Treeview", 
-                  background=[('selected', theme['hover'])],
-                  foreground=[('selected', theme['accent'])])
-                  
-        self.tree = ttk.Treeview(self, style="Sidebar.Treeview", show="tree", selectmode="browse")
-        self.scrollbar = ctk.CTkScrollbar(self, command=self.tree.yview)
-        self.tree.configure(yscrollcommand=self.scrollbar.set)
-        
-        self.tree.pack(side="left", fill="both", expand=True)
-        self.scrollbar.pack(side="right", fill="y")
-        
-        self.tree.bind("<Double-1>", self._on_double_click)
-        self.tree.bind("<Button-3>", self._on_right_click)
-        self.tree.bind("<<TreeviewOpen>>", self._on_tree_open)
-        
-    def load_root(self, path):
-        self.current_root = Path(path)
-        self.tree.delete(*self.tree.get_children())
-        self.nodes.clear()
-        self._insert_node("", self.current_root, is_root=True)
-
-    def refresh(self):
-        if self.current_root: self.load_root(self.current_root)
-
-    def _insert_node(self, parent_id, path, is_root=False):
-        text = path.name if not is_root else path.name.upper()
-        if not text and is_root: # Sürücü kökü durumu (C:\ gibi)
-            text = str(path)
-            
-        if path.is_dir():
-            icon = "📂" 
-            display_text = f"{icon} {text}"
-        else:
-            ext = path.suffix.lower()
-            icons = {'.tr': '💎', '.py': '🐍', '.js': '📜', '.html': '🌐', '.css': '🎨', '.json': '📋', '.md': '📝', '.txt': '📄'}
-            icon = icons.get(ext, '📄')
-            try:
-                size = path.stat().st_size
-                size_kb = f"{size/1024:.1f} KB"
-            except:
-                size_kb = ""
-            display_text = f"{icon} {text}   [{size_kb}]"
-        node_id = self.tree.insert(parent_id, "end", text=display_text, open=is_root)
-        self.nodes[node_id] = path
-        
-        if path.is_dir():
-            self.tree.insert(node_id, "end", text="yükleniyor...")
-            if is_root: self._load_children(node_id)
-                
-    def _on_tree_open(self, event):
-        node_id = self.tree.focus()
-        if node_id: self._load_children(node_id)
-        
-    def _load_children(self, node_id):
-        path = self.nodes.get(node_id)
-        if not path or not path.is_dir(): return
-        
-        children = self.tree.get_children(node_id)
-        if len(children) == 1 and self.tree.item(children[0], "text") == "yükleniyor...":
-            self.tree.delete(children[0])
-            try:
-                items = list(path.iterdir())
-                items.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
-                for item in items:
-                    if item.name.startswith('.') or item.name == '__pycache__': continue
-                    self._insert_node(node_id, item)
-            except Exception as e:
-                messagebox.showerror("Gezgin Hatası", f"Klasör okunamadı: {path}\n{e}")
-
-    def _on_double_click(self, event):
-        item = self.tree.identify('item', event.x, event.y)
-        if item:
-            path = self.nodes.get(item)
-            if path and path.is_file() and self.on_file_select:
-                self.on_file_select(str(path))
-
-    def reveal_file(self, file_path):
-        """Dosyayı ağaç yapısında bul ve seç"""
-        target_path = Path(file_path).resolve()
-        
-        # Eğer kök yoksa veya dosya kök dışında kalıyorsa, kökü otomatik ayarla
-        if not self.current_root or not str(target_path).startswith(str(self.current_root)):
-             self.load_root(target_path.parent)
-             
-        root_nodes = self.tree.get_children("")
-        if not root_nodes: return
-        node_id = root_nodes[0]
-        
-        try:
-            relative = target_path.relative_to(self.current_root)
-        except ValueError:
-            return
-
-        # Parçaları takip et
-        parts = relative.parts
-        for part in parts:
-            self._load_children(node_id)
-            self.tree.item(node_id, open=True)
-            
-            found = False
-            for child_id in self.tree.get_children(node_id):
-                child_path = self.nodes.get(child_id)
-                if child_path and child_path.name == part:
-                    node_id = child_id
-                    found = True
-                    break
-            if not found: return
-            
-        self.tree.selection_set(node_id)
-        self.tree.see(node_id)
-        self.tree.focus(node_id)
-
-    def _on_right_click(self, event):
-        item = self.tree.identify('item', event.x, event.y)
-        if item:
-            self.tree.selection_set(item)
-            self.tree.focus(item)
-        target_path = self.nodes.get(item) if item else self.current_root
-        if not target_path: return
-        
-        menu = Menu(self, tearoff=0)
-        menu.add_command(label="📄 Yeni Dosya", command=lambda: self._new_file(target_path))
-        menu.add_command(label="📁 Yeni Klasör", command=lambda: self._new_folder(target_path))
-        menu.add_separator()
-        if target_path != self.current_root:
-            menu.add_command(label="🖋️ Yeniden Adlandır", command=lambda: self._rename(target_path))
-            menu.add_command(label="🗑️ Sil", command=lambda: self._delete(target_path))
-            menu.add_separator()
-            
-        menu.add_command(label="�💻 Burada Terminal Aç", command=lambda: self._open_in_terminal(target_path))
-        menu.add_separator()
-        menu.add_command(label="�🔄 Yenile", command=self.refresh)
-        
-        menu.tk_popup(event.x_root, event.y_root)
-        
-    def _new_file(self, target_path):
-        parent_dir = target_path if target_path.is_dir() else target_path.parent
-        res = simpledialog.askstring("Yeni Dosya", "Dosya adı (.tr vs.):")
-        if res:
-            try:
-                if not res.endswith('.tr') and '.' not in res: res += '.tr'
-                (parent_dir / res).touch()
-                self.refresh()
-                if self.on_file_select: self.on_file_select(str(parent_dir / res))
-            except Exception as e: messagebox.showerror("Hata", str(e))
-                
-    def _new_folder(self, target_path):
-        parent_dir = target_path if target_path.is_dir() else target_path.parent
-        res = simpledialog.askstring("Yeni Klasör", "Klasör adı:")
-        if res:
-            try:
-                (parent_dir / res).mkdir()
-                self.refresh()
-            except Exception as e: messagebox.showerror("Hata", str(e))
-                
-    def _rename(self, target_path):
-        res = simpledialog.askstring("Yeniden Adlandır", "Yeni ad:", initialvalue=target_path.name)
-        if res and res != target_path.name:
-            try:
-                target_path.rename(target_path.parent / res)
-                self.refresh()
-            except Exception as e: messagebox.showerror("Hata", str(e))
-                
-    def _delete(self, target_path):
-        if messagebox.askyesno("Silme Onayı", f"'{target_path.name}' silinecek. Emin misin?"):
-            try:
-                if target_path.is_dir(): shutil.rmtree(target_path)
-                else: target_path.unlink()
-                self.refresh()
-            except Exception as e: messagebox.showerror("Hata", str(e))
-
-    def _open_in_terminal(self, target_path):
-        import subprocess
-        parent_dir = target_path if target_path.is_dir() else target_path.parent
-        try:
-            if os.name == 'nt':
-                subprocess.Popen(['cmd.exe', '/c', 'start', 'cmd.exe', '/K', f'cd /d {parent_dir}'])
-            else:
-                subprocess.Popen(['x-terminal-emulator', '--working-directory', str(parent_dir)])
-        except Exception as e:
-            messagebox.showerror("Hata", f"Terminal açılamadı:\n{e}")
-
-
-class SearchPanel(ctk.CTkFrame):
-    def __init__(self, parent, config, on_file_click):
-        super().__init__(parent, fg_color="transparent")
-        self.config = config
-        self.on_file_click = on_file_click
-        
-        self.search_entry = ctk.CTkEntry(self, placeholder_text="Tüm dosyalarda ara...", height=35)
-        self.search_entry.pack(fill="x", padx=10, pady=10)
-        self.search_entry.bind("<Return>", lambda e: self.perform_search())
-        
-        self.results_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.results_frame.pack(fill="both", expand=True)
-
-    def perform_search(self):
-        query = self.search_entry.get().lower()
-        if not query: return
-        for widget in self.results_frame.winfo_children(): widget.destroy()
-        
-        # Arama sırasında UI donmasını engellemek için Thread kullan
-        import threading
-        
-        def _search_thread():
-            # Gezginin mevcut kök dizinini kullan (veya çalışma dizini)
-            search_root = self.master.current_root if hasattr(self.master, 'current_root') else Path(os.getcwd())
-            results = []
-            for file_path in search_root.rglob("*.tr"):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                        for i, line in enumerate(lines):
-                            if query in line.lower():
-                                results.append((file_path, i+1, line.strip()))
-                except: continue
-            
-            # Sonuçları UI thread'inde göster
-            self.after(0, lambda: self._show_results(results))
-            
-        threading.Thread(target=_search_thread, daemon=True).start()
-
-    def _show_results(self, results):
-        if not results:
-            self._add_result(Path("Bulunamadı"), 0, "Arama kriterine uygun sonuç yok.")
-            return
-            
-        for res in results:
-            self._add_result(res[0], res[1], res[2])
-
-    def _add_result(self, path, line_no, content):
-        theme = self.config.THEMES[self.config.theme]
-        btn = ctk.CTkButton(self.results_frame, text=f"{path.name}:{line_no}\n{content[:40]}...",
-                           anchor="w", fg_color="transparent", hover_color=theme['hover'],
-                           text_color=theme['fg'], height=45, font=("Segoe UI", 10),
-                           command=lambda: self.on_file_click(str(path)))
-        btn.pack(fill="x", padx=5, pady=2)
-
-class TrainingPanel(ctk.CTkFrame):
-    def __init__(self, parent, config, on_load_task):
-        super().__init__(parent, fg_color="transparent")
-        self.config = config
-        self.on_load_task = on_load_task # callback(task_code, instructions)
-        
-        # Görev Veritabanı
-        self.tasks = []
-        self._load_tasks_from_json()
-        
-        self.scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.scroll.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        self._load_tasks_ui()
-        
-    def _load_tasks_from_json(self):
-        import json
-        try:
-            from ..config import DATA_DIR
-            tasks_file = DATA_DIR / "tasks.json"
-            
-            # Eğer userdata dizininde yoksa proje içinden al
-            if not tasks_file.exists():
-                from ..config import IDE_DIR
-                fallback_file = IDE_DIR / "data" / "tasks.json"
-                if fallback_file.exists():
-                    import shutil
-                    shutil.copy(fallback_file, tasks_file)
-                else:
-                    tasks_file = fallback_file
-            
-            if tasks_file.exists():
-                with open(tasks_file, 'r', encoding='utf-8') as f:
-                    self.tasks = json.load(f)
-            else:
-                self.master.master.master.terminal.write_text(f">>> [Uyarı] GYM Görevleri bulunamadı: {tasks_file}\n")
-                self.tasks = []
-        except Exception as e:
-            try:
-                self.master.master.master.terminal.write_text(f">>> [Hata] GYM Yükleme hatası: {e}\n")
-            except:
-                print("GYM Yükleme hatası:", e)
-            self.tasks = []
-        
-    def _load_tasks_ui(self):
-        theme = self.config.THEMES[self.config.theme]
-        
-        title = ctk.CTkLabel(self.scroll, text="🏋️ GÜMÜŞ GYM", font=("Segoe UI", 14, "bold"), text_color=theme['accent'])
-        title.pack(pady=(10, 20))
-        
-        for task in self.tasks:
-            card = ctk.CTkFrame(self.scroll, fg_color=theme['sidebar_bg'], corner_radius=10, border_width=1, border_color=theme['border'])
-            card.pack(fill="x", pady=5, padx=5)
-            
-            # Başlık
-            ctk.CTkLabel(card, text=task['title'], font=("Segoe UI", 12, "bold"), text_color=theme['fg']).pack(anchor="w", padx=10, pady=(10, 0))
-            
-            # Açıklama
-            desc = ctk.CTkLabel(card, text=task['desc'], font=("Segoe UI", 10), text_color=theme['comment'], wraplength=200, justify="left")
-            desc.pack(anchor="w", padx=10, pady=(2, 10))
-            
-            # Başla Butonu
-            btn = ctk.CTkButton(card, text="Başla", height=24, width=60, fg_color=theme['accent'], hover_color=theme['select_bg'],
-                              command=lambda t=task: self.start_task(t))
-            btn.pack(anchor="e", padx=10, pady=(0, 10))
-            
-    def start_task(self, task):
-        # Kullanıcının editörüne kodu yükle
-        self.on_load_task(task['code'])
-        # Yönlendirme mesajı (Opsiyonel)
-        print(f"Görev Başladı: {task['title']}")
-
-class OutlinePanel(ctk.CTkFrame):
-    def __init__(self, parent, config, on_jump):
-        super().__init__(parent, fg_color="transparent")
-        self.config = config
-        self.on_jump = on_jump
-        self.tree_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.tree_frame.pack(fill="both", expand=True)
-
-    def update_outline(self, symbols):
-        for widget in self.tree_frame.winfo_children(): widget.destroy()
-        theme = self.config.THEMES[self.config.theme]
-        for s in symbols:
-            color = theme.get(s['type'], theme.get('fg', 'white'))
-            btn = ctk.CTkButton(self.tree_frame, text=f"{s['icon']} {s['name']}", anchor="w",
-                               fg_color="transparent", hover_color=theme['hover'], text_color=color,
-                               height=28, font=("Segoe UI", 11), command=lambda line=s['line']: self.on_jump(line))
-            btn.pack(fill="x", padx=5, pady=1)
-
-class TranspilerPanel(ctk.CTkFrame):
-    def __init__(self, parent, config, on_language_change=None):
-        super().__init__(parent, fg_color="transparent")
-        self.config = config
-        self.on_language_change = on_language_change
-        
-        # Header
-        self.header = ctk.CTkFrame(self, fg_color="transparent")
-        self.header.pack(fill="x", pady=5, padx=5)
-        
-        # Hedef Dil Seçici
-        self.lang_var = ctk.StringVar(value="Python")
-        self.lang_menu = ctk.CTkOptionMenu(
-            self.header, 
-            values=["Python", "C++"], 
-            variable=self.lang_var,
-            width=80,
-            height=24,
-            command=self._on_lang_change
-        )
-        self.lang_menu.pack(side="left", padx=(0, 10))
-        
-        self.info_lbl = ctk.CTkLabel(self.header, text="Çıktısı", font=("Segoe UI", 12, "bold"))
-        self.info_lbl.pack(side="left")
-        
-        self.copy_btn = ctk.CTkButton(self.header, text="Kopyala", width=60, height=24, command=self.copy_code)
-        self.copy_btn.pack(side="right")
-        
-        # Code Area
-        self.code_view = ctk.CTkTextbox(self, font=("Consolas", 12), wrap="none")
-        self.code_view.pack(fill="both", expand=True, padx=5, pady=5)
-        
-    def _on_lang_change(self, choice):
-        if self.on_language_change:
-            self.on_language_change(choice)
-
-    def set_code(self, code):
-        self.code_view.configure(state="normal")
-        self.code_view.delete("1.0", "end")
-        self.code_view.insert("1.0", code)
-        self.code_view.configure(state="disabled")
-        
-    def copy_code(self):
-        code = self.code_view.get("1.0", "end-1c")
-        self.master.clipboard_clear()
-        self.master.clipboard_append(code)
-        # Toast?
-        print(f"{self.lang_var.get()} kodu kopyalandı.")
+# Yeni modüler paneller
+from .explorer import ExplorerTree
+from .search_panel import SearchPanel
+from .training_panel import TrainingPanel
+from .outline_panel import OutlinePanel
+from .transpiler_panel import TranspilerPanel
 
 class Sidebar(ctk.CTkFrame):
     def __init__(self, parent, config, callbacks):
@@ -529,7 +137,6 @@ class Sidebar(ctk.CTkFrame):
         self.switch_mode("explorer")
         self.set_root(self.current_root)
 
-
     def _setup_explorer_buttons(self):
         for widget in self.btn_frame.winfo_children(): widget.destroy()
         actions = [("📄+", lambda: self.explorer_tree._new_file(self.current_root)), 
@@ -537,7 +144,7 @@ class Sidebar(ctk.CTkFrame):
                    ("🔄", lambda: self.explorer_tree.refresh())]
         for icon, cmd in actions:
             btn = ctk.CTkButton(self.btn_frame, text=icon, width=24, height=24, fg_color="transparent", 
-                               hover_color=self.config.THEMES[self.config.theme]['hover'], font=("Segoe UI", 12), command=cmd)
+                                hover_color=self.config.THEMES[self.config.theme]['hover'], font=("Segoe UI", 12), command=cmd)
             btn.pack(side="left", padx=1)
 
     def switch_mode(self, mode):
@@ -632,7 +239,7 @@ class Sidebar(ctk.CTkFrame):
             self.switch_mode("explorer")
             # Sidebari görünür yap (Eğer gizliyse)
             if hasattr(self.master, 'master') and hasattr(self.master.master, 'toggle_sidebar'):
-                # Bu kontrol biraz dolaylı, daha basiti:
+                # Bu kontrol biraz dolaylı
                 pass
             
             # MainWindow üzerinden görünürlüğü sağla
@@ -640,7 +247,6 @@ class Sidebar(ctk.CTkFrame):
             if hasattr(root, 'toggle_sidebar') and not self.winfo_ismapped():
                 root.toggle_sidebar()
             elif not self.winfo_ismapped():
-                # Alternatif: LayoutManager'a ulaşmaya çalış
                 pass
                 
             self.explorer_tree.reveal_file(path)
@@ -657,9 +263,4 @@ class Sidebar(ctk.CTkFrame):
     def update_variables(self, vars_json):
         """Gelen canlı değişken verilerini panelde güncelle"""
         if hasattr(self, 'var_watch_panel'):
-            # Eğer panel şu an görünür değilse bile veriyi saklayabilir veya güncelleyebilir
             self.var_watch_panel.update_from_json(vars_json)
-
-
-
-
