@@ -2,281 +2,23 @@ import customtkinter as ctk
 import tkinter as tk
 import re
 import os
+import threading
+import difflib
+try:
+    import winsound
+except ImportError:
+    winsound = None
+
 from ..core.highlighter import SyntaxHighlighter
 from .context_bar import SilverContextBar
 from .breadcrumbs import Breadcrumbs
 from ..core.formatter import GumusFormatter
+from ..core.symbols import SymbolExtractor
 
-class Minimap(tk.Canvas):
-    def __init__(self, parent, text_widget, config, **kwargs):
-        super().__init__(parent, **kwargs)
-        self.text_widget = text_widget
-        self.config = config
-        self.configure(width=100, highlightthickness=0, relief='flat')
-        self.apply_theme()
-        
-        # İnteraktif Minimap
-        self.bind("<Button-1>", self.jump_to_click)
-        self.bind("<B1-Motion>", self.jump_to_click)
-        self.line_height = 3 # Varsayılan
-        
-    def apply_theme(self):
-        theme = self.config.THEMES[self.config.theme]
-        self.configure(bg=theme['sidebar_bg'])
-        
-    def redraw(self, *args):
-        self.delete("all")
-        content = self.text_widget.get("1.0", "end-1c")
-        lines = content.split("\n")
-        
-        # Orijinal metin satır sayısı
-        total_lines = len(lines)
-        if total_lines == 0: return
+from .minimap import Minimap
+from .line_numbers import LineNumberCanvas
+from .find_replace import FindReplacePanel
 
-        # Her satır 3 piksel temsil edilsin (daha net görünüm)
-        line_height = 3
-        
-        theme = self.config.THEMES[self.config.theme]
-        # Renk tonunu çeşitlendir (yorumlar silik, kodlar parlak)
-        base_color = theme.get('comment', '#555')
-        accent_color = theme.get('function', '#888')
-        
-        for i, line in enumerate(lines):
-             if not line.strip(): continue
-             
-             # Satırın başındaki boşluğu al (girinti)
-             indent = len(line) - len(line.lstrip())
-             y = i * line_height + 5
-             
-             # Satır uzunluğu
-             line_len = min(len(line.strip()), 50) 
-             
-             # Basit renk mantığı: eğer 'def' veya 'class' ise parlak yap
-             is_def = line.strip().startswith(('fonksiyon', 'sınıf', 'temel'))
-             color = accent_color if is_def else base_color
-             
-             self.create_line(
-                 5 + (indent * 2), y, 
-                 5 + (indent * 2) + (line_len * 2), y, 
-                 fill=color, 
-                 width=2 # Daha kalın
-             )
-             
-        # Viewport göstergesi (kullanıcının şu an gördüğü alan)
-        try:
-             first_visible = self.text_widget.index("@0,0")
-             last_visible = self.text_widget.index(f"@0,{self.text_widget.winfo_height()}")
-             
-             start_line = int(first_visible.split('.')[0])
-             end_line = int(last_visible.split('.')[0])
-             
-             viewport_y1 = (start_line - 1) * line_height + 5
-             viewport_y2 = (end_line - 1) * line_height + 5
-             
-             # Yarı saydam bir efekt verilemez (Canvas sınırlı), ama outline çizilebilir
-             self.create_rectangle(
-                 2, viewport_y1, 
-                 98, viewport_y2, 
-                 outline=theme['accent'],
-                 width=1.5,
-                 tags="viewport"
-             )
-             # Viewport background (hafif dolgu - opsiyonel, stipple kullanarak)
-             # self.create_rectangle(2, viewport_y1, 98, viewport_y2, fill=theme['accent'], stipple='gray12', outline="")
-             
-        except:
-             pass
-
-    def jump_to_click(self, event):
-        """Minimap'e tıklandığında oraya git"""
-        y = event.y
-        # Satır numarasını tahmin et
-        target_line = int((y - 5) / self.line_height) + 1
-        if target_line < 1: target_line = 1
-        
-        # Oraya kaydır
-        try:
-             self.text_widget.see(f"{target_line}.0")
-             self.text_widget.mark_set("insert", f"{target_line}.0")
-        except:
-             pass
-
-class LineNumberCanvas(tk.Canvas):
-    def __init__(self, parent, text_widget, config, **kwargs):
-        super().__init__(parent, **kwargs)
-        self.text_widget = text_widget
-        self.config = config
-        self.errors = {}  # {line_number: error_message}
-        self.breakpoints = set() # {line_number}
-        self.configure(
-            width=60,  # Biraz daha geniş (hata işaretleri için)
-            highlightthickness=0,
-            relief='flat'
-        )
-        self.apply_theme()
-        
-        # Binding
-        self.bind("<Motion>", self._on_hover)
-        self.bind("<Leave>", self._on_leave)
-        self.bind("<Button-1>", self._on_click)
-        self.tooltip = None
-        
-    def apply_theme(self):
-        theme = self.config.THEMES[self.config.theme]
-        self.configure(bg=theme['sidebar_bg']) 
-
-    def set_errors(self, errors_dict):
-        """Hataları ayarla: {line_number: error_message}"""
-        self.errors = errors_dict
-        self.redraw()
-        
-    def _on_click(self, event):
-        """Tıklama yönetimi: Breakpoint veya Quick Fix"""
-        # Tıklanan item'ı bul
-        item = self.find_closest(event.x, event.y)
-        if item:
-            tags = self.gettags(item[0])
-            for tag in tags:
-                if tag.startswith("error_"):
-                    line = int(tag.split("_")[1])
-                    self._on_quick_fix(line)
-                    return
-        
-        # Eğer özel bir şey değilse breakpoint toggle et
-        self.toggle_breakpoint(event)
-
-    def _on_quick_fix(self, line):
-        """Hızlı tamir ikonuna tıklandığında AI paneline gönder"""
-        msg = self.errors.get(line, "Bu satırda bir hata var yeğenim.")
-        # Editör üzerinden Main Window'a git
-        try:
-            parent = self.master # Editor
-            if hasattr(parent, '_on_quick_fix_request'):
-                parent._on_quick_fix_request(line, msg)
-        except:
-            pass
-
-    def highlight_line(self, line_num):
-        """Dışarıdan çağrılan satır vurgulama (Trace için)"""
-        # Önceki vurguyu temizle
-        self._textbox.tag_remove("execution_line", "1.0", tk.END)
-        
-        # Yeni satırı vurgula
-        start = f"{line_num}.0"
-        end = f"{line_num}.end+1c"
-        self._textbox.tag_add("execution_line", start, end)
-        
-        # Görünür yap
-        self._textbox.see(start)
-        
-        # Minimap'i güncelle (Opsiyonel ama şık durur)
-        if hasattr(self, 'minimap'):
-            self.minimap.redraw()
-
-    def toggle_breakpoint(self, event):
-        """Breakpoint ekle/kaldır"""
-        text_index = self.text_widget.index(f"@0,{event.y}")
-        line = int(text_index.split('.')[0])
-        
-        if line in self.breakpoints:
-            self.breakpoints.remove(line)
-        else:
-            self.breakpoints.add(line)
-            
-        self.redraw()
-
-    def redraw(self, *args):
-        self.delete("all")
-        
-        # Text widget'in fontunu al
-        try:
-             text_font = self.text_widget.cget("font")
-        except:
-             return
-
-        theme = self.config.THEMES[self.config.theme]
-        fg_color = theme['comment']
-        err_color = "#ff1744"
-        bp_color = "#ff4444" 
-
-        i = self.text_widget.index("@0,0")
-        
-        # İlk satırın bilgilerini al
-        # Eğer None dönerse, widget henüz layout yapılmamış olabilir.
-        if self.text_widget.dlineinfo(i) is None:
-             self.after(200, self.redraw)
-             return
-
-        while True:
-            dline = self.text_widget.dlineinfo(i)
-            if dline is None: break
-
-            y = dline[1]
-            linenum = str(i).split(".")[0]
-            line_int = int(linenum)
-            
-            # 1. Breakpoint (Kırmızı Daire)
-            if line_int in self.breakpoints:
-                self.create_oval(10, y+2, 22, y+14, fill=bp_color, outline="#cc0000", width=1, tags=f"bp_{linenum}")
-            
-            # 2. Satır Numarası
-            self.create_text(45, y, anchor="ne", text=linenum, fill=fg_color, font=text_font, tags=f"line_{linenum}")
-            
-            # 3. Hata / Quick Fix (💡 Ampul İkonu)
-            if line_int in self.errors:
-                # Daha belirgin ve tıklanabilir bir ikon
-                self.create_text(55, y+8, text="💡", font=("Segoe UI", 10), tags=(f"error_{linenum}", "quickfix"))
-                
-            i = self.text_widget.index(f"{i}+1line")
-    
-    def _on_hover(self, event):
-        """Mouse hover ile hata mesajını göster"""
-        # Hangi satırın üzerindeyiz?
-        item = self.find_closest(event.x, event.y)
-        if not item: return
-        
-        tags = self.gettags(item[0])
-        for tag in tags:
-            if tag.startswith("error_"):
-                linenum = int(tag.split("_")[1])
-                if linenum in self.errors:
-                    self._show_tooltip(event.x_root, event.y_root, self.errors[linenum])
-                    return
-        
-        self._hide_tooltip()
-    
-    def _on_leave(self, event):
-        """Mouse ayrıldığında tooltip'i gizle"""
-        self._hide_tooltip()
-    
-    def _show_tooltip(self, x, y, text):
-        """Tooltip göster"""
-        if self.tooltip:
-            self.tooltip.destroy()
-        
-        self.tooltip = tk.Toplevel(self)
-        self.tooltip.wm_overrideredirect(True)
-        self.tooltip.wm_geometry(f"+{x+10}+{y+10}")
-        
-        theme = self.config.THEMES[self.config.theme]
-        label = tk.Label(
-            self.tooltip, 
-            text=text, 
-            background="#ff1744",
-            foreground="white",
-            font=("Segoe UI", 10, "bold"),
-            padx=10,
-            pady=5,
-            relief="solid",
-            borderwidth=1
-        )
-        label.pack()
-    
-    def _hide_tooltip(self):
-        """Tooltip'i gizle"""
-        if self.tooltip:
-            self.tooltip.destroy()
-            self.tooltip = None
 
 class CodeEditor(ctk.CTkFrame):
     def __init__(self, parent, config, on_navigate=None, **kwargs):
@@ -749,7 +491,7 @@ class CodeEditor(ctk.CTkFrame):
         # 🔊 Mekanik Daktilo Sesi Efekti
         def play_mechanical_sound():
             try:
-                import winsound
+                if not winsound: return
                 import random
                 import time
                 for _ in range(random.randint(4, 7)):
@@ -761,7 +503,6 @@ class CodeEditor(ctk.CTkFrame):
             except:
                 pass
         
-        import threading
         threading.Thread(target=play_mechanical_sound, daemon=True).start()
 
         content = self.get("1.0", 'end-1c')
@@ -939,8 +680,6 @@ class CodeEditor(ctk.CTkFrame):
             pass
 
     def show_suggestion_box(self, prefix):
-        from ..core.symbols import SymbolExtractor
-        
         # 1. Sabit Anahtar Kelimeler (GümüşZeka Metadatalı)
         keywords_meta = {
             "fonksiyon": {"type": "kwd", "doc": "Yeni bir fonksiyon tanımlar."},
@@ -969,8 +708,6 @@ class CodeEditor(ctk.CTkFrame):
             "metin": {"type": "func", "doc": "Değeri metne çevirir."},
             "zaman": {"type": "func", "doc": "Sistem zamanını döner."},
         }
-        
-        import difflib
         
         # Nokta (.) kontrolü - Üye tamamlama
         is_member_completion = False
@@ -1222,151 +959,22 @@ class CodeEditor(ctk.CTkFrame):
 
     def show_find_dialog(self, event=None):
         """Modern Bul/Değiştir Paneli (Ctrl+F)"""
-        self._toggle_find_bar(replace_mode=False)
-        return "break" # Default davranışı engelle
+        self._get_find_bar().toggle(replace_mode=False)
+        return "break"
 
     def show_replace_dialog(self, event=None):
         """Modern Değiştir Paneli (Ctrl+H)"""
-        self._toggle_find_bar(replace_mode=True)
+        self._get_find_bar().toggle(replace_mode=True)
         return "break"
 
-    def _toggle_find_bar(self, replace_mode=False):
-        if hasattr(self, 'find_bar') and self.find_bar.winfo_ismapped():
-            # Zaten açıksa ve mod değiştiyse modu güncelle, değilse kapat
-            if replace_mode != self.find_bar.replace_mode:
-                self._update_find_bar_mode(replace_mode)
-            else:
-                self.hide_find_bar()
-        else:
-            self._create_find_bar(replace_mode)
-            
+    def _get_find_bar(self):
+        if not hasattr(self, 'find_bar'):
+            self.find_bar = FindReplacePanel(self, self._textbox, self.config)
+        return self.find_bar
+
     def hide_find_bar(self):
         if hasattr(self, 'find_bar'):
-            self.find_bar.place_forget()
-            self._textbox.tag_remove("search_highlight", "1.0", tk.END)
-            self._textbox.focus_set()
-
-    def _create_find_bar(self, replace_mode):
-        theme = self.config.THEMES[self.config.theme]
-        
-        if not hasattr(self, 'find_bar'):
-            self.find_bar = ctk.CTkFrame(self, fg_color=theme['sidebar_bg'], corner_radius=5, border_width=1, border_color=theme['border'])
-            self.find_bar.replace_mode = replace_mode
-            
-            # Üst satır: Bul
-            row1 = ctk.CTkFrame(self.find_bar, fg_color="transparent")
-            row1.pack(fill="x", padx=5, pady=5)
-            
-            self.find_entry = ctk.CTkEntry(row1, placeholder_text="Bul...", width=150, height=28, font=("Segoe UI", 12))
-            self.find_entry.pack(side="left", padx=(0, 5))
-            self.find_entry.bind("<Return>", self.find_next)
-            self.find_entry.bind("<KeyRelease>", self._live_search)
-            
-            ctk.CTkButton(row1, text="↓", width=24, height=24, command=self.find_next).pack(side="left", padx=1)
-            ctk.CTkButton(row1, text="↑", width=24, height=24, command=self.find_prev).pack(side="left", padx=1)
-            ctk.CTkButton(row1, text="×", width=24, height=24, fg_color="transparent", hover_color="#c62828", command=self.hide_find_bar).pack(side="left", padx=(5, 0))
-            
-            # Alt satır: Değiştir (Opsiyonel)
-            self.replace_row = ctk.CTkFrame(self.find_bar, fg_color="transparent")
-            
-            self.replace_entry = ctk.CTkEntry(self.replace_row, placeholder_text="Değiştir...", width=150, height=28, font=("Segoe UI", 12))
-            self.replace_entry.pack(side="left", padx=(0, 5))
-            
-            ctk.CTkButton(self.replace_row, text="Değiştir", width=60, height=24, font=("Segoe UI", 11), command=self.replace_one).pack(side="left", padx=1)
-            ctk.CTkButton(self.replace_row, text="Tümü", width=50, height=24, font=("Segoe UI", 11), command=self.replace_all).pack(side="left", padx=1)
-        
-        # Modu ayarla
-        self._update_find_bar_mode(replace_mode)
-        
-        # Göster (Sağ üst köşe)
-        self.find_bar.place(relx=1.0, rely=0.0, anchor="ne", x=-25, y=5)
-        self.find_bar.lift()
-        self.find_entry.focus_set()
-
-    def _update_find_bar_mode(self, replace_mode):
-        self.find_bar.replace_mode = replace_mode
-        if replace_mode:
-            self.replace_row.pack(fill="x", padx=5, pady=(0, 5))
-        else:
-            self.replace_row.pack_forget()
-
-    def _live_search(self, event=None):
-        query = self.find_entry.get()
-        self._textbox.tag_remove("search_highlight", "1.0", tk.END)
-        if not query: return
-        
-        count = 0
-        start_pos = "1.0"
-        while True:
-            pos = self._textbox.search(query, start_pos, stopindex=tk.END)
-            if not pos: break
-            
-            end_pos = f"{pos}+{len(query)}c"
-            self._textbox.tag_add("search_highlight", pos, end_pos)
-            start_pos = end_pos
-            count += 1
-            if count > 1000: break # Performans koruması
-
-    def find_next(self, event=None):
-        query = self.find_entry.get()
-        if not query: return
-        
-        start_pos = self._textbox.index(tk.INSERT) + "+1c"
-        pos = self._textbox.search(query, start_pos, stopindex=tk.END)
-        if not pos:
-             pos = self._textbox.search(query, "1.0", stopindex=tk.END)
-        
-        if pos:
-            self._highlight_match(pos, len(query))
-
-    def find_prev(self, event=None):
-        query = self.find_entry.get()
-        if not query: return
-        
-        start_pos = self._textbox.index(tk.INSERT)
-        pos = self._textbox.search(query, start_pos, stopindex="1.0", backwards=True)
-        if not pos:
-             pos = self._textbox.search(query, tk.END, stopindex="1.0", backwards=True)
-             
-        if pos:
-            self._highlight_match(pos, len(query))
-
-    def _highlight_match(self, pos, length):
-        end_pos = f"{pos}+{length}c"
-        self._textbox.tag_remove("sel", "1.0", tk.END)
-        self._textbox.tag_add("sel", pos, end_pos)
-        self._textbox.mark_set(tk.INSERT, end_pos)
-        self._textbox.see(pos)
-
-    def replace_one(self):
-        query = self.find_entry.get()
-        replacement = self.replace_entry.get()
-        if not query: return
-        
-        # Seçim varsa ve eşleşiyorsa değiştir
-        try:
-            sel_start = self._textbox.index("sel.first")
-            sel_end = self._textbox.index("sel.last")
-            if self._textbox.get(sel_start, sel_end) == query:
-                self._textbox.delete(sel_start, sel_end)
-                self._textbox.insert(sel_start, replacement)
-                self.find_next()
-            else:
-                self.find_next()
-        except:
-            self.find_next()
-
-    def replace_all(self):
-        query = self.find_entry.get()
-        replacement = self.replace_entry.get()
-        if not query: return
-        
-        text = self._textbox.get("1.0", 'end-1c')
-        new_text = text.replace(query, replacement)
-        
-        self._textbox.delete("1.0", tk.END)
-        self._textbox.insert("1.0", new_text)
-        self._live_search()
+            self.find_bar.hide()
 
     def toggle_comment(self, event=None):
         """Satırı yorum satırı yap/kaldır (//)"""

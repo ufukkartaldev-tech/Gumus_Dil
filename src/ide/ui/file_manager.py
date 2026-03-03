@@ -47,6 +47,8 @@ class CodeFileManager:
         
         if path in self.main_window.editors:
             self.main_window.switch_to_tab(path)
+            if hasattr(self.main_window, 'sidebar'):
+                self.main_window.sidebar.reveal_file(path)
             return
 
         try:
@@ -65,6 +67,9 @@ class CodeFileManager:
             if hasattr(self.main_window, 'tab_manager'):
                 self.main_window.tab_manager.editors[path] = editor
             self.main_window.switch_to_tab(path)
+            
+            if hasattr(self.main_window, 'sidebar'):
+                self.main_window.sidebar.reveal_file(path)
             
             # Son kullanılanlara ekle
             self.config.add_recent_file(path)
@@ -112,6 +117,9 @@ class CodeFileManager:
             
             self.main_window.refresh_tabs()
             self.main_window.update_title()
+            
+            if hasattr(self.main_window, 'sidebar'):
+                self.main_window.sidebar.reveal_file(path)
             return True
         except Exception as e:
             messagebox.showerror("Hata", f"Kaydetme hatası:\n{e}")
@@ -155,6 +163,9 @@ class CodeFileManager:
             self.main_window.refresh_tabs()
             self.main_window.update_title()
             self.config.add_recent_file(path)
+            
+            if hasattr(self.main_window, 'sidebar'):
+                self.main_window.sidebar.reveal_file(path)
             
         except Exception as e:
              messagebox.showerror("Hata", f"Farklı kaydetme hatası:\n{e}")
