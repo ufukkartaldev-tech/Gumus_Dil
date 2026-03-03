@@ -27,6 +27,7 @@ class MenuManager:
         
         file_menu.add_command(label="Yeni", accelerator="Ctrl+N", command=self.main_window.new_file)
         file_menu.add_command(label="Aç...", accelerator="Ctrl+O", command=self.main_window.open_file_dialog)
+        file_menu.add_command(label="Klasör Aç...", accelerator="Ctrl+Shift+O", command=self.main_window.open_folder_dialog)
         file_menu.add_command(label="Kaydet", accelerator="Ctrl+S", command=self.main_window.save_file)
         file_menu.add_command(label="Farklı Kaydet...", accelerator="Ctrl+Shift+S", command=self.main_window.save_as_file)
         file_menu.add_separator()

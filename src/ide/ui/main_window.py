@@ -208,6 +208,8 @@ class MainWindow:
         self.root.bind("<Control-N>", lambda e: self.new_file())
         self.root.bind("<Control-o>", lambda e: self.open_file_dialog())
         self.root.bind("<Control-O>", lambda e: self.open_file_dialog())
+        self.root.bind("<Control-Shift-o>", lambda e: self.open_folder_dialog())
+        self.root.bind("<Control-Shift-O>", lambda e: self.open_folder_dialog())
         self.root.bind("<Control-s>", lambda e: self.save_file())
         self.root.bind("<Control-S>", lambda e: self.save_as_file())
         
@@ -237,6 +239,7 @@ class MainWindow:
 
     def new_file(self): self.file_manager.new_file()
     def open_file_dialog(self): self.file_manager.open_file_dialog()
+    def open_folder_dialog(self): self.file_manager.open_folder_dialog()
     def save_file(self): self.file_manager.save_file()
     def save_as_file(self): self.file_manager.save_as_file()
     def open_file_from_path(self, path): self.file_manager.open_file_from_path(path)

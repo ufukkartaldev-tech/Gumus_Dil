@@ -64,6 +64,9 @@ class ExplorerTree(ctk.CTkFrame):
 
     def _insert_node(self, parent_id, path, is_root=False):
         text = path.name if not is_root else path.name.upper()
+        if not text and is_root: # Sürücü kökü durumu (C:\ gibi)
+            text = str(path)
+            
         if path.is_dir():
             icon = "📂" 
             display_text = f"{icon} {text}"
@@ -110,6 +113,42 @@ class ExplorerTree(ctk.CTkFrame):
             path = self.nodes.get(item)
             if path and path.is_file() and self.on_file_select:
                 self.on_file_select(str(path))
+
+    def reveal_file(self, file_path):
+        """Dosyayı ağaç yapısında bul ve seç"""
+        target_path = Path(file_path).resolve()
+        
+        # Eğer kök yoksa veya dosya kök dışında kalıyorsa, kökü otomatik ayarla
+        if not self.current_root or not str(target_path).startswith(str(self.current_root)):
+             self.load_root(target_path.parent)
+             
+        root_nodes = self.tree.get_children("")
+        if not root_nodes: return
+        node_id = root_nodes[0]
+        
+        try:
+            relative = target_path.relative_to(self.current_root)
+        except ValueError:
+            return
+
+        # Parçaları takip et
+        parts = relative.parts
+        for part in parts:
+            self._load_children(node_id)
+            self.tree.item(node_id, open=True)
+            
+            found = False
+            for child_id in self.tree.get_children(node_id):
+                child_path = self.nodes.get(child_id)
+                if child_path and child_path.name == part:
+                    node_id = child_id
+                    found = True
+                    break
+            if not found: return
+            
+        self.tree.selection_set(node_id)
+        self.tree.see(node_id)
+        self.tree.focus(node_id)
 
     def _on_right_click(self, event):
         item = self.tree.identify('item', event.x, event.y)
@@ -321,7 +360,7 @@ class OutlinePanel(ctk.CTkFrame):
         for widget in self.tree_frame.winfo_children(): widget.destroy()
         theme = self.config.THEMES[self.config.theme]
         for s in symbols:
-            color = theme['function'] if s['type'] == 'function' else theme['class'] if s['type'] == 'class' else theme['variable']
+            color = theme.get(s['type'], theme.get('fg', 'white'))
             btn = ctk.CTkButton(self.tree_frame, text=f"{s['icon']} {s['name']}", anchor="w",
                                fg_color="transparent", hover_color=theme['hover'], text_color=color,
                                height=28, font=("Segoe UI", 11), command=lambda line=s['line']: self.on_jump(line))
@@ -488,6 +527,7 @@ class Sidebar(ctk.CTkFrame):
         }
         
         self.switch_mode("explorer")
+        self.set_root(self.current_root)
 
 
     def _setup_explorer_buttons(self):
@@ -583,8 +623,27 @@ class Sidebar(ctk.CTkFrame):
 
     def set_root(self, path):
         self.current_root = Path(path)
-        self.label.configure(text=self.current_root.name[:15].upper())
+        self.label.configure(text=self.current_root.name[:15].upper() if self.current_root.name else str(self.current_root))
+        self.switch_mode("explorer")
         self.explorer_tree.load_root(self.current_root)
+
+    def reveal_file(self, path):
+        if hasattr(self, 'explorer_tree'):
+            self.switch_mode("explorer")
+            # Sidebari görünür yap (Eğer gizliyse)
+            if hasattr(self.master, 'master') and hasattr(self.master.master, 'toggle_sidebar'):
+                # Bu kontrol biraz dolaylı, daha basiti:
+                pass
+            
+            # MainWindow üzerinden görünürlüğü sağla
+            root = self.winfo_toplevel()
+            if hasattr(root, 'toggle_sidebar') and not self.winfo_ismapped():
+                root.toggle_sidebar()
+            elif not self.winfo_ismapped():
+                # Alternatif: LayoutManager'a ulaşmaya çalış
+                pass
+                
+            self.explorer_tree.reveal_file(path)
 
     def update_outline(self, symbols):
         """Dışarıdan gelen sembolleri anahat (outline) panelinde göster"""
