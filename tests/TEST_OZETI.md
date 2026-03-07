@@ -2,34 +2,34 @@
 
 ## ✅ **Başarılı Test Sonuçları**
 
-### **Terminal Unit Testleri - 9/9 PASSED**
+### **Terminal Unit Testleri - 9/9 BAŞARILI**
 ```
-✅ test_initialization PASSED
-✅ test_add_to_history PASSED  
-✅ test_history_navigation_up PASSED
-✅ test_history_navigation_down PASSED
-✅ test_auto_complete PASSED
-✅ test_completions_list PASSED
-✅ test_history_limit PASSED
-✅ test_empty_history_navigation PASSED
-✅ test_debug_mode PASSED
+✅ test_initialization BAŞARILI
+✅ test_add_to_history BAŞARILI  
+✅ test_history_navigation_up BAŞARILI
+✅ test_history_navigation_down BAŞARILI
+✅ test_auto_complete BAŞARILI
+✅ test_completions_list BAŞARILI
+✅ test_history_limit BAŞARILI
+✅ test_empty_history_navigation BAŞARILI
+✅ test_debug_mode BAŞARILI
 ```
 
 ## 🎯 **Test Edilen Özellikler**
 
-### **1. 🏗️ Core Functionality**
+### **1. 🏗️ Temel İşlevler**
 - **Initialization**: Terminal başlangıç durumu
 - **History Management**: Komut geçmişi (100 komut limit)
 - **Auto-complete**: Tab ile tamamlama (17 Türkçe kelime)
 - **Navigation**: Yukarı/aşağı ok ile geçmiş gezinme
 
-### **2. 🔧 Edge Cases**
+### **2. 🔧 Sınır Durumları**
 - **Empty history**: Boş geçmişte navigasyon
 - **Duplicate commands**: Tekrar eden komut engelleme
 - **History limit**: 100 komut sınırı
 - **Debug mode**: Debug/normal mod geçişi
 
-### **3. 🎮 User Experience**
+### **3. 🎮 Kullanıcı Deneyimi**
 - **History navigation**: Doğru komut sıralaması
 - **Auto-complete**: Prefix matching
 - **Input validation**: Boş input handling
@@ -42,12 +42,12 @@
 - **Event Simulation**: Tuş basışları ve callback'ler
 - **State Verification**: Input/output kontrolü
 
-### **Test Framework**
+### **Test Altyapısı**
 - **pytest**: Modern Python testing
 - **Fixtures**: Tekrar kullanılabilir test setup
 - **Assertions**: Detaylı doğrulama mesajları
 
-## 📊 **Code Coverage**
+## 📊 **Kod Kapsamı**
 
 ### **Terminal Class Coverage: ~85%**
 - ✅ **Constructor**: %100
@@ -82,13 +82,13 @@
 
 ## 🏆 **Test Odaklı Geliştirme**
 
-### **TDD Benefits Achieved:**
+### **TDD Elde Edilen Kazanımlar:**
 - **Regression Prevention**: Yeni özellikler eskileri bozmuyor
 - **Documentation**: Testler nasıl kullanıldığını gösteriyor
 - **Refactoring Confidence**: Güvenli kod değişimi
 - **Quality Assurance**: Edge case'ler yakalandı
 
-### **Test Quality Metrics:**
+### **Test Kalite Metrikleri:**
 - **Speed**: 9 test in 0.23s (25ms/test)
 - **Reliability**: %100 success rate
 - **Coverage**: High core logic coverage

@@ -95,6 +95,6 @@ sınıf Düğüm {
 **Dosyalar:**
 - `src/compiler/interpreter/garbage_collector.h`
 - `src/compiler/interpreter/garbage_collector.cpp`
-- `docs/GC_TEKNOFEST_ANALIZ.md`
+- `docs/COP_TOPLAYICI_TEKNOFEST_ANALIZI.md`
 
 

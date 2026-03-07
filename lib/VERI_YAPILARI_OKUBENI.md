@@ -151,7 +151,7 @@ yigin.ekle(42)
 
 - [Veri Yapıları ve Algoritmimarir](https://www.example.com)
 - [Big O Notation](https://www.example.com)
-- [GümüşDil Dokümantasyonu](../docs/README.md)
+- [GümüşDil Dokümantasyonu](../docs/OKU_BENI.md)
 
 ## 📝 Lisans
 
