@@ -86,7 +86,7 @@ IDE'de yeni **Elmas** teması varsayılan olarak aktiftir. Diğer temimarir:
 - Gün Batımı
 
 ## Daha Fazla Bilgi
-- Ana README: `../README.md`
+- Ana README: `../OKU_BENI.md`
 - Dokümantasyon: `../docs/`
 - Standart Kütüphane: `../lib/`
 

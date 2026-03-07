@@ -56,7 +56,7 @@ src/ide/
 │       ├── CallStackPanel
 │       └── DebugControlBar
 │
-└── DEBUGGER_GUIDE.md               # Kullanım Kılavuzu
+└── HATA_AYIKLAYICI_REHBERI.md               # Kullanım Kılavuzu
 ```
 
 ---
@@ -163,7 +163,7 @@ def _run_debug_loop(self, file_path):
 
 ## 📚 Dokümantasyon
 
-Detaylı kullanım kılavuzu için: **[DEBUGGER_GUIDE.md](./DEBUGGER_GUIDE.md)**
+Detaylı kullanım kılavuzu için: **[HATA_AYIKLAYICI_REHBERI.md](./HATA_AYIKLAYICI_REHBERI.md)**
 
 ---
 

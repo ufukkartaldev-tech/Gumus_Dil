@@ -188,7 +188,7 @@ eğer (!yigin.bosmu()) {
 
 ## 📖 Daha Fazla Bilgi
 
-- **Detaylı Dokümantasyon:** `lib/VERI_YAPILARI_README.md`
+- **Detaylı Dokümantasyon:** `lib/VERI_YAPILARI_OKU_BENI.md`
 - **Unit Testler:** `tests/test_veri_yapilari.tr`
 - **Gerçek Örnekler:** `examples/veri_yapilari_ornekler.tr`
 

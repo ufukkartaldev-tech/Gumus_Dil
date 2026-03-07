@@ -57,9 +57,9 @@
 
 ## 📁 Kritik Dosyalar (Jüri İncelemesi İçin)
 
-1. **`docs/GC_TEKNOFEST_ANALIZ.md`** - Hafıza yönetimi detayları
+1. **`docs/COP_TOPLAYICI_TEKNOFEST_ANALIZI.md`** - Hafıza yönetimi detayları
 2. **`docs/JURI_SAVUNMA_HAFIZA.md`** - shared_ptr savunması
-3. **`docs/PATH_RESOLUTION_FIXES.md`** - Production path çözümleri
+3. **`docs/YOL_COZUMLEME_DUZELTMELERI.md`** - Production path çözümleri
 4. **`src/ide/ui/event_controller.py`** - Kod organizasyonu örneği
 5. **`packaging/pardus/DEBIAN/postinst`** - Robust dependency management
 

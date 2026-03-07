@@ -206,7 +206,7 @@ class AnalyticsDashboard:
 - **Accessibility**: Keyboard navigation
 - **Professional Look**: Modern design
 
-### **User Experience:**
+### **Kullanıcı Deneyimi:**
 - **Intuitive Controls**: Natural interactions
 - **Quick Access**: Command palette
 - **Context Menus**: Right-click actions
