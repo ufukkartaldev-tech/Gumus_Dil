@@ -104,14 +104,43 @@ void Compiler::visitWhileStmt(WhileStmt* stmt) {
     patchJump(exitJump);
     emitByte(OP_POP, stmt->line);
 }
-void Compiler::visitBreakStmt(BreakStmt* stmt) {}
-void Compiler::visitContinueStmt(ContinueStmt* stmt) {}
-void Compiler::visitForStmt(ForStmt* stmt) {}
-void Compiler::visitFunctionStmt(FunctionStmt* stmt) {}
-void Compiler::visitReturnStmt(ReturnStmt* stmt) {}
-void Compiler::visitClassStmt(ClassStmt* stmt) {}
-void Compiler::visitTryCatchStmt(TryCatchStmt* stmt) {}
-void Compiler::visitModuleStmt(ModuleStmt* stmt) {}
+void Compiler::visitBreakStmt(BreakStmt* stmt) {
+    // İleride döngü çıkışları için jump offset'leri tutularak eklenecek
+}
+
+void Compiler::visitContinueStmt(ContinueStmt* stmt) {
+    // İleride döngü başına jump için eklenecek
+}
+
+void Compiler::visitForStmt(ForStmt* stmt) {
+    // For döngüsü derlemesi (init -> cond -> body -> inc -> jump) mimarisi eklenecek
+}
+
+void Compiler::visitFunctionStmt(FunctionStmt* stmt) {
+    // TODO: Yeni bir Compiler context/Chunk oluşturulacak,
+    // argümanlar yerel değişken olarak eklenecek ve OP_CLOSURE üretilecek.
+}
+
+void Compiler::visitReturnStmt(ReturnStmt* stmt) {
+    if (stmt->value != nullptr) {
+        stmt->value->accept(*this);
+    } else {
+        emitByte(OP_NIL, stmt->line);
+    }
+    emitByte(OP_RETURN, stmt->line);
+}
+
+void Compiler::visitClassStmt(ClassStmt* stmt) {
+    // TODO: OP_CLASS ve metod tanımlamaları
+}
+
+void Compiler::visitTryCatchStmt(TryCatchStmt* stmt) {
+    // Hata yakalama mekanizması 
+}
+
+void Compiler::visitModuleStmt(ModuleStmt* stmt) {
+    // Modül import/export sistemi
+}
 
 // ExprVisitor
 void Compiler::visitLiteralExpr(LiteralExpr* expr) {
@@ -183,13 +212,63 @@ int Compiler::getGlobalIndex(const std::string& name) {
     return globalsMap[name];
 }
 
-void Compiler::visitCallExpr(CallExpr* expr) {}
-void Compiler::visitGetExpr(GetExpr* expr) {}
-void Compiler::visitSetExpr(SetExpr* expr) {}
-void Compiler::visitThisExpr(ThisExpr* expr) {}
-void Compiler::visitSuperExpr(SuperExpr* expr) {}
-void Compiler::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {}
-void Compiler::visitListExpr(ListExpr* expr) {}
-void Compiler::visitMapExpr(MapExpr* expr) {}
-void Compiler::visitPropertyExpr(PropertyExpr* expr) {}
-void Compiler::visitIndexSetExpr(IndexSetExpr* expr) {}
+void Compiler::visitCallExpr(CallExpr* expr) {
+    expr->callee->accept(*this);
+    for (Expr* arg : expr->arguments) {
+        arg->accept(*this);
+    }
+    emitBytes(OP_CALL, (uint8_t)expr->arguments.size(), expr->line);
+}
+
+void Compiler::visitGetExpr(GetExpr* expr) {
+    expr->object->accept(*this);
+    expr->index->accept(*this);
+    // Şimdilik sadece property üzerinden düşünüldüğünde:
+    // İndeks veya özellik erişimi için OP_GET_PROPERTY düşünülebilir
+}
+
+void Compiler::visitSetExpr(SetExpr* expr) {
+    expr->object->accept(*this);
+    expr->value->accept(*this);
+    // Özellik ataması için OP_SET_PROPERTY vb.
+}
+
+void Compiler::visitThisExpr(ThisExpr* expr) {
+    // TODO: Yerel değişkenlerden 'bu' (this) aranacak
+}
+
+void Compiler::visitSuperExpr(SuperExpr* expr) {
+    // TODO: OP_GET_SUPER
+}
+
+void Compiler::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {
+    // Modül içi erişim
+}
+
+void Compiler::visitListExpr(ListExpr* expr) {
+    for (auto* element : expr->elements) {
+        element->accept(*this);
+    }
+    // TODO: List öğelerini bellekte tutmak için yeni opcode
+}
+
+void Compiler::visitMapExpr(MapExpr* expr) {
+    for (size_t i = 0; i < expr->keys.size(); ++i) {
+        expr->keys[i]->accept(*this);
+        expr->values[i]->accept(*this);
+    }
+    // TODO: Map yapısını bellekte oluşturacak opcode
+}
+
+void Compiler::visitPropertyExpr(PropertyExpr* expr) {
+    expr->object->accept(*this);
+    int nameIndex = getGlobalIndex(expr->name.value);
+    emitBytes(OP_GET_PROPERTY, (uint8_t)nameIndex, expr->line);
+}
+
+void Compiler::visitIndexSetExpr(IndexSetExpr* expr) {
+    expr->object->accept(*this);
+    expr->index->accept(*this);
+    expr->value->accept(*this);
+    // OP_SET_PROPERTY vb. veya yeni indeksleme opcode'u
+}
