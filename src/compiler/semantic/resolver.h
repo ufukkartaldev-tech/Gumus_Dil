@@ -25,7 +25,7 @@ enum class ClassType {
 class Resolver : public ExprVisitor, public StmtVisitor {
 public:
     Resolver(Interpreter& interpreter);
-    void resolve(const std::vector<std::shared_ptr<Stmt>>& statements);
+    void resolve(const std::vector<std::unique_ptr<Stmt>>& statements);
 
 private:
     Interpreter& interpreter;
@@ -33,8 +33,8 @@ private:
     FunctionType currentFunction = FunctionType::NONE;
     ClassType currentClass = ClassType::NONE;
 
-    void resolve(std::shared_ptr<Stmt> stmt);
-    void resolve(std::shared_ptr<Expr> expr);
+    void resolve(Stmt* stmt);
+    void resolve(Expr* expr);
     void resolveLocal(Expr* expr, const Token& name);
     void resolveFunction(FunctionStmt* function, FunctionType type);
     

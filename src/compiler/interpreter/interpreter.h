@@ -137,10 +137,10 @@ public:
 
 class UserFunction : public Callable {
 public:
-    std::shared_ptr<FunctionStmt> declaration;
+    FunctionStmt* declaration;
     std::shared_ptr<Environment> closure;
 
-    UserFunction(std::shared_ptr<FunctionStmt> declaration, std::shared_ptr<Environment> closure);
+    UserFunction(FunctionStmt* declaration, std::shared_ptr<Environment> closure);
 
     int arity();
     std::shared_ptr<UserFunction> bind(std::shared_ptr<LoxInstance> instance);
@@ -224,9 +224,11 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
 public:
     Interpreter(); 
-    void interpret(const std::vector<std::shared_ptr<Stmt>>& statements);
-    ExecutionStatus executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environmentVal);
-
+    void interpret(std::vector<std::unique_ptr<Stmt>>& statements);
+    void executeBlock(const std::vector<std::unique_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment);
+    
+    Value evaluate(Expr* expr);
+    void execute(Stmt* stmt);
     // Environment Management (Public for UserFunction Access)
     std::shared_ptr<Environment> globals;
     std::shared_ptr<Environment> environment;
@@ -251,7 +253,7 @@ public:
     std::vector<std::string> callStack;
 
     // AST Persistence (to prevent dangling pointers in imported functions)
-    std::vector<std::vector<std::shared_ptr<Stmt>>> astList;
+    std::vector<std::vector<std::unique_ptr<Stmt>>> astList;
     
     // 🗑️ Garbage Collection
     std::unique_ptr<GarbageCollector> garbageCollector;
@@ -262,9 +264,6 @@ public:
     GarbageCollector::MemoryStats getMemoryStats() const;
     std::string generateMemoryReport() const;
 private:
-    ExecutionStatus execute(std::shared_ptr<Stmt> stmt);
-    Value evaluate(std::shared_ptr<Expr> expr);
-
     // Visitor Pattern Implementation - Stmt Visitors
     void visitExpressionStmt(ExpressionStmt* stmt) override;
     void visitPrintStmt(PrintStmt* stmt) override;
