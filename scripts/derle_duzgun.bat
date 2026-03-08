@@ -18,6 +18,9 @@ g++ -std=c++17 -o gumus.exe ^
     src/compiler/interpreter/interpreter.cpp ^
     src/compiler/interpreter/native_functions.cpp ^
     src/compiler/interpreter/objects.cpp ^
+    src/compiler/interpreter/property_handlers.cpp ^
+    src/compiler/semantic/resolver.cpp ^
+    src/compiler/lsp_server.cpp ^
     src/compiler/hardware/serial_port.cpp ^
     -I. -DUNICODE -D_UNICODE -lwininet -lws2_32 -static -static-libgcc -static-libstdc++
 

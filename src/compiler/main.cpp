@@ -16,6 +16,7 @@
 #include "interpreter/interpreter.h"
 #include "semantic/resolver.h"
 #include "json_hata.h"
+#include "lsp_server.h"
 #include "debug.h"
 #include <chrono>
 
@@ -154,6 +155,7 @@ int main(int argc, char* argv[]) {
     bool dumpAst = false;
     bool dumpMemory = false;
     bool debug = false;
+    bool lsp = false;
     std::string filename;
 
     for (int i = 1; i < argc; ++i) {
@@ -162,6 +164,8 @@ int main(int argc, char* argv[]) {
             dumpAst = true;
         } else if (arg == "--dump-memory") {
             dumpMemory = true;
+        } else if (arg == "--lsp") {
+            lsp = true;
         } else if (arg == "--debug" || arg == "--hata-ayikla") {
             debug = true;
         } else {
@@ -171,6 +175,12 @@ int main(int argc, char* argv[]) {
 
     gumus_debug = debug;
     gumus_memory_dump = dumpMemory;
+
+    if (lsp) {
+        LSPServer server;
+        server.run();
+        return 0;
+    }
 
     if (!filename.empty()) {
 
@@ -189,6 +199,7 @@ int main(int argc, char* argv[]) {
         std::cout << "  program [dosya.tr]                  : Dosyayi calistir\n";
         std::cout << "  program --dump-ast [dosya.tr]       : AST JSON ciktisi al\n"; 
         std::cout << "  program --dump-memory [dosya.tr]    : Bellek durumu dökümü al\n";
+        std::cout << "  program --lsp                       : Language Server modunda baslat\n";
         std::cout << "  program --debug [dosya.tr]          : Debug ciktilari goster\n";
         return 64;
     }
