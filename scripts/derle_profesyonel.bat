@@ -29,16 +29,24 @@ echo [6/7] Property Handlers Derleniyor...
 g++ -std=c++17 -c src/compiler/interpreter/property_handlers.cpp -o build/property_handlers.o -I.
 if %errorlevel% neq 0 goto error
 
-echo [7/7] Hardware/Serial Derleniyor...
+echo [7/9] Hardware/Serial Derleniyor...
 g++ -std=c++17 -c src/compiler/hardware/serial_port.cpp -o build/serial_port.o -I.
 if %errorlevel% neq 0 goto error
 
-echo [8/8] Main Derleniyor...
+echo [8/9] Resolver Derleniyor...
+g++ -std=c++17 -c src/compiler/semantic/resolver.cpp -o build/resolver.o -I.
+if %errorlevel% neq 0 goto error
+
+echo [9/9] LSP Server Derleniyor...
+g++ -std=c++17 -c src/compiler/lsp_server.cpp -o build/lsp_server.o -I.
+if %errorlevel% neq 0 goto error
+
+echo [10/10] Main Derleniyor...
 g++ -std=c++17 -c src/compiler/main.cpp -o build/main.o -I.
 if %errorlevel% neq 0 goto error
 
 echo [LINK] Baglaniyor (Linking)...
-g++ -std=c++17 -o gumus.exe build/main.o build/tokenizer.o build/parser.o build/interpreter.o build/native_functions.o build/objects.o build/property_handlers.o build/serial_port.o -lwininet -lws2_32 -static -static-libgcc -static-libstdc++
+g++ -std=c++17 -o gumus.exe build/main.o build/tokenizer.o build/parser.o build/interpreter.o build/native_functions.o build/objects.o build/property_handlers.o build/serial_port.o build/resolver.o build/lsp_server.o -lwininet -lws2_32 -static -static-libgcc -static-libstdc++
 if %errorlevel% neq 0 goto error
 
 echo.
