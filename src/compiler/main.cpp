@@ -14,6 +14,8 @@
 #include "parser/parser.h"
 #include "parser/ast.h"
 #include "interpreter/interpreter.h"
+#include "vm/compiler.h"
+#include "vm/vm.h"
 #include "semantic/resolver.h"
 #include "json_hata.h"
 #include "lsp_server.h"
@@ -76,10 +78,16 @@ void run(Interpreter& interpreter, const std::string& source, bool dumpAst, bool
         return;
     }
 
-    // 3. Interpreter (Yorumlayici)
+    // 3. VM or Interpreter
     if (!statements.empty()) {
         try {
-            interpreter.interpret(statements);
+            // Bytecode VM execution
+            Compiler compiler;
+            Chunk* chunk = compiler.compile(statements);
+            VM vm;
+            vm.run(chunk);
+            delete chunk;
+
             interpreter.persistAst(statements);
         } catch (const LoxRuntimeException& error) {
             std::string msg = error.isSystemError ? std::string(error.what()) : error.errorValue.toString();
