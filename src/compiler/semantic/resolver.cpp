@@ -3,9 +3,9 @@
 
 Resolver::Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
-void Resolver::resolve(const std::vector<std::unique_ptr<Stmt>>& statements) {
+void Resolver::resolve(const std::vector<Stmt*>& statements) {
     for (const auto& statement : statements) {
-        resolve(statement.get());
+        resolve(statement);
     }
 }
 
@@ -41,9 +41,6 @@ void Resolver::resolveLocal(Expr* expr, const Token& name) {
     for (int i = (int)scopes.size() - 1; i >= 0; i--) {
         if (scopes[i].count(name.value)) {
             int distance = (int)scopes.size() - 1 - i;
-            if (name.value == "\xC3\xB6" "z") {
-                // std::cout << "DEBUG: RESOLVED 'oz' at distance " << distance << " line " << name.line << std::endl;
-            }
             
             // Raw pointer cast işlemleri
             if (auto var = dynamic_cast<VariableExpr*>(expr)) {
@@ -70,7 +67,7 @@ void Resolver::resolveFunction(FunctionStmt* function, FunctionType type) {
         define(param);
     }
     for (const auto& stmt : function->body) {
-        resolve(stmt.get());
+        resolve(stmt);
     }
     endScope();
     currentFunction = enclosingFunction;
@@ -79,14 +76,14 @@ void Resolver::resolveFunction(FunctionStmt* function, FunctionType type) {
 // Stmt Visitors
 void Resolver::visitBlockStmt(BlockStmt* stmt) {
     beginScope();
-    for (const auto& s : stmt->statements) resolve(s.get());
+    for (const auto& s : stmt->statements) resolve(s);
     endScope();
 }
 
 void Resolver::visitVarStmt(VarStmt* stmt) {
     declare(stmt->name);
     if (stmt->initializer != nullptr) {
-        resolve(stmt->initializer.get());
+        resolve(stmt->initializer);
     }
     define(stmt->name);
 }
@@ -98,36 +95,36 @@ void Resolver::visitFunctionStmt(FunctionStmt* stmt) {
 }
 
 void Resolver::visitExpressionStmt(ExpressionStmt* stmt) {
-    resolve(stmt->expression.get());
+    resolve(stmt->expression);
 }
 
 void Resolver::visitIfStmt(IfStmt* stmt) {
-    resolve(stmt->condition.get());
-    resolve(stmt->thenBranch.get());
-    if (stmt->elseBranch != nullptr) resolve(stmt->elseBranch.get());
+    resolve(stmt->condition);
+    resolve(stmt->thenBranch);
+    if (stmt->elseBranch != nullptr) resolve(stmt->elseBranch);
 }
 
 void Resolver::visitPrintStmt(PrintStmt* stmt) {
-    resolve(stmt->expression.get());
+    resolve(stmt->expression);
 }
 
 void Resolver::visitReturnStmt(ReturnStmt* stmt) {
     if (stmt->value != nullptr) {
-        resolve(stmt->value.get());
+        resolve(stmt->value);
     }
 }
 
 void Resolver::visitWhileStmt(WhileStmt* stmt) {
-    resolve(stmt->condition.get());
-    resolve(stmt->body.get());
+    resolve(stmt->condition);
+    resolve(stmt->body);
 }
 
 void Resolver::visitForStmt(ForStmt* stmt) {
     beginScope();
-    if (stmt->initializer) resolve(stmt->initializer.get());
-    if (stmt->condition) resolve(stmt->condition.get());
-    if (stmt->increment) resolve(stmt->increment.get());
-    resolve(stmt->body.get());
+    if (stmt->initializer) resolve(stmt->initializer);
+    if (stmt->condition) resolve(stmt->condition);
+    if (stmt->increment) resolve(stmt->increment);
+    resolve(stmt->body);
     endScope();
 }
 
@@ -143,20 +140,20 @@ void Resolver::visitClassStmt(ClassStmt* stmt) {
 
     if (stmt->superclass != nullptr) {
         currentClass = ClassType::SUBCLASS;
-        resolve(stmt->superclass.get());
+        resolve(stmt->superclass);
         beginScope();
         scopes.back()["ata"] = true;
     }
 
     beginScope();
-    scopes.back()["\xC3\xB6" "z"] = true; // "öz" key
+    scopes.back()["oz"] = true; // Use "oz" consistently
 
     for (const auto& method : stmt->methods) {
         FunctionType declaration = FunctionType::METHOD;
         if (method->name.value == "kurucu") {
             declaration = FunctionType::INITIALIZER;
         }
-        resolveFunction(method.get(), declaration);
+        resolveFunction(method, declaration);
     }
 
     endScope();
@@ -165,17 +162,17 @@ void Resolver::visitClassStmt(ClassStmt* stmt) {
 }
 
 void Resolver::visitTryCatchStmt(TryCatchStmt* stmt) {
-    resolve(stmt->tryBlock.get());
+    resolve(stmt->tryBlock);
     beginScope();
     declare(stmt->errorName);
     define(stmt->errorName);
-    resolve(stmt->catchBlock.get());
+    resolve(stmt->catchBlock);
     endScope();
 }
 
 void Resolver::visitModuleStmt(ModuleStmt* stmt) {
     beginScope();
-    for(const auto& s : stmt->statements) resolve(s.get());
+    for(const auto& s : stmt->statements) resolve(s);
     endScope();
 }
 
@@ -185,45 +182,45 @@ void Resolver::visitVariableExpr(VariableExpr* expr) {
 }
 
 void Resolver::visitAssignExpr(AssignExpr* expr) {
-    resolve(expr->value.get());
+    resolve(expr->value);
     resolveLocal(expr, expr->name);
 }
 
 void Resolver::visitBinaryExpr(BinaryExpr* expr) {
-    resolve(expr->left.get());
-    resolve(expr->right.get());
+    resolve(expr->left);
+    resolve(expr->right);
 }
 
 void Resolver::visitCallExpr(CallExpr* expr) {
-    resolve(expr->callee.get());
+    resolve(expr->callee);
     for (const auto& arg : expr->arguments) {
-        resolve(arg.get());
+        resolve(arg);
     }
 }
 
 void Resolver::visitLiteralExpr(LiteralExpr* expr) {}
 
 void Resolver::visitLogicalExpr(LogicalExpr* expr) {
-    resolve(expr->left.get());
-    resolve(expr->right.get());
+    resolve(expr->left);
+    resolve(expr->right);
 }
 
 void Resolver::visitUnaryExpr(UnaryExpr* expr) {
-    resolve(expr->right.get());
+    resolve(expr->right);
 }
 
 void Resolver::visitListExpr(ListExpr* expr) {
-    for (const auto& el : expr->elements) resolve(el.get());
+    for (const auto& el : expr->elements) resolve(el);
 }
 
 void Resolver::visitGetExpr(GetExpr* expr) {
-    resolve(expr->object.get());
-    resolve(expr->index.get());
+    resolve(expr->object);
+    resolve(expr->index);
 }
 
 void Resolver::visitSetExpr(SetExpr* expr) {
-    resolve(expr->value.get());
-    resolve(expr->object.get());
+    resolve(expr->value);
+    resolve(expr->object);
 }
 
 void Resolver::visitThisExpr(ThisExpr* expr) {
@@ -235,20 +232,20 @@ void Resolver::visitSuperExpr(SuperExpr* expr) {
 }
 
 void Resolver::visitPropertyExpr(PropertyExpr* expr) {
-    resolve(expr->object.get());
+    resolve(expr->object);
 }
 
 void Resolver::visitIndexSetExpr(IndexSetExpr* expr) {
-    resolve(expr->object.get());
-    resolve(expr->index.get());
-    resolve(expr->value.get());
+    resolve(expr->object);
+    resolve(expr->index);
+    resolve(expr->value);
 }
 
 void Resolver::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {}
 
 void Resolver::visitMapExpr(MapExpr* expr) {
     for (size_t i = 0; i < expr->keys.size(); i++) {
-        resolve(expr->keys[i].get());
-        resolve(expr->values[i].get());
+        resolve(expr->keys[i]);
+        resolve(expr->values[i]);
     }
 }
