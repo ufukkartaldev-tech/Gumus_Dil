@@ -2,6 +2,8 @@
 #define COMPILER_H
 
 #include <vector>
+#include <map>
+#include <string>
 #include "../parser/ast.h"
 #include "chunk.h"
 #include "op_code.h"
@@ -47,6 +49,8 @@ public:
 
 private:
     Chunk* currentChunk;
+    std::map<std::string, int> globalsMap;
+    int getGlobalIndex(const std::string& name);
     void emitByte(uint8_t byte, int line);
     void emitBytes(uint8_t byte1, uint8_t byte2, int line);
     void emitConstant(Value value, int line);

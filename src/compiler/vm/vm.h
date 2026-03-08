@@ -25,7 +25,7 @@ private:
     Chunk* chunk;
     uint8_t* ip;
     std::vector<Value> stack;
-    std::map<std::string, Value> globals;
+    std::vector<Value> globals;
 
     void push(Value value);
     Value pop();

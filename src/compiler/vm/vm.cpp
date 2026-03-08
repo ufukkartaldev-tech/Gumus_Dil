@@ -137,25 +137,25 @@ InterpretResult VM::run(Chunk* chunk) {
                 break;
             }
             case OP_DEFINE_GLOBAL: {
-                std::string name = readString();
-                globals[name] = pop();
+                uint8_t index = readByte();
+                if (index >= globals.size()) globals.resize(index + 1, Value(ValueType::UNDEFINED));
+                globals[index] = pop();
                 break;
             }
             case OP_GET_GLOBAL: {
-                std::string name = readString();
-                if (globals.find(name) == globals.end()) {
-                    // Runtime error would go here
+                uint8_t index = readByte();
+                if (index >= globals.size() || globals[index].type == ValueType::UNDEFINED) {
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                push(globals[name]);
+                push(globals[index]);
                 break;
             }
             case OP_SET_GLOBAL: {
-                std::string name = readString();
-                if (globals.find(name) == globals.end()) {
+                uint8_t index = readByte();
+                if (index >= globals.size() || globals[index].type == ValueType::UNDEFINED) {
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                globals[name] = stack.back(); // Assignment expression evaluates to the value
+                globals[index] = stack.back(); 
                 break;
             }
             case OP_JUMP: {
