@@ -106,7 +106,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // ag_baglan(ip, port)
     auto ag_baglan = std::make_shared<NativeFunction>("ag_baglan", 2, [](Interpreter&, const std::vector<Value>& args) {
         init_winsock();
-        std::string ip = args[0].stringVal;
+        std::string ip = args[0].getString();
         int port = args[1].intVal;
         
         std::cout << "AG: " << ip << ":" << port << " adresine baglaniliyor..." << std::endl;
@@ -176,8 +176,8 @@ void registerNativeFunctions(Interpreter& interpreter) {
 
     // uzunluk(deger)
     auto uzunluk = std::make_shared<NativeFunction>("uzunluk", 1, [](Interpreter&, const std::vector<Value>& args) {
-        if (args[0].type == ValueType::STRING) return Value((int)args[0].stringVal.length());
-        if (args[0].type == ValueType::LIST) return Value((int)args[0].listVal->size());
+        if (args[0].type == ValueType::STRING) return Value((int)args[0].getString().length());
+        if (args[0].type == ValueType::LIST) return Value((int)args[0].getList().size());
         return Value(0);
     });
     interpreter.functions["uzunluk"] = uzunluk;
@@ -193,7 +193,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // sayi(deger)
     auto sayi = std::make_shared<NativeFunction>("sayi", 1, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type == ValueType::STRING) {
-            try { return Value(std::stoi(args[0].stringVal)); } catch(...) { return Value(0); }
+            try { return Value(std::stoi(args[0].getString())); } catch(...) { return Value(0); }
         }
         if (args[0].type == ValueType::INTEGER) return args[0];
         if (args[0].type == ValueType::BOOLEAN) return Value(args[0].boolVal ? 1 : 0);
@@ -229,7 +229,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // ekle(liste, eleman)
     auto ekle = std::make_shared<NativeFunction>("ekle", 2, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::LIST) return Value(0);
-        args[0].listVal->push_back(args[1]);
+        args[0].getList().push_back(args[1]);
         return args[0];
     });
     interpreter.functions["ekle"] = ekle;
@@ -239,8 +239,8 @@ void registerNativeFunctions(Interpreter& interpreter) {
         if (args[0].type != ValueType::LIST) return Value(0);
         if (args[1].type != ValueType::INTEGER) return Value(0);
         int idx = args[1].intVal;
-        if (idx >= 0 && idx < (int)args[0].listVal->size()) {
-            args[0].listVal->erase(args[0].listVal->begin() + idx);
+        if (idx >= 0 && idx < (int)args[0].getList().size()) {
+            args[0].getList().erase(args[0].getList().begin() + idx);
         }
         return args[0];
     });
@@ -249,10 +249,10 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // sirala(liste)
     auto sirala = std::make_shared<NativeFunction>("sirala", 1, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::LIST) return args[0];
-        std::sort(args[0].listVal->begin(), args[0].listVal->end(), [](const Value& a, const Value& b) {
+        std::sort(args[0].getList().begin(), args[0].getList().end(), [](const Value& a, const Value& b) {
             if (a.type != b.type) return a.type < b.type;
             if (a.type == ValueType::INTEGER) return a.intVal < b.intVal;
-            if (a.type == ValueType::STRING) return a.stringVal < b.stringVal;
+            if (a.type == ValueType::STRING) return a.getString() < b.getString();
             return false;
         });
         return args[0];
@@ -280,9 +280,9 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // dosya_yaz(yol, icerik)
     auto dosya_yaz = std::make_shared<NativeFunction>("dosya_yaz", 2, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING || args[1].type != ValueType::STRING) return Value(false);
-        std::ofstream file(args[0].stringVal);
+        std::ofstream file(args[0].getString());
         if (file.is_open()) {
-            file << args[1].stringVal;
+            file << args[1].getString();
             file.close();
             return Value(true);
         }
@@ -294,7 +294,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // dosya_oku(yol)
     auto dosya_oku = std::make_shared<NativeFunction>("dosya_oku", 1, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING) return Value(std::string("")); 
-        std::ifstream file(args[0].stringVal);
+        std::ifstream file(args[0].getString());
         if (file.is_open()) {
             std::stringstream buffer;
             buffer << file.rdbuf();
@@ -308,9 +308,9 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // dosya_ekle(yol, icerik)
     auto dosya_ekle = std::make_shared<NativeFunction>("dosya_ekle", 2, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING || args[1].type != ValueType::STRING) return Value(false);
-        std::ofstream file(args[0].stringVal, std::ios_base::app);
+        std::ofstream file(args[0].getString(), std::ios_base::app);
         if (file.is_open()) {
-            file << args[1].stringVal;
+            file << args[1].getString();
             file.close();
             return Value(true);
         }
@@ -322,7 +322,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
     // dahil_et(dosya) - Critical
     auto dahil_et = std::make_shared<NativeFunction>("dahil_et", 1, [](Interpreter& interpreter, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING) return Value(false);
-        std::string filename = args[0].stringVal;
+        std::string filename = args[0].getString();
         
         if (interpreter.loadedFiles.count(filename)) return Value(true);
 
@@ -516,7 +516,7 @@ static std::map<std::string, int> voxel_map;
     // dunya_kaydet(dosya_yolu)
     auto dunya_kaydet = std::make_shared<NativeFunction>("dunya_kaydet", 1, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING) return Value(false);
-        std::string path = args[0].stringVal;
+        std::string path = args[0].getString();
         
         std::ofstream file(path);
         if (!file.is_open()) return Value(false);
@@ -538,7 +538,7 @@ static std::map<std::string, int> voxel_map;
     // dunya_yukle(dosya_yolu)
     auto dunya_yukle = std::make_shared<NativeFunction>("dunya_yukle", 1, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING) return Value(false);
-        std::string path = args[0].stringVal;
+        std::string path = args[0].getString();
         
         std::ifstream file(path);
         if (!file.is_open()) return Value(false);

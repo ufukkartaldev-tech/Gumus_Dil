@@ -36,7 +36,7 @@ InterpretResult VM::run(Chunk* chunk) {
                         case ValueType::INTEGER: isEqual = (a.intVal == b.intVal); break;
                         case ValueType::FLOAT: isEqual = (a.floatVal == b.floatVal); break;
                         case ValueType::BOOLEAN: isEqual = (a.boolVal == b.boolVal); break;
-                        case ValueType::STRING: isEqual = (a.stringVal == b.stringVal); break;
+                        case ValueType::STRING: isEqual = (a.getString() == b.getString()); break;
                         case ValueType::NIL: isEqual = true; break;
                         default: isEqual = false; break; 
                     }
@@ -208,5 +208,5 @@ Value VM::readConstant() {
 }
 
 std::string VM::readString() {
-    return readConstant().stringVal;
+    return readConstant().getString();
 }

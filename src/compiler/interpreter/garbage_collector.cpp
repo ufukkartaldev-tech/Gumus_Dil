@@ -211,13 +211,13 @@ void GarbageCollector::detectCircularReferences() {
         recursionStack.insert(obj);
         
         // Check children based on type
-        if (obj->type == ValueType::LIST && obj->listVal) {
-            for (const auto& item : *obj->listVal) {
-                detectCycle(item);
+        if (obj->type == ValueType::LIST && obj->obj) {
+            for (const auto& item : obj->getList()) {
+                detectCycle(std::make_shared<Value>(item)); // Simplified root marking
             }
-        } else if (obj->type == ValueType::MAP && obj->mapVal) {
-            for (const auto& pair : *obj->mapVal) {
-                detectCycle(pair.second);
+        } else if (obj->type == ValueType::MAP && obj->obj) {
+            for (const auto& pair : obj->getMap()) {
+                detectCycle(std::make_shared<Value>(pair.second));
             }
         }
         
@@ -273,14 +273,14 @@ void GarbageCollector::markValue(std::shared_ptr<Value> value) {
     
     switch (value->type) {
         case ValueType::LIST:
-            if (value->listVal) {
-                markList(value->listVal);
+            if (value->obj) {
+                markList(std::static_pointer_cast<ValueList>(value->obj));
             }
             break;
             
         case ValueType::MAP:
-            if (value->mapVal) {
-                markMap(value->mapVal);
+            if (value->obj) {
+                markMap(std::static_pointer_cast<std::map<std::string, Value>>(value->obj));
             }
             break;
             

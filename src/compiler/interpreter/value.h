@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <variant>
 #include <iostream>
 #include <memory> 
 #include <sstream>
+#include <iomanip>
 
 enum class ValueType {
     INTEGER,
@@ -23,55 +23,61 @@ enum class ValueType {
 };
 
 struct Value;
-
 using ValueList = std::vector<Value>;
 
+/**
+ * @brief GümüşDil Değer (Value) Yapısı
+ * 
+ * Bellek kullanımını minimize etmek için 'union' ve 'shared_ptr' kullanır.
+ * Küçük değerler (int, float, bool) doğrudan stack'te tutulurken,
+ * karmaşık nesneler (string, liste, harita, nesne) Heap'te tutulur.
+ */
 struct Value {
     ValueType type;
-    int intVal = 0;
-    double floatVal = 0.0;
-    std::string stringVal;
-    std::shared_ptr<ValueList> listVal;
-    std::shared_ptr<std::map<std::string, Value>> mapVal;
-    bool boolVal = false;
-    std::shared_ptr<void> obj; // Stores LoxClass or LoxInstance
-    std::string name; // Meta-data for objects (Function name, Class name, Instance info)
-    std::string internalState; // JSON representation of internal fields (for Instances)
+    union {
+        int intVal;
+        double floatVal;
+        bool boolVal;
+    };
+    std::shared_ptr<void> obj; // Heap nesneleri için genel işaretçi
     
-    // 🗑️ Garbage Collection Support
+    // 🗑️ Garbage Collection Desteği
     bool isMarked = false;
-    
-    // 📊 Memory Analytics
+
+    // Kurucular
+    Value() : type(ValueType::NIL), floatVal(0.0) {}
+    Value(int v) : type(ValueType::INTEGER), intVal(v) {}
+    Value(double v) : type(ValueType::FLOAT), floatVal(v) {}
+    Value(bool v) : type(ValueType::BOOLEAN), boolVal(v) {}
+    Value(std::string v) : type(ValueType::STRING), obj(std::make_shared<std::string>(v)) {}
+    Value(std::shared_ptr<ValueList> v) : type(ValueType::LIST), obj(v) {}
+    Value(std::shared_ptr<std::map<std::string, Value>> v) : type(ValueType::MAP), obj(v) {}
+    Value(std::shared_ptr<void> o, ValueType t, std::string n = "") : type(t), obj(o) {
+        // Not: 'name' meta-verisi artık nesnenin kendisinden alınmalıdır.
+    }
+
+    // Yardımcı Erişim Metotları
+    std::string& getString() const { return *std::static_pointer_cast<std::string>(obj); }
+    ValueList& getList() const { return *std::static_pointer_cast<ValueList>(obj); }
+    std::map<std::string, Value>& getMap() const { return *std::static_pointer_cast<std::map<std::string, Value>>(obj); }
+
+    // 📊 Bellek Analizi
     size_t getSize() const {
         switch (type) {
             case ValueType::INTEGER: return sizeof(int);
             case ValueType::FLOAT: return sizeof(double);
             case ValueType::BOOLEAN: return sizeof(bool);
-            case ValueType::STRING: return stringVal.size();
-            case ValueType::LIST: 
-                return listVal ? listVal->size() * sizeof(Value) : 0;
-            case ValueType::MAP:
-                return mapVal ? mapVal->size() * sizeof(std::pair<std::string, Value>) : 0;
+            case ValueType::STRING: return obj ? getString().size() : 0;
+            case ValueType::LIST: return obj ? getList().size() * sizeof(Value) : 0;
+            case ValueType::MAP: return obj ? getMap().size() * 32 : 0; // Ortalama map düğüm boyutu
             case ValueType::CLASS:
             case ValueType::INSTANCE:
-            case ValueType::FUNCTION:
-                return sizeof(void*) + name.size();
+            case ValueType::FUNCTION: return 100; // Tahmini nesne boyutu
             case ValueType::NIL:
-            default:
-                return 0;
+            default: return 0;
         }
     }
 
-    Value() : type(ValueType::NIL) {}
-    Value(int v) : type(ValueType::INTEGER), intVal(v) {}
-    Value(double v) : type(ValueType::FLOAT), floatVal(v) {}
-    Value(std::string v) : type(ValueType::STRING), stringVal(v) {}
-    Value(bool v) : type(ValueType::BOOLEAN), boolVal(v) {}
-    Value(std::shared_ptr<ValueList> v) : type(ValueType::LIST), listVal(v) {}
-    Value(std::shared_ptr<std::map<std::string, Value>> v) : type(ValueType::MAP), mapVal(v) {}
-    Value(std::shared_ptr<void> o, ValueType t, std::string n = "") : type(t), obj(o), name(n) {} // For Class/Instance
-
-    // 🏷️ Type name helper
     static std::string valueTypeName(ValueType type) {
         switch (type) {
             case ValueType::INTEGER: return "Integer";
@@ -93,40 +99,37 @@ struct Value {
             case ValueType::INTEGER: return std::to_string(intVal);
             case ValueType::FLOAT: {
                 std::ostringstream ss;
-                ss.imbue(std::locale::classic()); // Force dot as decimal separator
+                ss.imbue(std::locale::classic());
                 ss << floatVal;
                 return ss.str();
             }
-            case ValueType::STRING: return stringVal;
+            case ValueType::STRING: return getString();
             case ValueType::BOOLEAN: return boolVal ? "dogru" : "yanlis";
             case ValueType::LIST: {
                 std::string s = "[";
-                if (listVal) {
-                    for (size_t i = 0; i < listVal->size(); ++i) {
-                        s += (*listVal)[i].toString();
-                        if (i < listVal->size() - 1) s += ", ";
-                    }
+                const auto& list = getList();
+                for (size_t i = 0; i < list.size(); ++i) {
+                    s += list[i].toString();
+                    if (i < list.size() - 1) s += ", ";
                 }
                 s += "]";
                 return s;
             }
-            case ValueType::CLASS: return name.empty() ? "<sinif>" : "<sinif " + name + ">";
-
-            case ValueType::INSTANCE: return name.empty() ? "<nesne>" : name + " nesnesi";
-            case ValueType::FUNCTION: return name.empty() ? "<fonksiyon>" : "<fonksiyon " + name + ">";
             case ValueType::MAP: {
                 std::string s = "{";
-                if (mapVal) {
-                    bool first = true;
-                    for (const auto& pair : *mapVal) {
-                        if (!first) s += ", ";
-                        s += "\"" + pair.first + "\": " + pair.second.toString();
-                        first = false;
-                    }
+                const auto& map = getMap();
+                bool first = true;
+                for (const auto& pair : map) {
+                    if (!first) s += ", ";
+                    s += "\"" + pair.first + "\": " + pair.second.toString();
+                    first = false;
                 }
                 s += "}";
                 return s;
             }
+            case ValueType::CLASS: return "<sinif>";
+            case ValueType::INSTANCE: return "<nesne>";
+            case ValueType::FUNCTION: return "<fonksiyon>";
             case ValueType::NIL: return "nil";
         }
         return "";
@@ -153,19 +156,11 @@ struct Value {
             case ValueType::INTEGER:
             case ValueType::FLOAT:
             case ValueType::BOOLEAN:
-            case ValueType::NIL:
-                return "Basit";
-            case ValueType::STRING:
-                return "Metin";
+            case ValueType::NIL: return "Basit";
+            case ValueType::STRING: return "Metin";
             case ValueType::LIST:
-            case ValueType::MAP:
-                return "Karmaşık";
-            case ValueType::CLASS:
-            case ValueType::INSTANCE:
-            case ValueType::FUNCTION:
-                return "Nesne/Heap";
-            default:
-                return "Bilinmeyen";
+            case ValueType::MAP: return "Karmaşık";
+            default: return "Nesne/Heap";
         }
     }
 
@@ -186,46 +181,34 @@ struct Value {
         }
         json += "\"value\": \"" + escaped + "\", ";
         
-        void* addr = nullptr;
+        void* addr = obj.get();
         if (type == ValueType::LIST) {
-            addr = listVal.get();
-            json += "\"size\": " + (listVal ? std::to_string(listVal->size()) : "0") + ", ";
+            json += "\"size\": " + std::to_string(getList().size()) + ", ";
             json += "\"elements\": [";
-            if (listVal) {
-                for (size_t i = 0; i < listVal->size(); ++i) {
-                    json += (*listVal)[i].toJson();
-                    if (i < listVal->size() - 1) json += ", ";
-                }
+            const auto& list = getList();
+            for (size_t i = 0; i < list.size(); ++i) {
+                json += list[i].toJson();
+                if (i < list.size() - 1) json += ", ";
             }
             json += "], ";
         }
         else if (type == ValueType::MAP) {
-            addr = mapVal.get();
-            json += "\"size\": " + (mapVal ? std::to_string(mapVal->size()) : "0") + ", ";
+            json += "\"size\": " + std::to_string(getMap().size()) + ", ";
             json += "\"items\": {";
-            if (mapVal) {
-                bool first = true;
-                for (const auto& pair : *mapVal) {
-                    if (!first) json += ", ";
-                    json += "\"" + pair.first + "\": " + pair.second.toJson();
-                    first = false;
-                }
+            bool first = true;
+            for (const auto& pair : getMap()) {
+                if (!first) json += ", ";
+                json += "\"" + pair.first + "\": " + pair.second.toJson();
+                first = false;
             }
             json += "}, ";
         }
         else if (type == ValueType::STRING) {
-            json += "\"length\": " + std::to_string(stringVal.length()) + ", ";
-        }
-        else if (type == ValueType::INSTANCE || type == ValueType::CLASS || type == ValueType::FUNCTION) {
-            addr = obj.get();
-            json += "\"details\": \"" + (!name.empty() ? name : toString()) + "\", ";
-            if (!internalState.empty()) {
-                json += "\"fields\": " + internalState + ", ";
-            }
+            json += "\"length\": " + std::to_string(getString().length()) + ", ";
         }
         
         std::stringstream ss;
-        if (addr) ss << addr; // Hex format varsayilan sstream davranisidir (0x ekler bazen)
+        if (addr) ss << addr;
         else ss << "0";
         
         std::string addrStr = ss.str();
@@ -235,9 +218,7 @@ struct Value {
         json += "}";
         return json;
     }
-
-
 };
 
-
 #endif // VALUE_H
+
