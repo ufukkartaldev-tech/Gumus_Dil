@@ -13,7 +13,7 @@ bool PropertyHandlers::handle(Interpreter& interpreter, Value object, const std:
 }
 
 bool PropertyHandlers::handleList(Value object, const std::string& name, Value& result) {
-    auto list = object.listVal;
+    auto list = std::static_pointer_cast<ValueList>(object.obj);
     if (name == "uzunluk") {
         result = Value(std::make_shared<NativeFunction>("uzunluk", 0, [list](Interpreter&, const std::vector<Value>& args) {
             return Value((int)list->size());
@@ -48,7 +48,7 @@ bool PropertyHandlers::handleList(Value object, const std::string& name, Value& 
     if (name == "metin") {
         result = Value(std::make_shared<NativeFunction>("metin", 1, [list](Interpreter&, const std::vector<Value>& args) {
             std::string delimiter = "";
-            if (args[0].type == ValueType::STRING) delimiter = args[0].stringVal;
+            if (args[0].type == ValueType::STRING) delimiter = args[0].getString();
             std::string res = "";
             for (size_t i = 0; i < list->size(); ++i) {
                 res += (*list)[i].toString();
@@ -62,7 +62,7 @@ bool PropertyHandlers::handleList(Value object, const std::string& name, Value& 
 }
 
 bool PropertyHandlers::handleString(Value object, const std::string& name, Value& result) {
-    std::string s = object.stringVal;
+    std::string s = object.getString();
     if (name == "uzunluk") {
         result = Value(std::make_shared<NativeFunction>("uzunluk", 0, [s](Interpreter&, const std::vector<Value>& args) {
             return Value((int)s.length());
@@ -89,7 +89,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
         result = Value(std::make_shared<NativeFunction>("parcala", 1, [s](Interpreter&, const std::vector<Value>& args) {
             auto list = std::make_shared<ValueList>();
             std::string delimiter = " ";
-            if (args[0].type == ValueType::STRING) delimiter = args[0].stringVal;
+            if (args[0].type == ValueType::STRING) delimiter = args[0].getString();
             if (delimiter.empty()) { list->push_back(Value(s)); return Value(list); }
             std::string temp = s;
             size_t pos = 0;
@@ -111,7 +111,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
     if (name == "icerir") {
         result = Value(std::make_shared<NativeFunction>("icerir", 1, [s](Interpreter&, const std::vector<Value>& args) {
             if (args[0].type != ValueType::STRING) return Value(false);
-            return Value(s.find(args[0].stringVal) != std::string::npos);
+            return Value(s.find(args[0].getString()) != std::string::npos);
         }), ValueType::FUNCTION);
         return true;
     }
@@ -124,7 +124,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
                 return Value(buffer.str());
             }
             return Value(std::string("")); 
-        }), ValueType::FUNCTION);
+          }), ValueType::FUNCTION);
         return true;
     }
     if (name == "dosya_yaz") {
@@ -132,7 +132,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
             if (args[0].type != ValueType::STRING) return Value(false);
             std::ofstream file(s);
             if (file.is_open()) {
-                file << args[0].stringVal;
+                file << args[0].getString();
                 return Value(true);
             }
             return Value(false);
@@ -144,7 +144,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
             if (args[0].type != ValueType::STRING) return Value(false);
             std::ofstream file(s, std::ios_base::app);
             if (file.is_open()) {
-                file << args[0].stringVal;
+                file << args[0].getString();
                 return Value(true);
             }
             return Value(false);
@@ -174,7 +174,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
             auto fileList = std::make_shared<ValueList>();
             if (std::filesystem::exists(s) && std::filesystem::is_directory(s)) {
                 for (const auto& entry : std::filesystem::directory_iterator(s)) {
-                    fileList->push_back(Value(entry.path().filename().string()));
+                    fileList->push_back(Value(entry.path().filename().u8string()));
                 }
             }
             return Value(fileList);
@@ -185,7 +185,7 @@ bool PropertyHandlers::handleString(Value object, const std::string& name, Value
 }
 
 bool PropertyHandlers::handleMap(Value object, const std::string& name, Value& result) {
-    auto map = object.mapVal;
+    auto map = std::static_pointer_cast<std::map<std::string, Value>>(object.obj);
     if (name == "uzunluk") {
         result = Value(std::make_shared<NativeFunction>("uzunluk", 0, [map](Interpreter&, const std::vector<Value>& args) {
             return Value((int)map->size());

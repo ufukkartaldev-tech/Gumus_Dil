@@ -310,17 +310,17 @@ void Interpreter::visitGetExpr(GetExpr* expr) {
     if (object.type == ValueType::LIST) {
         if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Liste indeksi tamsayi olmalidir.");
         int i = index.intVal;
-        if (i < 0 || i >= (int)object.listVal->size()) throw LoxRuntimeException(expr->bracket.line, "Liste indeks hatasi (sinir disi).");
-        lastEvaluatedValue = (*object.listVal)[i];
+        if (i < 0 || i >= (int)object.getList().size()) throw LoxRuntimeException(expr->bracket.line, "Liste indeks hatasi (sinir disi).");
+        lastEvaluatedValue = object.getList()[i];
     } else if (object.type == ValueType::MAP) {
         std::string key = index.toString();
-        if (object.mapVal->count(key)) lastEvaluatedValue = (*object.mapVal)[key];
+        if (object.getMap().count(key)) lastEvaluatedValue = object.getMap()[key];
         else lastEvaluatedValue = Value();
     } else if (object.type == ValueType::STRING) {
         if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Metin indeksi tamsayi olmalidir.");
         int i = index.intVal;
-        if (i < 0 || i >= (int)object.stringVal.length()) throw LoxRuntimeException(expr->bracket.line, "Metin indeks hatasi (sinir disi).");
-        lastEvaluatedValue = Value(std::string(1, object.stringVal[i]));
+        if (i < 0 || i >= (int)object.getString().length()) throw LoxRuntimeException(expr->bracket.line, "Metin indeks hatasi (sinir disi).");
+        lastEvaluatedValue = Value(std::string(1, object.getString()[i]));
     } else throw LoxRuntimeException(expr->bracket.line, "Sadece listeler, metinler ve sozlukler indekslenebilir.");
 }
 
@@ -343,7 +343,7 @@ void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
                  case ValueType::INTEGER: isEqual = (left.intVal == right.intVal); break;
                  case ValueType::FLOAT: isEqual = (left.floatVal == right.floatVal); break;
                  case ValueType::BOOLEAN: isEqual = (left.boolVal == right.boolVal); break;
-                 case ValueType::STRING: isEqual = (left.stringVal == right.stringVal); break;
+                 case ValueType::STRING: isEqual = (left.getString() == right.getString()); break;
                  case ValueType::NIL: isEqual = true; break;
                  default: isEqual = false; break; 
              }
@@ -369,8 +369,8 @@ void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
             default: break;
         }
     } else if (expr->op.type == TokenType::PLUS) {
-        if (left.type == ValueType::STRING) lastEvaluatedValue = Value(left.stringVal + right.toString());
-        else if (right.type == ValueType::STRING) lastEvaluatedValue = Value(left.toString() + right.stringVal);
+        if (left.type == ValueType::STRING) lastEvaluatedValue = Value(left.getString() + right.toString());
+        else if (right.type == ValueType::STRING) lastEvaluatedValue = Value(left.toString() + right.getString());
         else lastEvaluatedValue = Value();
     } else lastEvaluatedValue = Value();
 }
@@ -490,9 +490,9 @@ void Interpreter::visitIndexSetExpr(IndexSetExpr* expr) {
     if (object.type == ValueType::LIST) {
         if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Liste indeksi tamsayi olmalidir.");
         int i = index.intVal;
-        if (i < 0 || i >= (int)object.listVal->size()) throw LoxRuntimeException(expr->bracket.line, "Liste indeks hatasi (sinir disi).");
-        (*object.listVal)[i] = value;
-    } else if (object.type == ValueType::MAP) (*object.mapVal)[index.toString()] = value;
+        if (i < 0 || i >= (int)object.getList().size()) throw LoxRuntimeException(expr->bracket.line, "Liste indeks hatasi (sinir disi).");
+        object.getList()[i] = value;
+    } else if (object.type == ValueType::MAP) object.getMap()[index.toString()] = value;
     else throw LoxRuntimeException(expr->bracket.line, "Sadece listelere ve sozluklere indeks ile atama yapilabilir.");
     lastEvaluatedValue = value;
 }
