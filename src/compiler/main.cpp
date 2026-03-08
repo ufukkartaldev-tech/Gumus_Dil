@@ -11,8 +11,8 @@
 // Windows header moved down
 #include "lexer/tokenizer.h"
 #include "lexer/token.h"
-#include "parser/parser.h"
 #include "parser/ast.h"
+#include "parser/ast_serializer.h"
 #include "interpreter/interpreter.h"
 #include "vm/compiler.h"
 #include "vm/vm.h"
@@ -69,12 +69,8 @@ void run(Interpreter& interpreter, const std::string& source, bool dumpAst, bool
     
     // AST Dump istegi varsa JSON bas ve cik
     if (dumpAst) {
-        std::cout << "[";
-        for (size_t i = 0; i < statements.size(); ++i) {
-            std::cout << statements[i]->toJson();
-            if (i < statements.size() - 1) std::cout << ", ";
-        }
-        std::cout << "]\n";
+        AstJsonSerializer serializer;
+        std::cout << serializer.serialize(statements) << "\n";
         return;
     }
 
