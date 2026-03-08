@@ -253,7 +253,8 @@ public:
     std::vector<std::string> callStack;
 
     // AST Persistence (to prevent dangling pointers in imported functions)
-    std::vector<std::vector<std::unique_ptr<Stmt>>> astList;
+    std::vector<std::unique_ptr<Stmt>> astList;
+    void persistAst(std::vector<std::unique_ptr<Stmt>>& statements);
     
     // 🗑️ Garbage Collection
     std::unique_ptr<GarbageCollector> garbageCollector;

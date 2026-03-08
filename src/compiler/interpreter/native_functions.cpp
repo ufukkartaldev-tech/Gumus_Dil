@@ -375,9 +375,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
                 
                 interpreter.executeBlock(statements, interpreter.globals);
 
-                // AST'yi canli tut (Dangling pointer onlemi)
-                // Sahipliği taşıyoruz.
-                interpreter.astList.push_back(std::move(statements));
+                interpreter.persistAst(statements);
             }
         } catch (...) {
             JsonHata("import_error", "Modul yuklenirken hata: " + filename, 0);
