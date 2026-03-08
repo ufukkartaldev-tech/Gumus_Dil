@@ -19,6 +19,7 @@ class AIPanel(ctk.CTkFrame):
         self.on_get_code = on_get_code
         self.knowledge_base = self._load_kb()
         
+        self.is_processing = False
         self._setup_ui()
         self.ai_engine = GumusIntelligenceEngine(use_local_model=True)
         self.add_message("Merhaba aslanım! Gümüş Zeka emrine amade. Kodun dumanı mı tütüyor yoksa yeni bir mühür mü basacağız?", is_user=False)
@@ -77,12 +78,16 @@ class AIPanel(ctk.CTkFrame):
         self.chat_history._parent_canvas.yview_moveto(1.0)
 
     def send_message(self, event=None):
+        if self.is_processing:
+            return # Zaten işlem yapılıyor
+            
         msg = self.input_entry.get().strip()
         if msg:
             self.add_message(msg, is_user=True)
             self.input_entry.delete(0, "end")
             
             # Start worker thread
+            self.is_processing = True
             current_code = self.on_get_code() if self.on_get_code else ""
             threading.Thread(target=self._ai_worker, args=(msg, current_code), daemon=True).start()
 
@@ -123,6 +128,8 @@ class AIPanel(ctk.CTkFrame):
             
         except Exception as e:
             self.after(0, lambda: self.add_message(f"Hata oluştu: {str(e)}", is_error=True))
+        finally:
+            self.is_processing = False
 
     def _show_fix_option(self, code):
         container = ctk.CTkFrame(self.chat_history, fg_color="transparent")
@@ -131,6 +138,10 @@ class AIPanel(ctk.CTkFrame):
         ctk.CTkButton(container, text="✗ Reddet", fg_color="#f44336", command=lambda: container.destroy()).pack(side="right", padx=5, expand=True, fill="x")
 
     def receive_external_query(self, query):
+        if self.is_processing:
+            return
+            
         self.add_message(query, is_user=True)
+        self.is_processing = True
         current_code = self.on_get_code() if self.on_get_code else ""
         threading.Thread(target=self._ai_worker, args=(query, current_code), daemon=True).start()
