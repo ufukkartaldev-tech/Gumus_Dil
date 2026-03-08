@@ -536,3 +536,38 @@ void Interpreter::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {
     try { lastEvaluatedValue = module->environment->get(expr->name.value); }
     catch (...) { throw LoxRuntimeException(0, "Modul '" + moduleName + "' icinde '" + expr->name.value + "' bulunamadi."); }
 }
+static bool _containsDeclaration(Stmt* stmt) {
+    if (!stmt) return false;
+    if (dynamic_cast<FunctionStmt*>(stmt) || dynamic_cast<ClassStmt*>(stmt) || dynamic_cast<ModuleStmt*>(stmt)) {
+        return true;
+    }
+    if (auto block = dynamic_cast<BlockStmt*>(stmt)) {
+        for (const auto& s : block->statements) {
+            if (_containsDeclaration(s.get())) return true;
+        }
+    }
+    if (auto ifStmt = dynamic_cast<IfStmt*>(stmt)) {
+        if (_containsDeclaration(ifStmt->thenBranch.get())) return true;
+        if (ifStmt->elseBranch && _containsDeclaration(ifStmt->elseBranch.get())) return true;
+    }
+    if (auto whileStmt = dynamic_cast<WhileStmt*>(stmt)) {
+        if (_containsDeclaration(whileStmt->body.get())) return true;
+    }
+    if (auto forStmt = dynamic_cast<ForStmt*>(stmt)) {
+        if (forStmt->initializer && _containsDeclaration(forStmt->initializer.get())) return true;
+        if (forStmt->body && _containsDeclaration(forStmt->body.get())) return true;
+    }
+    if (auto tryCatch = dynamic_cast<TryCatchStmt*>(stmt)) {
+        if (_containsDeclaration(tryCatch->tryBlock.get())) return true;
+        if (_containsDeclaration(tryCatch->catchBlock.get())) return true;
+    }
+    return false;
+}
+
+void Interpreter::persistAst(std::vector<std::unique_ptr<Stmt>>& statements) {
+    for (auto& stmt : statements) {
+        if (_containsDeclaration(stmt.get())) {
+            astList.push_back(std::move(stmt));
+        }
+    }
+}
