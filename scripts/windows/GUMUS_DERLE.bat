@@ -15,6 +15,8 @@ g++ -std=c++17 -O3 -o gumus.exe ^
     src/compiler/interpreter/native_functions.cpp ^
     src/compiler/interpreter/objects.cpp ^
     src/compiler/interpreter/property_handlers.cpp ^
+    src/compiler/vm/vm.cpp ^
+    src/compiler/vm/compiler.cpp ^
     src/compiler/semantic/resolver.cpp ^
     src/compiler/lsp_server.cpp ^
     src/compiler/hardware/serial_port.cpp ^
