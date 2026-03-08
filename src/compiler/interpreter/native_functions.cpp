@@ -366,17 +366,18 @@ void registerNativeFunctions(Interpreter& interpreter) {
             Tokenizer tokenizer(source);
             std::vector<Token> tokens = tokenizer.tokenize();
             Parser parser(tokens);
-            std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
+            std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
             
             if (!parser.hasError()) {
-                // AST'yi canli tut (Dangling pointer onlemi)
-                interpreter.astList.push_back(statements);
-
                 // SEMA ANALIZI (Resolver)
                 Resolver resolver(interpreter);
                 resolver.resolve(statements);
                 
                 interpreter.executeBlock(statements, interpreter.globals);
+
+                // AST'yi canli tut (Dangling pointer onlemi)
+                // Sahipliği taşıyoruz.
+                interpreter.astList.push_back(std::move(statements));
             }
         } catch (...) {
             JsonHata("import_error", "Modul yuklenirken hata: " + filename, 0);

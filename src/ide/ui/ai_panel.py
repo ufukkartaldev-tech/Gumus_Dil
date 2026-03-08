@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import threading
 import customtkinter as ctk
 import random
 import re
@@ -45,9 +46,12 @@ class AIPanel(ctk.CTkFrame):
         self.input_entry.bind("<Return>", self.send_message)
         ctk.CTkButton(self.input_wrapper, text="🚀", width=36, height=36, corner_radius=18, command=self.send_message).pack(side="right", padx=2)
 
-    def add_message(self, text, is_user=False, is_error=False):
+    def add_message(self, text, is_user=False, is_error=False, is_system=False):
         theme = self.config.THEMES[self.config.theme]
-        bg = theme['accent'] if is_user else (theme['editor_bg'] if not is_error else "#441111")
+        if is_system:
+            bg = "#2c3e50"
+        else:
+            bg = theme['accent'] if is_user else (theme['editor_bg'] if not is_error else "#441111")
         align = "right" if is_user else "left"
         
         container = ctk.CTkFrame(self.chat_history, fg_color="transparent")
@@ -77,28 +81,48 @@ class AIPanel(ctk.CTkFrame):
         if msg:
             self.add_message(msg, is_user=True)
             self.input_entry.delete(0, "end")
-            self.after(800, lambda: self.process_response(msg))
+            
+            # Start worker thread
+            current_code = self.on_get_code() if self.on_get_code else ""
+            threading.Thread(target=self._ai_worker, args=(msg, current_code), daemon=True).start()
 
-    def process_response(self, query):
-        # 1. AI Engine
-        local_resp = self.ai_engine.generate_response(query, self.on_get_code() if self.on_get_code else "")
-        if local_resp: self.add_message(local_resp); return
+    def _ai_worker(self, query, code_context):
+        """Bu fonksiyon arka planda (Worker Thread) çalışır, UI'ı dondurmaz."""
+        self.after(0, lambda: self.add_message("Gümüş Zeka düşünüyor... 🧠", is_system=True))
+        
+        try:
+            # 1. AI Engine
+            local_resp = self.ai_engine.generate_response(query, code_context)
+            if local_resp:
+                self.after(0, lambda: self.add_message(local_resp))
+                return
 
-        # 2. Summarizer
-        if any(w in query.lower() for w in ["özetle", "ne yapıyor"]):
-            if self.on_get_code: self.add_message(GumusSummarizer.summarize(self.on_get_code())); return
+            # 2. Summarizer
+            if any(w in query.lower() for w in ["özetle", "ne yapıyor"]):
+                summary = GumusSummarizer.summarize(code_context)
+                self.after(0, lambda: self.add_message(summary))
+                return
 
-        # 3. Fuzzy Logic
-        fuzzy = AIAssistantLogic.get_fuzzy_response(query)
-        if fuzzy: self.add_message(AIAssistantLogic.apply_mood(fuzzy)); return
+            # 3. Fuzzy Logic
+            fuzzy = AIAssistantLogic.get_fuzzy_response(query)
+            if fuzzy:
+                resp = AIAssistantLogic.apply_mood(fuzzy)
+                self.after(0, lambda: self.add_message(resp))
+                return
 
-        # 4. Code Gen
-        if any(w in query.lower() for w in ["kod", "yaz", "oluştur"]):
-            code, analysis = AIAssistantLogic.generate_code_snippet(query)
-            self.add_message(f"{analysis}\n\n```gümüşdil\n{code}\n```")
-            self._show_fix_option(code); return
+            # 4. Code Gen
+            if any(w in query.lower() for w in ["kod", "yaz", "oluştur"]):
+                code, analysis = AIAssistantLogic.generate_code_snippet(query)
+                self.after(0, lambda: (
+                    self.add_message(f"{analysis}\n\n```gümüşdil\n{code}\n```"),
+                    self._show_fix_option(code)
+                ))
+                return
 
-        self.add_message("Bunu henüz mühürlemedim yeğenim, ama üzerinde çalışıyorum! 🌱")
+            self.after(0, lambda: self.add_message("Bunu henüz mühürlemedim yeğenim, ama üzerinde çalışıyorum! 🌱"))
+            
+        except Exception as e:
+            self.after(0, lambda: self.add_message(f"Hata oluştu: {str(e)}", is_error=True))
 
     def _show_fix_option(self, code):
         container = ctk.CTkFrame(self.chat_history, fg_color="transparent")
@@ -108,4 +132,5 @@ class AIPanel(ctk.CTkFrame):
 
     def receive_external_query(self, query):
         self.add_message(query, is_user=True)
-        self.after(500, lambda: self.process_response(query))
+        current_code = self.on_get_code() if self.on_get_code else ""
+        threading.Thread(target=self._ai_worker, args=(query, current_code), daemon=True).start()

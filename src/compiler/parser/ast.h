@@ -129,10 +129,10 @@ struct LiteralExpr : public Expr {
 };
 
 struct BinaryExpr : public Expr {
-    std::shared_ptr<Expr> left;
+    std::unique_ptr<Expr> left;
     Token op;
-    std::shared_ptr<Expr> right;
-    BinaryExpr(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(move(left)), op(op), right(move(right)) {}
+    std::unique_ptr<Expr> right;
+    BinaryExpr(std::unique_ptr<Expr> left, Token op, std::unique_ptr<Expr> right) : left(std::move(left)), op(op), right(std::move(right)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitBinaryExpr(this); }
     std::string toString() const override { return "Binary(" + left->toString() + " " + op.value + " " + right->toString() + ")"; }
     std::string toJson() const override {
@@ -157,8 +157,8 @@ struct VariableExpr : public Expr {
 
 struct UnaryExpr : public Expr {
     Token op;
-    std::shared_ptr<Expr> right;
-    UnaryExpr(Token op, std::shared_ptr<Expr> right) : op(op), right(move(right)) {}
+    std::unique_ptr<Expr> right;
+    UnaryExpr(Token op, std::unique_ptr<Expr> right) : op(op), right(std::move(right)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitUnaryExpr(this); }
     std::string toString() const override { return "Unary(" + op.value + " " + right->toString() + ")"; }
     std::string toJson() const override {
@@ -168,10 +168,10 @@ struct UnaryExpr : public Expr {
 };
 
 struct LogicalExpr : public Expr {
-    std::shared_ptr<Expr> left;
+    std::unique_ptr<Expr> left;
     Token op;
-    std::shared_ptr<Expr> right;
-    LogicalExpr(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(move(left)), op(op), right(move(right)) {}
+    std::unique_ptr<Expr> right;
+    LogicalExpr(std::unique_ptr<Expr> left, Token op, std::unique_ptr<Expr> right) : left(std::move(left)), op(op), right(std::move(right)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitLogicalExpr(this); }
     std::string toString() const override { return "Logical(" + left->toString() + " " + op.value + " " + right->toString() + ")"; }
     std::string toJson() const override {
@@ -182,10 +182,10 @@ struct LogicalExpr : public Expr {
 
 struct AssignExpr : public Expr {
     Token name;
-    std::shared_ptr<Expr> value;
+    std::unique_ptr<Expr> value;
     int distance = -1; // Resolver tarafından doldurulacak
 
-    AssignExpr(Token name, std::shared_ptr<Expr> value) : name(name), value(move(value)) {}
+    AssignExpr(Token name, std::unique_ptr<Expr> value) : name(name), value(std::move(value)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitAssignExpr(this); }
     std::string toString() const override { return "Assign(" + name.value + " = " + value->toString() + ")"; }
     std::string toJson() const override {
@@ -195,8 +195,8 @@ struct AssignExpr : public Expr {
 };
 
 struct ExpressionStmt : public Stmt {
-    std::shared_ptr<Expr> expression;
-    ExpressionStmt(std::shared_ptr<Expr> expression) : expression(move(expression)) {}
+    std::unique_ptr<Expr> expression;
+    ExpressionStmt(std::unique_ptr<Expr> expression) : expression(std::move(expression)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitExpressionStmt(this); }
     std::string toString() const override { return "ExprStmt(" + expression->toString() + ")"; }
     std::string toJson() const override {
@@ -205,8 +205,8 @@ struct ExpressionStmt : public Stmt {
 };
 
 struct PrintStmt : public Stmt {
-    std::shared_ptr<Expr> expression;
-    PrintStmt(std::shared_ptr<Expr> expression) : expression(move(expression)) {}
+    std::unique_ptr<Expr> expression;
+    PrintStmt(std::unique_ptr<Expr> expression) : expression(std::move(expression)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitPrintStmt(this); }
     std::string toString() const override { return "Print(" + expression->toString() + ")"; }
     std::string toJson() const override {
@@ -215,8 +215,8 @@ struct PrintStmt : public Stmt {
 };
 
 struct BlockStmt : public Stmt {
-    std::vector<std::shared_ptr<Stmt>> statements;
-    BlockStmt(std::vector<std::shared_ptr<Stmt>> statements) : statements(move(statements)) {}
+    std::vector<std::unique_ptr<Stmt>> statements;
+    BlockStmt(std::vector<std::unique_ptr<Stmt>> statements) : statements(std::move(statements)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitBlockStmt(this); }
     std::string toString() const override { return "Block"; }
     std::string toJson() const override {
@@ -231,10 +231,10 @@ struct BlockStmt : public Stmt {
 };
 
 struct IfStmt : public Stmt {
-    std::shared_ptr<Expr> condition;
-    std::shared_ptr<Stmt> thenBranch;
-    std::shared_ptr<Stmt> elseBranch;
-    IfStmt(std::shared_ptr<Expr> c, std::shared_ptr<Stmt> t, std::shared_ptr<Stmt> e) : condition(move(c)), thenBranch(move(t)), elseBranch(move(e)) {}
+    std::unique_ptr<Expr> condition;
+    std::unique_ptr<Stmt> thenBranch;
+    std::unique_ptr<Stmt> elseBranch;
+    IfStmt(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> t, std::unique_ptr<Stmt> e) : condition(std::move(c)), thenBranch(std::move(t)), elseBranch(std::move(e)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitIfStmt(this); }
     std::string toString() const override { return "If"; }
     std::string toJson() const override {
@@ -246,9 +246,9 @@ struct IfStmt : public Stmt {
 };
 
 struct WhileStmt : public Stmt {
-    std::shared_ptr<Expr> condition;
-    std::shared_ptr<Stmt> body;
-    WhileStmt(std::shared_ptr<Expr> c, std::shared_ptr<Stmt> b) : condition(move(c)), body(move(b)) {}
+    std::unique_ptr<Expr> condition;
+    std::unique_ptr<Stmt> body;
+    WhileStmt(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> b) : condition(std::move(c)), body(std::move(b)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitWhileStmt(this); }
     std::string toString() const override { return "While"; }
     std::string toJson() const override {
@@ -279,10 +279,10 @@ struct ContinueStmt : public Stmt {
 };
 
 struct TryCatchStmt : public Stmt {
-    std::shared_ptr<Stmt> tryBlock;
+    std::unique_ptr<Stmt> tryBlock;
     Token errorName;
-    std::shared_ptr<Stmt> catchBlock;
-    TryCatchStmt(std::shared_ptr<Stmt> t, Token err, std::shared_ptr<Stmt> c) : tryBlock(t), errorName(err), catchBlock(c) {}
+    std::unique_ptr<Stmt> catchBlock;
+    TryCatchStmt(std::unique_ptr<Stmt> t, Token err, std::unique_ptr<Stmt> c) : tryBlock(std::move(t)), errorName(err), catchBlock(std::move(c)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitTryCatchStmt(this); }
     std::string toString() const override { return "TryCatch"; }
     std::string toJson() const override {
@@ -291,8 +291,8 @@ struct TryCatchStmt : public Stmt {
 };
 
 struct ListExpr : public Expr {
-    std::vector<std::shared_ptr<Expr>> elements;
-    ListExpr(std::vector<std::shared_ptr<Expr>> elements) : elements(move(elements)) {}
+    std::vector<std::unique_ptr<Expr>> elements;
+    ListExpr(std::vector<std::unique_ptr<Expr>> elements) : elements(std::move(elements)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitListExpr(this); }
     std::string toString() const override { return "List"; }
     std::string toJson() const override {
@@ -307,10 +307,10 @@ struct ListExpr : public Expr {
 };
 
 struct GetExpr : public Expr {
-    std::shared_ptr<Expr> object;
+    std::unique_ptr<Expr> object;
     Token bracket; // Indexleme tokeni [
-    std::shared_ptr<Expr> index;
-    GetExpr(std::shared_ptr<Expr> o, Token b, std::shared_ptr<Expr> i) : object(move(o)), bracket(b), index(move(i)) {}
+    std::unique_ptr<Expr> index;
+    GetExpr(std::unique_ptr<Expr> o, Token b, std::unique_ptr<Expr> i) : object(std::move(o)), bracket(b), index(std::move(i)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitGetExpr(this); }
     std::string toString() const override { return "Get"; }
     std::string toJson() const override {
@@ -320,12 +320,12 @@ struct GetExpr : public Expr {
 };
 
 struct IndexSetExpr : public Expr {
-    std::shared_ptr<Expr> object;
+    std::unique_ptr<Expr> object;
     Token bracket;
-    std::shared_ptr<Expr> index;
-    std::shared_ptr<Expr> value;
-    IndexSetExpr(std::shared_ptr<Expr> o, Token b, std::shared_ptr<Expr> i, std::shared_ptr<Expr> v) 
-        : object(move(o)), bracket(b), index(move(i)), value(move(v)) {}
+    std::unique_ptr<Expr> index;
+    std::unique_ptr<Expr> value;
+    IndexSetExpr(std::unique_ptr<Expr> o, Token b, std::unique_ptr<Expr> i, std::unique_ptr<Expr> v) 
+        : object(std::move(o)), bracket(b), index(std::move(i)), value(std::move(v)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitIndexSetExpr(this); }
     std::string toString() const override { return "IndexSet"; }
     std::string toJson() const override {
@@ -335,9 +335,9 @@ struct IndexSetExpr : public Expr {
 };
 
 struct PropertyExpr : public Expr {
-    std::shared_ptr<Expr> object;
+    std::unique_ptr<Expr> object;
     Token name;
-    PropertyExpr(std::shared_ptr<Expr> o, Token n) : object(move(o)), name(n) {}
+    PropertyExpr(std::unique_ptr<Expr> o, Token n) : object(std::move(o)), name(n) {}
     void accept(ExprVisitor& visitor) override { visitor.visitPropertyExpr(this); }
     std::string toString() const override { return "Prop"; }
     std::string toJson() const override {
@@ -347,10 +347,10 @@ struct PropertyExpr : public Expr {
 };
 
 struct SetExpr : public Expr {
-    std::shared_ptr<Expr> object;
+    std::unique_ptr<Expr> object;
     Token name;
-    std::shared_ptr<Expr> value;
-    SetExpr(std::shared_ptr<Expr> o, Token n, std::shared_ptr<Expr> v) : object(move(o)), name(n), value(move(v)) {}
+    std::unique_ptr<Expr> value;
+    SetExpr(std::unique_ptr<Expr> o, Token n, std::unique_ptr<Expr> v) : object(std::move(o)), name(n), value(std::move(v)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitSetExpr(this); }
     std::string toString() const override { return "Set"; }
     std::string toJson() const override {
@@ -387,10 +387,10 @@ struct SuperExpr : public Expr {
 };
 
 struct CallExpr : public Expr {
-    std::shared_ptr<Expr> callee;
+    std::unique_ptr<Expr> callee;
     Token paren;
-    std::vector<std::shared_ptr<Expr>> arguments;
-    CallExpr(std::shared_ptr<Expr> c, Token p, std::vector<std::shared_ptr<Expr>> args) : callee(move(c)), paren(p), arguments(move(args)) {}
+    std::vector<std::unique_ptr<Expr>> arguments;
+    CallExpr(std::unique_ptr<Expr> c, Token p, std::vector<std::unique_ptr<Expr>> args) : callee(std::move(c)), paren(p), arguments(std::move(args)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitCallExpr(this); }
     std::string toString() const override { return "Call"; }
     std::string toJson() const override {
@@ -405,8 +405,8 @@ struct CallExpr : public Expr {
 struct FunctionStmt : public Stmt {
     Token name;
     std::vector<Token> params;
-    std::vector<std::shared_ptr<Stmt>> body;
-    FunctionStmt(Token n, std::vector<Token> p, std::vector<std::shared_ptr<Stmt>> b) : name(n), params(move(p)), body(move(b)) {}
+    std::vector<std::unique_ptr<Stmt>> body;
+    FunctionStmt(Token n, std::vector<Token> p, std::vector<std::unique_ptr<Stmt>> b) : name(n), params(std::move(p)), body(std::move(b)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitFunctionStmt(this); }
     std::string toString() const override { return "Function"; }
     std::string toJson() const override {
@@ -427,9 +427,9 @@ struct FunctionStmt : public Stmt {
 
 struct ClassStmt : public Stmt {
     Token name;
-    std::shared_ptr<VariableExpr> superclass;
-    std::vector<std::shared_ptr<FunctionStmt>> methods;
-    ClassStmt(Token n, std::shared_ptr<VariableExpr> s, std::vector<std::shared_ptr<FunctionStmt>> m) : name(n), superclass(s), methods(move(m)) {}
+    std::unique_ptr<VariableExpr> superclass;
+    std::vector<std::unique_ptr<FunctionStmt>> methods;
+    ClassStmt(Token n, std::unique_ptr<VariableExpr> s, std::vector<std::unique_ptr<FunctionStmt>> m) : name(n), superclass(std::move(s)), methods(std::move(m)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitClassStmt(this); }
     std::string toString() const override { return "Class"; }
     std::string toJson() const override {
@@ -449,8 +449,8 @@ struct ClassStmt : public Stmt {
 
 struct VarStmt : public Stmt {
     Token name;
-    std::shared_ptr<Expr> initializer;
-    VarStmt(Token n, std::shared_ptr<Expr> i) : name(n), initializer(move(i)) {}
+    std::unique_ptr<Expr> initializer;
+    VarStmt(Token n, std::unique_ptr<Expr> i) : name(n), initializer(std::move(i)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitVarStmt(this); }
     std::string toString() const override { return "Var"; }
     std::string toJson() const override {
@@ -464,8 +464,8 @@ struct VarStmt : public Stmt {
 
 struct ReturnStmt : public Stmt {
     Token keyword;
-    std::shared_ptr<Expr> value;
-    ReturnStmt(Token k, std::shared_ptr<Expr> v) : keyword(k), value(move(v)) {}
+    std::unique_ptr<Expr> value;
+    ReturnStmt(Token k, std::unique_ptr<Expr> v) : keyword(k), value(std::move(v)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitReturnStmt(this); }
     std::string toString() const override { return "Return"; }
     std::string toJson() const override {
@@ -490,8 +490,8 @@ struct ScopeResolutionExpr : public Expr {
 
 struct ModuleStmt : public Stmt {
     Token name;
-    std::vector<std::shared_ptr<Stmt>> statements;
-    ModuleStmt(Token n, std::vector<std::shared_ptr<Stmt>> s) : name(n), statements(move(s)) {}
+    std::vector<std::unique_ptr<Stmt>> statements;
+    ModuleStmt(Token n, std::vector<std::unique_ptr<Stmt>> s) : name(n), statements(std::move(s)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitModuleStmt(this); }
     std::string toString() const override { return "Module"; }
     std::string toJson() const override {
@@ -508,13 +508,13 @@ struct ModuleStmt : public Stmt {
 
 struct ForStmt : public Stmt {
     Token keyword;  // 'dongu' keyword for line tracking
-    std::shared_ptr<Stmt> initializer;
-    std::shared_ptr<Expr> condition;
-    std::shared_ptr<Expr> increment;
-    std::shared_ptr<Stmt> body;
+    std::unique_ptr<Stmt> initializer;
+    std::unique_ptr<Expr> condition;
+    std::unique_ptr<Expr> increment;
+    std::unique_ptr<Stmt> body;
     
-    ForStmt(Token kw, std::shared_ptr<Stmt> init, std::shared_ptr<Expr> cond, std::shared_ptr<Expr> inc, std::shared_ptr<Stmt> b)
-    : keyword(kw), initializer(init), condition(cond), increment(inc), body(b) {}
+    ForStmt(Token kw, std::unique_ptr<Stmt> init, std::unique_ptr<Expr> cond, std::unique_ptr<Expr> inc, std::unique_ptr<Stmt> b)
+    : keyword(kw), initializer(std::move(init)), condition(std::move(cond)), increment(std::move(inc)), body(std::move(b)) {}
     
     void accept(StmtVisitor& visitor) override { visitor.visitForStmt(this); }
     std::string toString() const override { return "For"; }
@@ -532,9 +532,9 @@ struct ForStmt : public Stmt {
 };
 
 struct MapExpr : public Expr {
-    std::vector<std::shared_ptr<Expr>> keys;
-    std::vector<std::shared_ptr<Expr>> values;
-    MapExpr(std::vector<std::shared_ptr<Expr>> k, std::vector<std::shared_ptr<Expr>> v) : keys(move(k)), values(move(v)) {}
+    std::vector<std::unique_ptr<Expr>> keys;
+    std::vector<std::unique_ptr<Expr>> values;
+    MapExpr(std::vector<std::unique_ptr<Expr>> k, std::vector<std::unique_ptr<Expr>> v) : keys(std::move(k)), values(std::move(v)) {}
     void accept(ExprVisitor& visitor) override { visitor.visitMapExpr(this); }
     std::string toString() const override { return "Map"; }
     std::string toJson() const override {

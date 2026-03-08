@@ -3,49 +3,50 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include "../lexer/token.h"
 #include "ast.h"
 
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    std::vector<std::shared_ptr<Stmt>> parse();
+    std::vector<std::unique_ptr<Stmt>> parse();
     bool hasError() const;
 
 private:
     std::vector<Token> tokens;
     int current;
     bool hadError;
-    int errorCountPerLine[1000];
+    std::unordered_map<int, int> errorCountPerLine;
 
-    std::shared_ptr<Stmt> varDeclaration();
-    std::shared_ptr<Stmt> classDeclaration();
-    std::shared_ptr<Stmt> moduleDeclaration(); // Yeni Modul Destegi
-    std::shared_ptr<Stmt> statement();
-    std::shared_ptr<Stmt> ifStatement();
-    std::shared_ptr<Stmt> whileStatement();
-    std::shared_ptr<Stmt> tryCatchStatement();
-    std::shared_ptr<Stmt> function(const std::string& kind);
+    std::unique_ptr<Stmt> varDeclaration();
+    std::unique_ptr<Stmt> classDeclaration();
+    std::unique_ptr<Stmt> moduleDeclaration(); // Yeni Modul Destegi
+    std::unique_ptr<Stmt> statement();
+    std::unique_ptr<Stmt> ifStatement();
+    std::unique_ptr<Stmt> whileStatement();
+    std::unique_ptr<Stmt> tryCatchStatement();
+    std::unique_ptr<Stmt> function(const std::string& kind);
 
-    std::shared_ptr<Stmt> returnStatement();
-    std::shared_ptr<Stmt> printStatement();
-    std::shared_ptr<Stmt> expressionStatement();
-    std::vector<std::shared_ptr<Stmt>> block();
+    std::unique_ptr<Stmt> returnStatement();
+    std::unique_ptr<Stmt> printStatement();
+    std::unique_ptr<Stmt> expressionStatement();
+    std::vector<std::unique_ptr<Stmt>> block();
 
-    std::shared_ptr<Expr> expression();
-    std::shared_ptr<Expr> assignment();
-    std::shared_ptr<Expr> logicOr();
-    std::shared_ptr<Expr> logicAnd();
-    std::shared_ptr<Expr> equality();
+    std::unique_ptr<Expr> expression();
+    std::unique_ptr<Expr> assignment();
+    std::unique_ptr<Expr> logicOr();
+    std::unique_ptr<Expr> logicAnd();
+    std::unique_ptr<Expr> equality();
 
-    std::shared_ptr<Expr> comparison();
-    std::shared_ptr<Expr> term();
-    std::shared_ptr<Expr> factor();
-    std::shared_ptr<Expr> unary();
-    std::shared_ptr<Expr> call();
-    std::shared_ptr<Expr> finishCall(std::shared_ptr<Expr> callee);
-    std::shared_ptr<Expr> finishIndex(std::shared_ptr<Expr> object, Token bracket);
-    std::shared_ptr<Expr> primary();
+    std::unique_ptr<Expr> comparison();
+    std::unique_ptr<Expr> term();
+    std::unique_ptr<Expr> factor();
+    std::unique_ptr<Expr> unary();
+    std::unique_ptr<Expr> call();
+    std::unique_ptr<Expr> finishCall(std::unique_ptr<Expr> callee);
+    std::unique_ptr<Expr> finishIndex(std::unique_ptr<Expr> object, Token bracket);
+    std::unique_ptr<Expr> primary();
 
     Token peek() const;
     Token previous() const;

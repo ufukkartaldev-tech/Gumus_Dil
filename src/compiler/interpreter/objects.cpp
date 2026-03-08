@@ -6,7 +6,7 @@
 
 // --- UserFunction Implementation ---
 
-UserFunction::UserFunction(std::shared_ptr<FunctionStmt> declaration, std::shared_ptr<Environment> closure) 
+UserFunction::UserFunction(FunctionStmt* declaration, std::shared_ptr<Environment> closure) 
     : declaration(declaration), closure(closure) {}
 
 int UserFunction::arity() { 
@@ -30,9 +30,6 @@ Value UserFunction::call(Interpreter& interpreter, const std::vector<Value>& arg
     if (closure->has("\xC3\xB6" "z")) {
         interpreter.activeInstance = closure->get("\xC3\xB6" "z").obj;
     } else {
-
-
-
         interpreter.activeInstance = nullptr;
     }
 
@@ -43,9 +40,9 @@ Value UserFunction::call(Interpreter& interpreter, const std::vector<Value>& arg
 
     Value returnValue; // Defaults to NIL
     try {
-        ExecutionStatus status = interpreter.executeBlock(declaration->body, environment);
-        if (status.type == ExecutionResult::RETURN) {
-            returnValue = status.value;
+        interpreter.executeBlock(declaration->body, environment);
+        if (interpreter.lastEvaluatedStatus.type == ExecutionResult::RETURN) {
+            returnValue = interpreter.lastEvaluatedStatus.value;
         }
     } catch (...) {
         interpreter.activeInstance = previousInstance;

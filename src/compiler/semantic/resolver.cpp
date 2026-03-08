@@ -3,17 +3,17 @@
 
 Resolver::Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
-void Resolver::resolve(const std::vector<std::shared_ptr<Stmt>>& statements) {
+void Resolver::resolve(const std::vector<std::unique_ptr<Stmt>>& statements) {
     for (const auto& statement : statements) {
-        resolve(statement);
+        resolve(statement.get());
     }
 }
 
-void Resolver::resolve(std::shared_ptr<Stmt> stmt) {
+void Resolver::resolve(Stmt* stmt) {
     if (stmt) stmt->accept(*this);
 }
 
-void Resolver::resolve(std::shared_ptr<Expr> expr) {
+void Resolver::resolve(Expr* expr) {
     if (expr) expr->accept(*this);
 }
 
@@ -70,7 +70,7 @@ void Resolver::resolveFunction(FunctionStmt* function, FunctionType type) {
         define(param);
     }
     for (const auto& stmt : function->body) {
-        resolve(stmt);
+        resolve(stmt.get());
     }
     endScope();
     currentFunction = enclosingFunction;
@@ -79,14 +79,14 @@ void Resolver::resolveFunction(FunctionStmt* function, FunctionType type) {
 // Stmt Visitors
 void Resolver::visitBlockStmt(BlockStmt* stmt) {
     beginScope();
-    for (const auto& s : stmt->statements) resolve(s);
+    for (const auto& s : stmt->statements) resolve(s.get());
     endScope();
 }
 
 void Resolver::visitVarStmt(VarStmt* stmt) {
     declare(stmt->name);
     if (stmt->initializer != nullptr) {
-        resolve(stmt->initializer);
+        resolve(stmt->initializer.get());
     }
     define(stmt->name);
 }
@@ -98,36 +98,36 @@ void Resolver::visitFunctionStmt(FunctionStmt* stmt) {
 }
 
 void Resolver::visitExpressionStmt(ExpressionStmt* stmt) {
-    resolve(stmt->expression);
+    resolve(stmt->expression.get());
 }
 
 void Resolver::visitIfStmt(IfStmt* stmt) {
-    resolve(stmt->condition);
-    resolve(stmt->thenBranch);
-    if (stmt->elseBranch != nullptr) resolve(stmt->elseBranch);
+    resolve(stmt->condition.get());
+    resolve(stmt->thenBranch.get());
+    if (stmt->elseBranch != nullptr) resolve(stmt->elseBranch.get());
 }
 
 void Resolver::visitPrintStmt(PrintStmt* stmt) {
-    resolve(stmt->expression);
+    resolve(stmt->expression.get());
 }
 
 void Resolver::visitReturnStmt(ReturnStmt* stmt) {
     if (stmt->value != nullptr) {
-        resolve(stmt->value);
+        resolve(stmt->value.get());
     }
 }
 
 void Resolver::visitWhileStmt(WhileStmt* stmt) {
-    resolve(stmt->condition);
-    resolve(stmt->body);
+    resolve(stmt->condition.get());
+    resolve(stmt->body.get());
 }
 
 void Resolver::visitForStmt(ForStmt* stmt) {
     beginScope();
-    if (stmt->initializer) resolve(stmt->initializer);
-    if (stmt->condition) resolve(stmt->condition);
-    if (stmt->increment) resolve(stmt->increment);
-    resolve(stmt->body);
+    if (stmt->initializer) resolve(stmt->initializer.get());
+    if (stmt->condition) resolve(stmt->condition.get());
+    if (stmt->increment) resolve(stmt->increment.get());
+    resolve(stmt->body.get());
     endScope();
 }
 
@@ -143,7 +143,7 @@ void Resolver::visitClassStmt(ClassStmt* stmt) {
 
     if (stmt->superclass != nullptr) {
         currentClass = ClassType::SUBCLASS;
-        resolve(stmt->superclass);
+        resolve(stmt->superclass.get());
         beginScope();
         scopes.back()["ata"] = true;
     }
@@ -165,17 +165,17 @@ void Resolver::visitClassStmt(ClassStmt* stmt) {
 }
 
 void Resolver::visitTryCatchStmt(TryCatchStmt* stmt) {
-    resolve(stmt->tryBlock);
+    resolve(stmt->tryBlock.get());
     beginScope();
     declare(stmt->errorName);
     define(stmt->errorName);
-    resolve(stmt->catchBlock);
+    resolve(stmt->catchBlock.get());
     endScope();
 }
 
 void Resolver::visitModuleStmt(ModuleStmt* stmt) {
     beginScope();
-    for(const auto& s : stmt->statements) resolve(s);
+    for(const auto& s : stmt->statements) resolve(s.get());
     endScope();
 }
 
@@ -185,45 +185,45 @@ void Resolver::visitVariableExpr(VariableExpr* expr) {
 }
 
 void Resolver::visitAssignExpr(AssignExpr* expr) {
-    resolve(expr->value);
+    resolve(expr->value.get());
     resolveLocal(expr, expr->name);
 }
 
 void Resolver::visitBinaryExpr(BinaryExpr* expr) {
-    resolve(expr->left);
-    resolve(expr->right);
+    resolve(expr->left.get());
+    resolve(expr->right.get());
 }
 
 void Resolver::visitCallExpr(CallExpr* expr) {
-    resolve(expr->callee);
+    resolve(expr->callee.get());
     for (const auto& arg : expr->arguments) {
-        resolve(arg);
+        resolve(arg.get());
     }
 }
 
 void Resolver::visitLiteralExpr(LiteralExpr* expr) {}
 
 void Resolver::visitLogicalExpr(LogicalExpr* expr) {
-    resolve(expr->left);
-    resolve(expr->right);
+    resolve(expr->left.get());
+    resolve(expr->right.get());
 }
 
 void Resolver::visitUnaryExpr(UnaryExpr* expr) {
-    resolve(expr->right);
+    resolve(expr->right.get());
 }
 
 void Resolver::visitListExpr(ListExpr* expr) {
-    for (const auto& el : expr->elements) resolve(el);
+    for (const auto& el : expr->elements) resolve(el.get());
 }
 
 void Resolver::visitGetExpr(GetExpr* expr) {
-    resolve(expr->object);
-    resolve(expr->index);
+    resolve(expr->object.get());
+    resolve(expr->index.get());
 }
 
 void Resolver::visitSetExpr(SetExpr* expr) {
-    resolve(expr->value);
-    resolve(expr->object);
+    resolve(expr->value.get());
+    resolve(expr->object.get());
 }
 
 void Resolver::visitThisExpr(ThisExpr* expr) {
@@ -235,20 +235,20 @@ void Resolver::visitSuperExpr(SuperExpr* expr) {
 }
 
 void Resolver::visitPropertyExpr(PropertyExpr* expr) {
-    resolve(expr->object);
+    resolve(expr->object.get());
 }
 
 void Resolver::visitIndexSetExpr(IndexSetExpr* expr) {
-    resolve(expr->object);
-    resolve(expr->index);
-    resolve(expr->value);
+    resolve(expr->object.get());
+    resolve(expr->index.get());
+    resolve(expr->value.get());
 }
 
 void Resolver::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {}
 
 void Resolver::visitMapExpr(MapExpr* expr) {
     for (size_t i = 0; i < expr->keys.size(); i++) {
-        resolve(expr->keys[i]);
-        resolve(expr->values[i]);
+        resolve(expr->keys[i].get());
+        resolve(expr->values[i].get());
     }
 }
