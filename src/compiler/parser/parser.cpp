@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "../json_hata.h"
 
-Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), current(0), hadError(false) {
+Parser::Parser(const std::vector<Token>& tokens, MemoryArena& arena) : tokens(tokens), arena(arena), current(0), hadError(false) {
     // errorCountPerLine is automatically initialized as an empty map
 }
 
@@ -10,8 +10,8 @@ bool Parser::hasError() const {
     return hadError;
 }
 
-std::vector<std::unique_ptr<Stmt>> Parser::parse() {
-    std::vector<std::unique_ptr<Stmt>> statements;
+std::vector<Stmt*> Parser::parse() {
+    std::vector<Stmt*> statements;
     while (!isAtEnd()) {
         try {
             while (match({TokenType::NEW_LINE}));
@@ -110,43 +110,42 @@ std::vector<std::unique_ptr<Stmt>> Parser::parse() {
     return statements;
 }
 
-std::unique_ptr<Stmt> Parser::varDeclaration() {
+Stmt* Parser::varDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Degisken adi bekleniyor.");
 
-    std::unique_ptr<Expr> initializer = nullptr;
+    Expr* initializer = nullptr;
     if (match({TokenType::EQUAL})) {
         initializer = expression();
     }
 
     consumeStatementEnd();
-    auto stmt = std::make_unique<VarStmt>(name, std::move(initializer));
+    auto stmt = arena.alloc<VarStmt>(name, initializer);
     stmt->line = name.line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::classDeclaration() {
+Stmt* Parser::classDeclaration() {
 
     Token name = consume(TokenType::IDENTIFIER, "Sinif adi bekleniyor.");
     
-    std::unique_ptr<VariableExpr> superclass = nullptr;
+    VariableExpr* superclass = nullptr;
     if (match({TokenType::LESS})) {
         consume(TokenType::IDENTIFIER, "Ust sinif adi bekleniyor.");
-        superclass = std::make_unique<VariableExpr>(previous());
+        superclass = arena.alloc<VariableExpr>(previous());
     }
 
     consume(TokenType::LBRACE, "Sinif govdesi icin '{' bekleniyor.");
 
-    std::vector<std::unique_ptr<FunctionStmt>> methods;
+    std::vector<FunctionStmt*> methods;
     while (!check(TokenType::RBRACE) && !isAtEnd()) {
         if (match({TokenType::NEW_LINE})) continue;
 
         if (match({TokenType::KW_FONKSIYON}) || check(TokenType::KW_KURUCU) || check(TokenType::IDENTIFIER)) {
             // function() handles the rest, including 'kurucu' keyword consumption if needed
-            std::unique_ptr<Stmt> methodStmt = function("metot");
-            if (auto func = dynamic_cast<FunctionStmt*>(methodStmt.get())) {
-                methodStmt.release(); // Hand over ownership
-                methods.push_back(std::unique_ptr<FunctionStmt>(func));
+            Stmt* methodStmt = function("metot");
+            if (auto func = dynamic_cast<FunctionStmt*>(methodStmt)) {
+                methods.push_back(func);
             }
         } else {
             throw GumusException("parser_error", peek().line, "Sinif icinde sadece metotlar tanimlanabilir.");
@@ -155,17 +154,17 @@ std::unique_ptr<Stmt> Parser::classDeclaration() {
 
 
     consume(TokenType::RBRACE, "Sinif govdesinden sonra '}' bekleniyor.");
-    auto stmt = std::make_unique<ClassStmt>(name, std::move(superclass), std::move(methods));
+    auto stmt = arena.alloc<ClassStmt>(name, superclass, std::move(methods));
     stmt->line = name.line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::moduleDeclaration() {
+Stmt* Parser::moduleDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Modul adi bekleniyor.");
     consume(TokenType::LBRACE, "Modul govdesi icin '{' bekleniyor.");
 
-    std::vector<std::unique_ptr<Stmt>> statements;
+    std::vector<Stmt*> statements;
     while (!check(TokenType::RBRACE) && !isAtEnd()) {
         if (match({TokenType::NEW_LINE})) continue;
         
@@ -186,13 +185,13 @@ std::unique_ptr<Stmt> Parser::moduleDeclaration() {
     }
     consume(TokenType::RBRACE, "Modul govdesi sonunda '}' bekleniyor.");
     consumeStatementEnd();
-    auto stmt = std::make_unique<ModuleStmt>(name, std::move(statements));
+    auto stmt = arena.alloc<ModuleStmt>(name, std::move(statements));
     stmt->line = name.line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::function(const std::string& kind) {
+Stmt* Parser::function(const std::string& kind) {
     Token name;
     if (check(TokenType::KW_KURUCU)) {
         name = advance();
@@ -211,14 +210,14 @@ std::unique_ptr<Stmt> Parser::function(const std::string& kind) {
     }
     consume(TokenType::RPAREN, "Parametrelerden sonra ')' bekleniyor.");
     consume(TokenType::LBRACE, kind + " govdesi icin '{' bekleniyor.");
-    std::vector<std::unique_ptr<Stmt>> body = block();
-    auto stmt = std::make_unique<FunctionStmt>(name, std::move(parameters), std::move(body));
+    std::vector<Stmt*> body = block();
+    auto stmt = arena.alloc<FunctionStmt>(name, std::move(parameters), std::move(body));
     stmt->line = name.line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::statement() {
+Stmt* Parser::statement() {
     if (match({TokenType::KW_EGER})) return ifStatement();
     if (match({TokenType::KW_DONGU})) return whileStatement();
     if (match({TokenType::KW_DON})) return returnStatement();
@@ -227,113 +226,99 @@ std::unique_ptr<Stmt> Parser::statement() {
     if (match({TokenType::KW_KIR})) {
         Token keyword = previous();
         consumeStatementEnd();
-        return std::make_unique<BreakStmt>(keyword);
+        return arena.alloc<BreakStmt>(keyword);
     }
     if (match({TokenType::KW_DEVAM})) {
         Token keyword = previous();
         consumeStatementEnd();
-        return std::make_unique<ContinueStmt>(keyword);
+        return arena.alloc<ContinueStmt>(keyword);
     }
-    // REMOVED: if (match({TokenType::LBRACE})) return std::make_unique<BlockStmt>(block());
-    // Reason: { can be a dictionary expression, blocks are explicitly parsed in control structures
     
     return expressionStatement();
 }
 
-std::unique_ptr<Stmt> Parser::ifStatement() {
+Stmt* Parser::ifStatement() {
     bool parantezli = match({TokenType::LPAREN});
     
-    std::unique_ptr<Expr> condition = expression();
+    Expr* condition = expression();
     
     if (parantezli) {
         consume(TokenType::RPAREN, "Kosuldan sonra ')' bekleniyor.");
     }
     
     consume(TokenType::LBRACE, "If govdesi icin '{' bekleniyor.");
-    std::unique_ptr<Stmt> thenBranch = std::make_unique<BlockStmt>(block());
+    Stmt* thenBranch = arena.alloc<BlockStmt>(block());
     
-    std::unique_ptr<Stmt> elseBranch = nullptr;
+    Stmt* elseBranch = nullptr;
     if (match({TokenType::KW_DEGILSE})) {
         if (match({TokenType::KW_EGER})) {
             elseBranch = ifStatement();
         } else {
             consume(TokenType::LBRACE, "Else govdesi icin '{' bekleniyor.");
-            elseBranch = std::make_unique<BlockStmt>(block());
+            elseBranch = arena.alloc<BlockStmt>(block());
         }
     }
     
-    auto stmt = std::make_unique<IfStmt>(std::move(condition), std::move(thenBranch), std::move(elseBranch));
-    stmt->line = condition->line; // Use condition's line or track keyword
+    auto stmt = arena.alloc<IfStmt>(condition, thenBranch, elseBranch);
+    stmt->line = condition->line; 
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::whileStatement() {
+Stmt* Parser::whileStatement() {
     Token loopKeyword = previous();  // Capture 'dongu' keyword
     bool parantezli = match({TokenType::LPAREN});
     
-    // 1. Kismi Parse Et (Init veya Condition)
-    // Eger 'var' ile basliyorsa kesinlikle FOR dongusudur.
     if (match({TokenType::KW_VAR})) {
         // FOR DONGUSU (Init var)
-        std::unique_ptr<Stmt> initializer = varDeclaration();
+        Stmt* initializer = varDeclaration();
         
-        std::unique_ptr<Expr> condition = nullptr;
+        Expr* condition = nullptr;
         if (!check(TokenType::SEMICOLON)) {
             condition = expression();
         }
         consume(TokenType::SEMICOLON, "For dongusu kosulundan sonra ';' bekleniyor.");
         
-        std::unique_ptr<Expr> increment = nullptr;
+        Expr* increment = nullptr;
         if (!check(TokenType::RPAREN)) {
             increment = expression();
         }
         consume(TokenType::RPAREN, "For dongusu sonrasinda ')' bekleniyor.");
         
         consume(TokenType::LBRACE, "Dongu govdesi icin '{' bekleniyor.");
-        std::unique_ptr<Stmt> body = std::make_unique<BlockStmt>(block());
+        Stmt* body = arena.alloc<BlockStmt>(block());
         
         // ForStmt Kullan
-        return std::make_unique<ForStmt>(loopKeyword, std::move(initializer), std::move(condition), std::move(increment), std::move(body));
+        return arena.alloc<ForStmt>(loopKeyword, initializer, condition, increment, body);
     }
     
-    // 'var' yoksa, ifade olabilir.
-    // Eger ';' varsa FOR, yoksa WHILE (parantez kapandigi varsayimiyla)
-    
-    // Ancak burada expression() cagirdigimizda ';' yiyor mu? Hayir, expression statement yemez.
-    // ExpressionExpression tarafindan yenilen ; expressionStmt icindedir.
-    
-    // Basit inisiaslizasyon icin expression statement parse edelim ama ';' match etmeden once duralim mi?
-    // Zor. 
-    // Basit Yontem: Once expression parse et. Sonraki token ';' ise FOR, ')' ise WHILE.
-    
-    std::unique_ptr<Expr> condOrInit = nullptr;
+    Expr* condOrInit = nullptr;
     if (!check(TokenType::RPAREN) && !check(TokenType::SEMICOLON)) {
         condOrInit = expression();
     }
     
     if (match({TokenType::SEMICOLON})) {
         // FOR DONGUSU (Expression Init)
-        std::unique_ptr<Stmt> initializer = nullptr;
-        if (condOrInit != nullptr) initializer = std::make_unique<ExpressionStmt>(std::move(condOrInit));
+        Stmt* initializer = nullptr;
+        if (condOrInit != nullptr) initializer = arena.alloc<ExpressionStmt>(condOrInit);
         
-        std::unique_ptr<Expr> condition = nullptr;
+        Expr* condition = nullptr;
         if (!check(TokenType::SEMICOLON)) {
             condition = expression();
         }
         consume(TokenType::SEMICOLON, "For dongusu kosulundan sonra ';' bekleniyor.");
         
-        std::unique_ptr<Expr> increment = nullptr;
+        Expr* increment = nullptr;
         if (!check(TokenType::RPAREN)) {
             increment = expression();
         }
         consume(TokenType::RPAREN, "For dongusu sonrasinda ')' bekleniyor.");
         
         consume(TokenType::LBRACE, "Dongu govdesi icin '{' bekleniyor.");
-        std::unique_ptr<Stmt> body = std::make_unique<BlockStmt>(block());
+        Stmt* body = arena.alloc<BlockStmt>(block());
         
         // ForStmt Kullan
-        auto stmt = std::make_unique<ForStmt>(loopKeyword, std::move(initializer), std::move(condition), std::move(increment), std::move(body));
+        auto stmt = arena.alloc<ForStmt>(loopKeyword, initializer, condition, increment, body);
         stmt->line = loopKeyword.line;
         return stmt;
         
@@ -345,25 +330,25 @@ std::unique_ptr<Stmt> Parser::whileStatement() {
         }
         
         consume(TokenType::LBRACE, "While govdesi icin '{' bekleniyor.");
-        std::unique_ptr<Stmt> body = std::make_unique<BlockStmt>(block());
+        Stmt* body = arena.alloc<BlockStmt>(block());
         
         if (condOrInit == nullptr) {
             // dongu() -> sonsuz dongu (while(true))
-             auto stmt = std::make_unique<WhileStmt>(std::make_unique<LiteralExpr>(Token{TokenType::KW_DOGRU, "dogru", 0, 0}), std::move(body));
+             auto stmt = arena.alloc<WhileStmt>(arena.alloc<LiteralExpr>(Token{TokenType::KW_DOGRU, "dogru", 0, 0}), body);
              stmt->line = loopKeyword.line;
              return stmt;
         }
         
-        auto stmt = std::make_unique<WhileStmt>(std::move(condOrInit), std::move(body));
+        auto stmt = arena.alloc<WhileStmt>(condOrInit, body);
         stmt->line = loopKeyword.line;
         return stmt;
     }
 }
 
 
-std::unique_ptr<Stmt> Parser::tryCatchStatement() {
+Stmt* Parser::tryCatchStatement() {
     consume(TokenType::LBRACE, "Try blogu icin '{' bekleniyor.");
-    std::unique_ptr<Stmt> tryBlock = std::make_unique<BlockStmt>(block());
+    Stmt* tryBlock = arena.alloc<BlockStmt>(block());
     
     consume(TokenType::KW_YAKALA, "'dene' sonrasinda 'yakala' bekleniyor.");
     consume(TokenType::LPAREN, "'yakala' sonrasinda '(' bekleniyor.");
@@ -371,58 +356,57 @@ std::unique_ptr<Stmt> Parser::tryCatchStatement() {
     consume(TokenType::RPAREN, "Hata degiskeninden sonra ')' bekleniyor.");
     
     consume(TokenType::LBRACE, "Catch blogu icin '{' bekleniyor.");
-    std::unique_ptr<Stmt> catchBlock = std::make_unique<BlockStmt>(block());
-    auto stmt = std::make_unique<TryCatchStmt>(std::move(tryBlock), errorName, std::move(catchBlock));
+    Stmt* catchBlock = arena.alloc<BlockStmt>(block());
+    auto stmt = arena.alloc<TryCatchStmt>(tryBlock, errorName, catchBlock);
     stmt->line = errorName.line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::returnStatement() {
+Stmt* Parser::returnStatement() {
     Token keyword = previous();
-    std::unique_ptr<Expr> value = nullptr;
+    Expr* value = nullptr;
     
     // Eger sonraki token ';' degilse ve ayni satirda ise, bir ifade donuyor demektir.
     if (!check(TokenType::SEMICOLON) && !check(TokenType::RBRACE) && peek().line == keyword.line) {
         value = expression();
     }
     consumeStatementEnd();
-    auto stmt = std::make_unique<ReturnStmt>(keyword, std::move(value));
+    auto stmt = arena.alloc<ReturnStmt>(keyword, value);
     stmt->line = keyword.line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::printStatement() {
+Stmt* Parser::printStatement() {
     bool parantezli = match({TokenType::LPAREN});
-    std::unique_ptr<Expr> value = expression();
+    Expr* value = expression();
     
     if (parantezli) {
         consume(TokenType::RPAREN, "Ifadeden sonra ')' bekleniyor.");
     }
     
     consumeStatementEnd();
-    auto stmt = std::make_unique<PrintStmt>(std::move(value));
+    auto stmt = arena.alloc<PrintStmt>(value);
     stmt->line = stmt->expression->line;
     return stmt;
 }
 
 
-std::unique_ptr<Stmt> Parser::expressionStatement() {
-    std::unique_ptr<Expr> expr = expression();
+Stmt* Parser::expressionStatement() {
+    Expr* expr = expression();
     consumeStatementEnd();
-    auto stmt = std::make_unique<ExpressionStmt>(std::move(expr));
+    auto stmt = arena.alloc<ExpressionStmt>(expr);
     stmt->line = stmt->expression->line;
     return stmt;
 }
 
 
 
-std::vector<std::unique_ptr<Stmt>> Parser::block() {
-    std::vector<std::unique_ptr<Stmt>> statements;
+std::vector<Stmt*> Parser::block() {
+    std::vector<Stmt*> statements;
 
     while (!check(TokenType::RBRACE) && !isAtEnd()) {
-        // Yeni satirlari atla
         if (match({TokenType::NEW_LINE})) continue;
         
         if (match({TokenType::KW_VAR})) {
@@ -437,50 +421,40 @@ std::vector<std::unique_ptr<Stmt>> Parser::block() {
 }
 
 void Parser::consumeStatementEnd() {
-    // 🚫 NOKTALΙ VΙRGÜL YASAK! Modern sözdizimi - noktalı virgül kullanma!
     if (check(TokenType::SEMICOLON)) {
         throw GumusException("syntax_error", peek().line, 
             "GümüşDil'de noktalı virgül kullanılmaz! Modern sözdizimi kullan.");
     }
-    
-    // Yeni satır varsa yut
     if (match({TokenType::NEW_LINE})) return;
-    
-    // Blok sonu, dosya sonu veya başka bir statement başlangıcı varsa sorun yok
     if (check(TokenType::RBRACE)) return;
     if (check(TokenType::END_OF_FILE)) return;
     if (isAtEnd()) return;
-    
-    // Bir sonraki token başka bir statement başlangıcı mı?
     if (check(TokenType::KW_VAR) || check(TokenType::KW_SINIF) || 
         check(TokenType::KW_FONKSIYON) || check(TokenType::KW_EGER) ||
         check(TokenType::KW_DONGU) || check(TokenType::KW_DON) ||
         check(TokenType::KW_YAZDIR) || check(TokenType::KW_DENEME) ||
         check(TokenType::KW_KIR) || check(TokenType::KW_DEVAM)) {
-        return; // Yeni statement başlıyor, sorun yok
+        return;
     }
-    
-    // Hiçbiri değilse de sorun yok - esnek sözdizimi
 }
 
-// Expression Parsing - Precedence Climbing
-std::unique_ptr<Expr> Parser::expression() {
+Expr* Parser::expression() {
     return assignment();
 }
 
-std::unique_ptr<Expr> Parser::assignment() {
-    std::unique_ptr<Expr> expr = logicOr();
+Expr* Parser::assignment() {
+    Expr* expr = logicOr();
 
     if (match({TokenType::EQUAL})) {
         Token equals = previous();
-        std::unique_ptr<Expr> value = assignment();
+        Expr* value = assignment();
 
-        if (auto var = dynamic_cast<VariableExpr*>(expr.get())) {
-            return std::make_unique<AssignExpr>(var->name, std::move(value));
-        } else if (auto prop = dynamic_cast<PropertyExpr*>(expr.get())) {
-             return std::make_unique<SetExpr>(std::move(prop->object), prop->name, std::move(value));
-        } else if (auto get = dynamic_cast<GetExpr*>(expr.get())) {
-             return std::make_unique<IndexSetExpr>(std::move(get->object), get->bracket, std::move(get->index), std::move(value));
+        if (auto var = dynamic_cast<VariableExpr*>(expr)) {
+            return arena.alloc<AssignExpr>(var->name, value);
+        } else if (auto prop = dynamic_cast<PropertyExpr*>(expr)) {
+             return arena.alloc<SetExpr>(prop->object, prop->name, value);
+        } else if (auto get = dynamic_cast<GetExpr*>(expr)) {
+             return arena.alloc<IndexSetExpr>(get->object, get->bracket, get->index, value);
         }
 
         throw GumusException("parser_error", equals.line, "Gecersiz atama hedefi.");
@@ -488,88 +462,86 @@ std::unique_ptr<Expr> Parser::assignment() {
 
     return expr;
 }
-// ... (skipping unchanged methods)
 
-std::unique_ptr<Expr> Parser::logicOr() {
-    std::unique_ptr<Expr> expr = logicAnd();
+Expr* Parser::logicOr() {
+    Expr* expr = logicAnd();
 
     while (match({TokenType::LOGIC_OR})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = logicAnd();
-        expr = std::make_unique<LogicalExpr>(std::move(expr), op, std::move(right));
+        Expr* right = logicAnd();
+        expr = arena.alloc<LogicalExpr>(expr, op, right);
     }
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::logicAnd() {
-    std::unique_ptr<Expr> expr = equality();
+Expr* Parser::logicAnd() {
+    Expr* expr = equality();
 
     while (match({TokenType::LOGIC_AND})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = equality();
-        expr = std::make_unique<LogicalExpr>(std::move(expr), op, std::move(right));
+        Expr* right = equality();
+        expr = arena.alloc<LogicalExpr>(expr, op, right);
     }
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::equality() {
-    std::unique_ptr<Expr> expr = comparison();
+Expr* Parser::equality() {
+    Expr* expr = comparison();
 
     while (match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = comparison();
-        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        Expr* right = comparison();
+        expr = arena.alloc<BinaryExpr>(expr, op, right);
     }
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::comparison() {
-    std::unique_ptr<Expr> expr = term();
+Expr* Parser::comparison() {
+    Expr* expr = term();
 
     while (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = term();
-        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        Expr* right = term();
+        expr = arena.alloc<BinaryExpr>(expr, op, right);
     }
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::term() {
-    std::unique_ptr<Expr> expr = factor();
+Expr* Parser::term() {
+    Expr* expr = factor();
 
     while (match({TokenType::MINUS, TokenType::PLUS})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = factor();
-        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        Expr* right = factor();
+        expr = arena.alloc<BinaryExpr>(expr, op, right);
     }
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::factor() {
-    std::unique_ptr<Expr> expr = unary();
+Expr* Parser::factor() {
+    Expr* expr = unary();
 
     while (match({TokenType::DIVIDE, TokenType::MULTIPLY, TokenType::MOD})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = unary();
-        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
+        Expr* right = unary();
+        expr = arena.alloc<BinaryExpr>(expr, op, right);
     }
 
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::unary() {
+Expr* Parser::unary() {
     if (match({TokenType::BANG, TokenType::MINUS})) {
         Token op = previous();
-        std::unique_ptr<Expr> right = unary();
-        return std::make_unique<UnaryExpr>(op, std::move(right));
+        Expr* right = unary();
+        return arena.alloc<UnaryExpr>(op, right);
     }
 
-    // 'yeni' anahtar kelimesini yut ve bir sonraki ifadeyi (CallExpr olmali) dondur
     if (match({TokenType::KW_YENI})) {
         return unary(); 
     }
@@ -577,22 +549,22 @@ std::unique_ptr<Expr> Parser::unary() {
     return call();
 }
 
-std::unique_ptr<Expr> Parser::call() {
-    std::unique_ptr<Expr> expr = primary();
+Expr* Parser::call() {
+    Expr* expr = primary();
 
     while (true) {
         if (match({TokenType::LPAREN})) {
-            expr = finishCall(std::move(expr));
+            expr = finishCall(expr);
         } else if (match({TokenType::DOT})) {
             if (check(TokenType::IDENTIFIER) || (int)peek().type >= (int)TokenType::KW_VAR) {
                 Token name = advance();
-                expr = std::make_unique<PropertyExpr>(std::move(expr), name);
+                expr = arena.alloc<PropertyExpr>(expr, name);
             } else {
                 throw GumusException("parser_error", peek().line, "Property adi bekleniyor.");
             }
         } else if (match({TokenType::LBRACKET})) {
             Token bracket = previous();
-            expr = finishIndex(std::move(expr), bracket);
+            expr = finishIndex(expr, bracket);
         } else {
             break;
         }
@@ -601,8 +573,8 @@ std::unique_ptr<Expr> Parser::call() {
     return expr;
 }
 
-std::unique_ptr<Expr> Parser::finishCall(std::unique_ptr<Expr> callee) {
-    std::vector<std::unique_ptr<Expr>> arguments;
+Expr* Parser::finishCall(Expr* callee) {
+    std::vector<Expr*> arguments;
 
     if (!check(TokenType::RPAREN)) {
         do {
@@ -614,29 +586,29 @@ std::unique_ptr<Expr> Parser::finishCall(std::unique_ptr<Expr> callee) {
     }
 
     Token paren = consume(TokenType::RPAREN, "Argumanlardan sonra ')' bekleniyor.");
-    return std::make_unique<CallExpr>(std::move(callee), paren, std::move(arguments));
+    return arena.alloc<CallExpr>(callee, paren, std::move(arguments));
 }
 
-std::unique_ptr<Expr> Parser::finishIndex(std::unique_ptr<Expr> object, Token bracket) {
-    std::unique_ptr<Expr> index = expression();
+Expr* Parser::finishIndex(Expr* object, Token bracket) {
+    Expr* index = expression();
     consume(TokenType::RBRACKET, "Index'ten sonra ']' bekleniyor.");
-    return std::make_unique<GetExpr>(std::move(object), bracket, std::move(index));
+    return arena.alloc<GetExpr>(object, bracket, index);
 }
 
-std::unique_ptr<Expr> Parser::primary() {
-    if (match({TokenType::KW_DOGRU})) return std::make_unique<LiteralExpr>(previous());
-    if (match({TokenType::KW_YANLIS})) return std::make_unique<LiteralExpr>(previous());
-    if (match({TokenType::KW_BOS})) return std::make_unique<LiteralExpr>(previous());
-    if (match({TokenType::INTEGER})) return std::make_unique<LiteralExpr>(previous());
+Expr* Parser::primary() {
+    if (match({TokenType::KW_DOGRU})) return arena.alloc<LiteralExpr>(previous());
+    if (match({TokenType::KW_YANLIS})) return arena.alloc<LiteralExpr>(previous());
+    if (match({TokenType::KW_BOS})) return arena.alloc<LiteralExpr>(previous());
+    if (match({TokenType::INTEGER})) return arena.alloc<LiteralExpr>(previous());
+    if (match({TokenType::STRING})) return arena.alloc<LiteralExpr>(previous());
 
-    if (match({TokenType::STRING})) return std::make_unique<LiteralExpr>(previous());
     if (match({TokenType::IDENTIFIER})) {
         Token name = previous();
         if (match({TokenType::COLON_COLON})) {
             Token member = consume(TokenType::IDENTIFIER, "Modul uyesi bekleniyor.");
-            return std::make_unique<ScopeResolutionExpr>(name, member);
+            return arena.alloc<ScopeResolutionExpr>(name, member);
         }
-        return std::make_unique<VariableExpr>(name);
+        return arena.alloc<VariableExpr>(name);
     }
     
     if (match({TokenType::KW_ATA})) {
@@ -644,23 +616,23 @@ std::unique_ptr<Expr> Parser::primary() {
         consume(TokenType::DOT, "'ata' dan sonra '.' bekleniyor.");
         if (check(TokenType::IDENTIFIER) || (int)peek().type >= (int)TokenType::KW_VAR) {
             Token method = advance();
-            return std::make_unique<SuperExpr>(keyword, method);
+            return arena.alloc<SuperExpr>(keyword, method);
         }
         throw GumusException("parser_error", peek().line, "Metot adi bekleniyor.");
     }
 
     if (match({TokenType::KW_OZ})) {
-        return std::make_unique<ThisExpr>(previous());
+        return arena.alloc<ThisExpr>(previous());
     }
 
     if (match({TokenType::LPAREN})) {
-        std::unique_ptr<Expr> expr = expression();
+        Expr* expr = expression();
         consume(TokenType::RPAREN, "Ifadeden sonra ')' bekleniyor.");
         return expr;
     }
 
     if (match({TokenType::LBRACKET})) {
-        std::vector<std::unique_ptr<Expr>> elements;
+        std::vector<Expr*> elements;
         skipNewLines();
         if (!check(TokenType::RBRACKET)) {
             do {
@@ -672,21 +644,19 @@ std::unique_ptr<Expr> Parser::primary() {
         }
         skipNewLines();
         consume(TokenType::RBRACKET, "Liste sonunda ']' bekleniyor.");
-        return std::make_unique<ListExpr>(std::move(elements));
+        return arena.alloc<ListExpr>(std::move(elements));
     }
 
     if (match({TokenType::LBRACE})) {
-        std::vector<std::unique_ptr<Expr>> keys;
-        std::vector<std::unique_ptr<Expr>> values;
+        std::vector<Expr*> keys;
+        std::vector<Expr*> values;
         skipNewLines();
         if (!check(TokenType::RBRACE)) {
             do {
                 skipNewLines();
-                // Key can be identifier, string, or any expression
-                std::unique_ptr<Expr> keyExpr;
+                Expr* keyExpr;
                 if (check(TokenType::IDENTIFIER)) {
-                    // Treat unquoted identifier as string key
-                    keyExpr = std::make_unique<LiteralExpr>(advance());
+                    keyExpr = arena.alloc<LiteralExpr>(advance());
                 } else {
                     keyExpr = expression();
                 }
@@ -694,10 +664,10 @@ std::unique_ptr<Expr> Parser::primary() {
                 skipNewLines();
                 consume(TokenType::COLON, "Sozluk anahtarindan sonra ':' bekleniyor.");
                 skipNewLines();
-                std::unique_ptr<Expr> valueExpr = expression();
+                Expr* valueExpr = expression();
                 
-                keys.push_back(std::move(keyExpr));
-                values.push_back(std::move(valueExpr));
+                keys.push_back(keyExpr);
+                values.push_back(valueExpr);
 
                 skipNewLines();
                 if (check(TokenType::RBRACE)) break; // Support trailing comma
@@ -705,13 +675,12 @@ std::unique_ptr<Expr> Parser::primary() {
         }
         skipNewLines();
         consume(TokenType::RBRACE, "Sozluk sonunda '}' bekleniyor.");
-        return std::make_unique<MapExpr>(std::move(keys), std::move(values));
+        return arena.alloc<MapExpr>(std::move(keys), std::move(values));
     }
 
     throw GumusException("parser_error", peek().line, "Ifade bekleniyor.");
 }
 
-// Helper Methods
 Token Parser::peek() const {
     if (current >= tokens.size()) {
         return tokens.back(); // EOF token

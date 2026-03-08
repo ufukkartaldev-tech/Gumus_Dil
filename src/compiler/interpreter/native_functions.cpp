@@ -365,8 +365,8 @@ void registerNativeFunctions(Interpreter& interpreter) {
         try {
             Tokenizer tokenizer(source);
             std::vector<Token> tokens = tokenizer.tokenize();
-            Parser parser(tokens);
-            std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
+            Parser parser(tokens, interpreter.astArena);
+            std::vector<Stmt*> statements = parser.parse();
             
             if (!parser.hasError()) {
                 // SEMA ANALIZI (Resolver)

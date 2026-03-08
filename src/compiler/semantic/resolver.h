@@ -25,7 +25,7 @@ enum class ClassType {
 class Resolver : public ExprVisitor, public StmtVisitor {
 public:
     Resolver(Interpreter& interpreter);
-    void resolve(const std::vector<std::unique_ptr<Stmt>>& statements);
+    void resolve(const std::vector<Stmt*>& statements);
 
 private:
     Interpreter& interpreter;

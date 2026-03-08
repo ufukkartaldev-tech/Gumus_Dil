@@ -2,6 +2,7 @@
 #define INTERPRETER_H
 
 #include "../parser/ast.h"
+#include "../parser/arena.h"
 #include "value.h"
 #include "garbage_collector.h"
 #include <memory> 
@@ -224,8 +225,8 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 
 public:
     Interpreter(); 
-    void interpret(std::vector<std::unique_ptr<Stmt>>& statements);
-    void executeBlock(const std::vector<std::unique_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment);
+    void interpret(const std::vector<Stmt*>& statements);
+    void executeBlock(const std::vector<Stmt*>& statements, std::shared_ptr<Environment> environment);
     
     Value evaluate(Expr* expr);
     void execute(Stmt* stmt);
@@ -252,9 +253,10 @@ public:
     int currentLine = 0;
     std::vector<std::string> callStack;
 
-    // AST Persistence (to prevent dangling pointers in imported functions)
-    std::vector<std::unique_ptr<Stmt>> astList;
-    void persistAst(std::vector<std::unique_ptr<Stmt>>& statements);
+    // AST Persistence & Memory Management
+    MemoryArena astArena;
+    std::vector<Stmt*> astList;
+    void persistAst(const std::vector<Stmt*>& statements);
     
     // 🗑️ Garbage Collection
     std::unique_ptr<GarbageCollector> garbageCollector;

@@ -29,7 +29,7 @@
 
 void run(Interpreter& interpreter, const std::string& source, bool dumpAst, bool dumpMemory = false) {
     std::vector<Token> tokens;
-    std::vector<std::unique_ptr<Stmt>> statements;
+    std::vector<Stmt*> statements;
 
     try {
         // 1. Lexer (Sozcuk Analizi)
@@ -37,7 +37,7 @@ void run(Interpreter& interpreter, const std::string& source, bool dumpAst, bool
         tokens = tokenizer.tokenize();
 
         // 2. Parser (Sozdizimi Analizi)
-        Parser parser(tokens);
+        Parser parser(tokens, interpreter.astArena);
         statements = parser.parse();
         if (parser.hasError()) {
             return;

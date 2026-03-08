@@ -100,9 +100,9 @@ Interpreter::Interpreter() {
     registerNativeFunctions(*this);
 }
 
-void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>>& statements) {
+void Interpreter::interpret(const std::vector<Stmt*>& statements) {
     for (const auto& stmt : statements) {
-        execute(stmt.get());
+        execute(stmt);
     }
 }
 
@@ -137,65 +137,65 @@ void Interpreter::visitFunctionStmt(FunctionStmt* stmt) {
 
 void Interpreter::visitVarStmt(VarStmt* stmt) {
     Value value;
-    if (stmt->initializer != nullptr) value = evaluate(stmt->initializer.get());
+    if (stmt->initializer != nullptr) value = evaluate(stmt->initializer);
     environment->define(stmt->name.value, value);
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
 void Interpreter::visitReturnStmt(ReturnStmt* stmt) {
     Value value;
-    if (stmt->value != nullptr) value = evaluate(stmt->value.get());
+    if (stmt->value != nullptr) value = evaluate(stmt->value);
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::RETURN, value);
 }
 
 void Interpreter::visitExpressionStmt(ExpressionStmt* stmt) {
-    evaluate(stmt->expression.get());
+    evaluate(stmt->expression);
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
 void Interpreter::visitTryCatchStmt(TryCatchStmt* stmt) {
     try {
-        visitBlockStmt(dynamic_cast<BlockStmt*>(stmt->tryBlock.get()));
+        visitBlockStmt(dynamic_cast<BlockStmt*>(stmt->tryBlock));
         if (lastEvaluatedStatus.type != ExecutionResult::OK) return;
     } catch (LoxRuntimeException& ex) {
         auto catchEnv = std::make_shared<Environment>(environment, "HataYakalama");
         catchEnv->define(stmt->errorName.value, ex.errorValue);
-        executeBlock(dynamic_cast<BlockStmt*>(stmt->catchBlock.get())->statements, catchEnv);
+        executeBlock(dynamic_cast<BlockStmt*>(stmt->catchBlock)->statements, catchEnv);
         return;
     } catch (std::runtime_error& ex) {
         auto catchEnv = std::make_shared<Environment>(environment, "HataYakalama");
         catchEnv->define(stmt->errorName.value, Value(std::string(ex.what())));
-        executeBlock(dynamic_cast<BlockStmt*>(stmt->catchBlock.get())->statements, catchEnv);
+        executeBlock(dynamic_cast<BlockStmt*>(stmt->catchBlock)->statements, catchEnv);
         return;
     }
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
 void Interpreter::visitPrintStmt(PrintStmt* stmt) {
-    Value value = evaluate(stmt->expression.get());
+    Value value = evaluate(stmt->expression);
     std::cout << value.toString() << "\n";
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
 void Interpreter::visitIfStmt(IfStmt* stmt) {
-    Value cond = evaluate(stmt->condition.get());
+    Value cond = evaluate(stmt->condition);
     bool isTrue = true;
     if (cond.type == ValueType::BOOLEAN && !cond.boolVal) isTrue = false;
     if (cond.type == ValueType::INTEGER && cond.intVal == 0) isTrue = false;
     if (cond.type == ValueType::NIL) isTrue = false;
-    if (isTrue) execute(stmt->thenBranch.get());
-    else if (stmt->elseBranch != nullptr) execute(stmt->elseBranch.get());
+    if (isTrue) execute(stmt->thenBranch);
+    else if (stmt->elseBranch != nullptr) execute(stmt->elseBranch);
 }
 
 void Interpreter::visitWhileStmt(WhileStmt* stmt) {
     while (true) {
-        Value cond = evaluate(stmt->condition.get());
+        Value cond = evaluate(stmt->condition);
         bool isTrue = true;
         if (cond.type == ValueType::BOOLEAN && !cond.boolVal) isTrue = false;
         if (cond.type == ValueType::INTEGER && cond.intVal == 0) isTrue = false;
         if (cond.type == ValueType::NIL) isTrue = false;
         if (!isTrue) break;
-        execute(stmt->body.get());
+        execute(stmt->body);
         if (lastEvaluatedStatus.type == ExecutionResult::BREAK) { lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK); break; }
         if (lastEvaluatedStatus.type == ExecutionResult::CONTINUE) { lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK); continue; }
         if (lastEvaluatedStatus.type == ExecutionResult::RETURN) return;
@@ -225,9 +225,9 @@ void Interpreter::visitLiteralExpr(LiteralExpr* expr) {
 void Interpreter::visitCallExpr(CallExpr* expr) {
     Value callee;
     try {
-        callee = evaluate(expr->callee.get());
+        callee = evaluate(expr->callee);
     } catch (const LoxRuntimeException& ex) {
-        if (auto var = dynamic_cast<VariableExpr*>(expr->callee.get())) {
+        if (auto var = dynamic_cast<VariableExpr*>(expr->callee)) {
             throw LoxRuntimeException(var->name.line, "Tanimlanmamis fonksiyon: '" + var->name.value + "'.", ex.suggestion);
         }
         throw;
@@ -237,12 +237,12 @@ void Interpreter::visitCallExpr(CallExpr* expr) {
     if (!function) throw LoxRuntimeException(0, "Sadece fonksiyonlar ve siniflar cagrilabilir."); 
     if (expr->arguments.size() != function->arity()) {
         std::string func_name = "bilinmeyen";
-        if (auto var = dynamic_cast<VariableExpr*>(expr->callee.get())) func_name = var->name.value;
-        else if (auto prop = dynamic_cast<PropertyExpr*>(expr->callee.get())) func_name = prop->name.value;
+        if (auto var = dynamic_cast<VariableExpr*>(expr->callee)) func_name = var->name.value;
+        else if (auto prop = dynamic_cast<PropertyExpr*>(expr->callee)) func_name = prop->name.value;
         throw LoxRuntimeException(expr->paren.line, "Fonksiyon '" + func_name + "': Beklenen parametre " + std::to_string(function->arity()) + " ama alinan " + std::to_string(expr->arguments.size()) + ".");
     }
     std::vector<Value> arguments;
-    for (const auto& arg : expr->arguments) arguments.push_back(evaluate(arg.get()));
+    for (const auto& arg : expr->arguments) arguments.push_back(evaluate(arg));
     lastEvaluatedValue = function->call(*this, arguments);
 }
 
@@ -263,21 +263,21 @@ void Interpreter::visitVariableExpr(VariableExpr* expr) {
 }
 
 void Interpreter::visitAssignExpr(AssignExpr* expr) {
-    Value value = evaluate(expr->value.get());
+    Value value = evaluate(expr->value);
     if (expr->distance != -1) environment->assignAt(expr->distance, expr->name.value, value);
     else globals->assign(expr->name.value, value);
     lastEvaluatedValue = value;
 }
 
 void Interpreter::visitSetExpr(SetExpr* expr) {
-    Value object = evaluate(expr->object.get());
+    Value object = evaluate(expr->object);
     if (object.type != ValueType::INSTANCE) {
         throw LoxRuntimeException(expr->name.line, "Sadece nesnelerin ozellikleri atanabilir. Alinan tip: " + std::to_string((int)object.type));
     }
     if (!expr->name.value.empty() && expr->name.value[0] == '_') {
         if (activeInstance != object.obj) throw LoxRuntimeException(expr->name.line, "Ozel ozellige atama engellendi: '" + expr->name.value + "'.");
     }
-    Value value = evaluate(expr->value.get());
+    Value value = evaluate(expr->value);
     auto instance = std::static_pointer_cast<LoxInstance>(object.obj);
     instance->set(expr->name, value);
     lastEvaluatedValue = value;
@@ -290,23 +290,23 @@ void Interpreter::visitThisExpr(ThisExpr* expr) {
 
 void Interpreter::visitListExpr(ListExpr* expr) {
     auto list = std::make_shared<ValueList>();
-    for (const auto& el : expr->elements) list->push_back(evaluate(el.get()));
+    for (const auto& el : expr->elements) list->push_back(evaluate(el));
     lastEvaluatedValue = Value(list);
 }
 
 void Interpreter::visitMapExpr(MapExpr* expr) {
     auto map = std::make_shared<std::map<std::string, Value>>();
     for (size_t i = 0; i < expr->keys.size(); ++i) {
-        Value key = evaluate(expr->keys[i].get());
-        Value value = evaluate(expr->values[i].get());
+        Value key = evaluate(expr->keys[i]);
+        Value value = evaluate(expr->values[i]);
         (*map)[key.toString()] = value;
     }
     lastEvaluatedValue = Value(map);
 }
 
 void Interpreter::visitGetExpr(GetExpr* expr) {
-    Value object = evaluate(expr->object.get());
-    Value index = evaluate(expr->index.get());
+    Value object = evaluate(expr->object);
+    Value index = evaluate(expr->index);
     if (object.type == ValueType::LIST) {
         if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Liste indeksi tamsayi olmalidir.");
         int i = index.intVal;
@@ -326,8 +326,8 @@ void Interpreter::visitGetExpr(GetExpr* expr) {
 
 void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
     Value left;
-    if (expr->left != nullptr) left = evaluate(expr->left.get());
-    Value right = evaluate(expr->right.get());
+    if (expr->left != nullptr) left = evaluate(expr->left);
+    Value right = evaluate(expr->right);
     if (expr->left == nullptr) {
         switch (expr->op.type) {
             case TokenType::MINUS: lastEvaluatedValue = Value(-right.intVal); break;
@@ -378,7 +378,7 @@ void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
 void Interpreter::visitClassStmt(ClassStmt* stmt) {
     std::shared_ptr<LoxClass> superclass = nullptr;
     if (stmt->superclass != nullptr) {
-        Value scVal = evaluate(stmt->superclass.get());
+        Value scVal = evaluate(stmt->superclass);
         if (scVal.type != ValueType::CLASS) throw LoxRuntimeException(stmt->name.line, "Ust sinif bir sinif olmalidir.");
         superclass = std::static_pointer_cast<LoxClass>(scVal.obj);
     }
@@ -389,7 +389,7 @@ void Interpreter::visitClassStmt(ClassStmt* stmt) {
     }
     std::map<std::string, std::shared_ptr<Callable>> methods;
     for (const auto& method : stmt->methods) {
-        auto function = std::make_shared<UserFunction>(method.get(), environment);
+        auto function = std::make_shared<UserFunction>(method, environment);
         methods[method->name.value] = function;
     }
     auto klass = std::make_shared<LoxClass>(stmt->name.value, superclass, methods);
@@ -399,7 +399,7 @@ void Interpreter::visitClassStmt(ClassStmt* stmt) {
 }
 
 void Interpreter::visitPropertyExpr(PropertyExpr* expr) {
-    Value object = evaluate(expr->object.get());
+    Value object = evaluate(expr->object);
     Value res;
     if (PropertyHandlers::handle(*this, object, expr->name.value, res)) { lastEvaluatedValue = res; return; }
     if (object.type == ValueType::INSTANCE) {
@@ -411,12 +411,12 @@ void Interpreter::visitPropertyExpr(PropertyExpr* expr) {
     } else throw LoxRuntimeException(expr->name.line, "Sadece nesnelerin veya yerlesik tiplerin ozellikleri/metotlari olabilir.");
 }
 
-void Interpreter::executeBlock(const std::vector<std::unique_ptr<Stmt>>& statements, std::shared_ptr<Environment> env) {
+void Interpreter::executeBlock(const std::vector<Stmt*>& statements, std::shared_ptr<Environment> env) {
     std::shared_ptr<Environment> previous = this->environment;
     this->environment = env;
     try {
         for (const auto& stmt : statements) {
-            execute(stmt.get());
+            execute(stmt);
             if (lastEvaluatedStatus.type != ExecutionResult::OK) { this->environment = previous; return; }
         }
     } catch (...) { this->environment = previous; throw; }
@@ -425,22 +425,22 @@ void Interpreter::executeBlock(const std::vector<std::unique_ptr<Stmt>>& stateme
 }
 
 void Interpreter::visitBlockStmt(BlockStmt* stmt) {
-    lastEvaluatedStatus = executeBlock(stmt->statements, std::make_shared<Environment>(environment, "Blok"));
+    executeBlock(stmt->statements, std::make_shared<Environment>(environment, "Blok"));
 }
 
 void Interpreter::visitLogicalExpr(LogicalExpr* expr) {
-    Value left = evaluate(expr->left.get());
+    Value left = evaluate(expr->left);
     bool isTrue = true;
     if (left.type == ValueType::BOOLEAN && !left.boolVal) isTrue = false;
     else if (left.type == ValueType::INTEGER && left.intVal == 0) isTrue = false;
     else if (left.type == ValueType::NIL) isTrue = false;
     if (expr->op.type == TokenType::LOGIC_OR) { if (isTrue) { lastEvaluatedValue = left; return; } }
     else { if (!isTrue) { lastEvaluatedValue = left; return; } }
-    lastEvaluatedValue = evaluate(expr->right.get());
+    lastEvaluatedValue = evaluate(expr->right);
 }
 
 void Interpreter::visitUnaryExpr(UnaryExpr* expr) {
-    Value right = evaluate(expr->right.get());
+    Value right = evaluate(expr->right);
     switch (expr->op.type) {
         case TokenType::MINUS: if (right.type == ValueType::INTEGER) lastEvaluatedValue = Value(-right.intVal); break;
         case TokenType::BANG: {
@@ -459,21 +459,21 @@ void Interpreter::visitForStmt(ForStmt* stmt) {
     std::shared_ptr<Environment> previous = this->environment;
     this->environment = std::make_shared<Environment>(previous, "Dongu");
     try {
-        if (stmt->initializer != nullptr) execute(stmt->initializer.get());
+        if (stmt->initializer != nullptr) execute(stmt->initializer);
         while (true) {
             if (stmt->condition != nullptr) {
-                Value cond = evaluate(stmt->condition.get());
+                Value cond = evaluate(stmt->condition);
                 bool isTrue = true;
                 if (cond.type == ValueType::BOOLEAN && !cond.boolVal) isTrue = false;
                 else if (cond.type == ValueType::INTEGER && cond.intVal == 0) isTrue = false;
                 else if (cond.type == ValueType::NIL) isTrue = false;
                 if (!isTrue) break;
             }
-            execute(stmt->body.get());
+            execute(stmt->body);
             if (lastEvaluatedStatus.type == ExecutionResult::BREAK) { lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK); break; }
             if (lastEvaluatedStatus.type == ExecutionResult::CONTINUE) { lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK); }
             if (lastEvaluatedStatus.type == ExecutionResult::RETURN) { this->environment = previous; return; }
-            if (stmt->increment != nullptr) evaluate(stmt->increment.get());
+            if (stmt->increment != nullptr) evaluate(stmt->increment);
         }
     } catch (...) { this->environment = previous; throw; }
     this->environment = previous;
@@ -484,9 +484,9 @@ void Interpreter::visitBreakStmt(BreakStmt* stmt) { lastEvaluatedStatus = Execut
 void Interpreter::visitContinueStmt(ContinueStmt* stmt) { lastEvaluatedStatus = ExecutionStatus(ExecutionResult::CONTINUE); }
 
 void Interpreter::visitIndexSetExpr(IndexSetExpr* expr) {
-    Value object = evaluate(expr->object.get());
-    Value index = evaluate(expr->index.get());
-    Value value = evaluate(expr->value.get());
+    Value object = evaluate(expr->object);
+    Value index = evaluate(expr->index);
+    Value value = evaluate(expr->value);
     if (object.type == ValueType::LIST) {
         if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Liste indeksi tamsayi olmalidir.");
         int i = index.intVal;
@@ -500,7 +500,7 @@ void Interpreter::visitIndexSetExpr(IndexSetExpr* expr) {
 void Interpreter::visitSuperExpr(SuperExpr* expr) {
     int distance = expr->distance;
     Value superclass = environment->getAt(distance, "ata");
-    Value object = environment->getAt(distance - 1, "\xC3\xB6" "z"); 
+    Value object = environment->getAt(distance - 1, "oz"); 
     if (superclass.type != ValueType::CLASS) throw LoxRuntimeException(expr->keyword.line, "'ata' bulunamadi. Mesafe: " + std::to_string(distance));
     if (object.type != ValueType::INSTANCE) throw LoxRuntimeException(expr->keyword.line, "'oz' bulunamadi. Mesafe: " + std::to_string(distance - 1));
     auto klass = std::static_pointer_cast<LoxClass>(superclass.obj);
@@ -521,7 +521,7 @@ void Interpreter::visitModuleStmt(ModuleStmt* stmt) {
     this->environment = moduleEnv;
     try {
         for (const auto& statement : stmt->statements) {
-            execute(statement.get());
+            execute(statement);
             if (lastEvaluatedStatus.type == ExecutionResult::RETURN) { this->environment = previous; return; }
         }
     } catch (...) { this->environment = previous; throw; }
@@ -543,31 +543,31 @@ static bool _containsDeclaration(Stmt* stmt) {
     }
     if (auto block = dynamic_cast<BlockStmt*>(stmt)) {
         for (const auto& s : block->statements) {
-            if (_containsDeclaration(s.get())) return true;
+            if (_containsDeclaration(s)) return true;
         }
     }
     if (auto ifStmt = dynamic_cast<IfStmt*>(stmt)) {
-        if (_containsDeclaration(ifStmt->thenBranch.get())) return true;
-        if (ifStmt->elseBranch && _containsDeclaration(ifStmt->elseBranch.get())) return true;
+        if (_containsDeclaration(ifStmt->thenBranch)) return true;
+        if (ifStmt->elseBranch && _containsDeclaration(ifStmt->elseBranch)) return true;
     }
     if (auto whileStmt = dynamic_cast<WhileStmt*>(stmt)) {
-        if (_containsDeclaration(whileStmt->body.get())) return true;
+        if (_containsDeclaration(whileStmt->body)) return true;
     }
     if (auto forStmt = dynamic_cast<ForStmt*>(stmt)) {
-        if (forStmt->initializer && _containsDeclaration(forStmt->initializer.get())) return true;
-        if (forStmt->body && _containsDeclaration(forStmt->body.get())) return true;
+        if (forStmt->initializer && _containsDeclaration(forStmt->initializer)) return true;
+        if (forStmt->body && _containsDeclaration(forStmt->body)) return true;
     }
     if (auto tryCatch = dynamic_cast<TryCatchStmt*>(stmt)) {
-        if (_containsDeclaration(tryCatch->tryBlock.get())) return true;
-        if (_containsDeclaration(tryCatch->catchBlock.get())) return true;
+        if (_containsDeclaration(tryCatch->tryBlock)) return true;
+        if (_containsDeclaration(tryCatch->catchBlock)) return true;
     }
     return false;
 }
 
-void Interpreter::persistAst(std::vector<std::unique_ptr<Stmt>>& statements) {
-    for (auto& stmt : statements) {
-        if (_containsDeclaration(stmt.get())) {
-            astList.push_back(std::move(stmt));
+void Interpreter::persistAst(const std::vector<Stmt*>& statements) {
+    for (auto stmt : statements) {
+        if (_containsDeclaration(stmt)) {
+            astList.push_back(stmt);
         }
     }
 }
