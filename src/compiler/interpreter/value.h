@@ -19,7 +19,8 @@ enum class ValueType {
     CLASS,
     INSTANCE,
     FUNCTION,
-    MAP
+    MAP,
+    UNDEFINED
 };
 
 struct Value;
@@ -46,6 +47,7 @@ struct Value {
 
     // Kurucular
     Value() : type(ValueType::NIL), floatVal(0.0) {}
+    explicit Value(ValueType t) : type(t), floatVal(0.0) {}
     Value(int v) : type(ValueType::INTEGER), intVal(v) {}
     Value(double v) : type(ValueType::FLOAT), floatVal(v) {}
     Value(bool v) : type(ValueType::BOOLEAN), boolVal(v) {}
@@ -90,6 +92,7 @@ struct Value {
             case ValueType::INSTANCE: return "Instance";
             case ValueType::FUNCTION: return "Function";
             case ValueType::MAP: return "Map";
+            case ValueType::UNDEFINED: return "Undefined";
             default: return "Unknown";
         }
     }
@@ -147,6 +150,7 @@ struct Value {
             case ValueType::INSTANCE: return "Nesne";
             case ValueType::FUNCTION: return "Fonksiyon";
             case ValueType::NIL: return "Boş";
+            case ValueType::UNDEFINED: return "Tanımsız";
             default: return "Bilinmeyen";
         }
     }
@@ -160,6 +164,7 @@ struct Value {
             case ValueType::STRING: return "Metin";
             case ValueType::LIST:
             case ValueType::MAP: return "Karmaşık";
+            case ValueType::UNDEFINED: return "Hata";
             default: return "Nesne/Heap";
         }
     }

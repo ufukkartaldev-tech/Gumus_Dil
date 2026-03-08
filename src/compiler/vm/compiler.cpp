@@ -66,7 +66,7 @@ void Compiler::visitVarStmt(VarStmt* stmt) {
         emitByte(OP_NIL, stmt->line);
     }
 
-    int nameIndex = currentChunk->addConstant(Value(stmt->name.value));
+    int nameIndex = getGlobalIndex(stmt->name.value);
     emitBytes(OP_DEFINE_GLOBAL, (uint8_t)nameIndex, stmt->line);
 }
 
@@ -166,14 +166,21 @@ void Compiler::visitUnaryExpr(UnaryExpr* expr) {
 void Compiler::visitLogicalExpr(LogicalExpr* expr) {}
 
 void Compiler::visitVariableExpr(VariableExpr* expr) {
-    int nameIndex = currentChunk->addConstant(Value(expr->name.value));
+    int nameIndex = getGlobalIndex(expr->name.value);
     emitBytes(OP_GET_GLOBAL, (uint8_t)nameIndex, expr->line);
 }
 
 void Compiler::visitAssignExpr(AssignExpr* expr) {
     expr->value->accept(*this);
-    int nameIndex = currentChunk->addConstant(Value(expr->name.value));
+    int nameIndex = getGlobalIndex(expr->name.value);
     emitBytes(OP_SET_GLOBAL, (uint8_t)nameIndex, expr->line);
+}
+
+int Compiler::getGlobalIndex(const std::string& name) {
+    if (globalsMap.find(name) == globalsMap.end()) {
+        globalsMap[name] = (int)globalsMap.size();
+    }
+    return globalsMap[name];
 }
 
 void Compiler::visitCallExpr(CallExpr* expr) {}
