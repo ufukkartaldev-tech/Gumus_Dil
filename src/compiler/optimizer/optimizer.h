@@ -142,6 +142,122 @@ private:
     bool hasRecursiveCall(IRFunction* function);
 };
 
+// 🚀 Register Allocation Pass
+class RegisterAllocationPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "RegisterAllocation"; }
+    
+private:
+    struct LiveRange {
+        std::string variable;
+        int start;
+        int end;
+        int spillCost;
+    };
+    
+    std::vector<LiveRange> computeLiveRanges(IRFunction* function);
+    void allocateRegisters(IRFunction* function, const std::vector<LiveRange>& liveRanges);
+    bool interfere(const LiveRange& a, const LiveRange& b);
+    void insertSpillCode(IRFunction* function, const std::string& variable);
+};
+
+// 🎯 Peephole Optimization Pass
+class PeepholeOptimizationPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "PeepholeOptimization"; }
+    
+private:
+    bool optimizeInstructionSequence(std::vector<std::unique_ptr<IRInstruction>>& instructions, size_t start);
+    bool isRedundantLoadStore(IRInstruction* load, IRInstruction* store);
+    bool isIdentityOperation(IRInstruction* instr);
+};
+
+// 🚀 Advanced Performance Optimization Passes
+
+// 🎯 Vectorization Pass
+class VectorizationPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "Vectorization"; }
+    
+private:
+    struct VectorizableLoop {
+        BasicBlock* header;
+        std::vector<IRInstruction*> vectorizableInstructions;
+        int vectorWidth;
+    };
+    
+    std::vector<VectorizableLoop> findVectorizableLoops(IRFunction* function);
+    bool canVectorize(IRInstruction* instr);
+    void vectorizeLoop(const VectorizableLoop& loop);
+};
+
+// 🔥 Cache Optimization Pass
+class CacheOptimizationPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "CacheOptimization"; }
+    
+private:
+    void optimizeMemoryAccess(IRFunction* function);
+    void reorderInstructions(BasicBlock* block);
+    bool isMemoryAccess(IRInstruction* instr);
+    int getMemoryAccessStride(IRInstruction* instr);
+};
+
+// ⚡ Branch Prediction Optimization Pass
+class BranchPredictionPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "BranchPrediction"; }
+    
+private:
+    void optimizeBranchLayout(IRFunction* function);
+    void reorderBasicBlocks(IRFunction* function);
+    double calculateBranchProbability(BasicBlock* block);
+};
+
+// 🎯 Instruction Scheduling Pass
+class InstructionSchedulingPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "InstructionScheduling"; }
+    
+private:
+    struct InstructionNode {
+        IRInstruction* instruction;
+        std::vector<InstructionNode*> dependencies;
+        int latency;
+        int earliestStart;
+    };
+    
+    void scheduleBasicBlock(BasicBlock* block);
+    std::vector<InstructionNode> buildDependencyGraph(BasicBlock* block);
+    void listScheduling(std::vector<InstructionNode>& nodes);
+    int getInstructionLatency(IRInstruction* instr);
+};
+
+// 🚀 Memory Layout Optimization Pass
+class MemoryLayoutPass : public OptimizationPass {
+public:
+    bool runOnFunction(IRFunction* function) override;
+    bool runOnModule(IRModule* module) override;
+    std::string getName() const override { return "MemoryLayout"; }
+    
+private:
+    void optimizeVariableLayout(IRFunction* function);
+    void groupRelatedVariables(IRFunction* function);
+    void alignMemoryAccesses(IRFunction* function);
+};
+
 // 🚀 Optimization Manager
 class OptimizationManager {
 private:
@@ -156,6 +272,7 @@ public:
     void addPass(std::unique_ptr<OptimizationPass> pass);
     void addStandardPasses();
     void addAggressivePasses();
+    void addPerformancePasses(); // 🚀 Yeni performans optimizasyonları
     
     // Optimization execution
     bool runOnModule(IRModule* module);
@@ -171,6 +288,13 @@ public:
         int successfulPasses = 0;
         std::unordered_map<std::string, int> passRunCounts;
         std::unordered_map<std::string, bool> passResults;
+        std::unordered_map<std::string, double> passExecutionTimes;
+        int instructionsEliminated = 0;
+        int constantsFolded = 0;
+        int loopsOptimized = 0;
+        double totalOptimizationTime = 0.0;
+        size_t codeSize = 0;
+        size_t optimizedCodeSize = 0;
     };
     
     OptimizationStats getStatistics() const { return stats; }
@@ -188,7 +312,10 @@ enum class OptimizationLevel {
     O2, // Standard optimizations
     O3, // Aggressive optimizations
     Os, // Size optimizations
-    Oz  // Aggressive size optimizations
+    Oz, // Aggressive size optimizations
+    Ofast, // Maximum performance (unsafe optimizations)
+    Og, // Debug-friendly optimizations
+    Oturk // Turkish language specific optimizations
 };
 
 // 🚀 High-level optimization interface
