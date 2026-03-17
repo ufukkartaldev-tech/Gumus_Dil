@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 from ..config import COMPILER_PATH, PROJECT_ROOT
-from .secure_subprocess import SecureSubprocessManager, SecurityLevel
+from .secure_subprocess import SecureSubprocessManager, SecurityLevel, SecurityError
 
 class CompilerRunner:
     DLL_NOT_FOUND_ERROR = 3221225781 # 0xC0000135
@@ -39,56 +39,35 @@ class CompilerRunner:
         # Validate source file path
         if not self.secure_manager.validate_working_directory(str(Path(source_file).parent))[0]:
             raise SecurityError(f"Güvensiz kaynak dosya yolu: {source_file}")
-            
-        creationflags = 0
-        if sys.platform == 'win32':
-            creationflags = subprocess.CREATE_NO_WINDOW
 
         # FALLBACK: Simülatör (Dosya yoksa VEYA çalışmıyorsa)
         if not self.is_compiler_viable():
             simulator_script = PROJECT_ROOT / "src" / "ide" / "core" / "run_simulator.py"
-            
+
             # Validate simulator script exists and is safe
             if not simulator_script.exists():
                 raise FileNotFoundError(f"Simülatör bulunamadı: {simulator_script}")
-                
-            process = subprocess.Popen(
-                [sys.executable, str(simulator_script), str(source_file)],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                bufsize=0,
-                creationflags=creationflags,
-                cwd=str(PROJECT_ROOT)  # Secure working directory
-            )
-            return process
 
-        process = subprocess.Popen(
-            [str(COMPILER_PATH), str(source_file)],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            bufsize=0, # Unbuffered
-            creationflags=creationflags,
-            cwd=str(PROJECT_ROOT)  # Secure working directory
+            # Use secure subprocess for simulator
+            return self.secure_manager.execute_interactive(
+                sys.executable,
+                [str(simulator_script), str(source_file)],
+                cwd=str(PROJECT_ROOT)
+            )
+
+        # Use secure subprocess for compiler
+        return self.secure_manager.execute_interactive(
+            str(COMPILER_PATH),
+            [str(source_file)],
+            cwd=str(PROJECT_ROOT)
         )
-        return process
+
 
     def start_with_memory(self, source_file):
         """Hafıza görselleştirme flag'i ile başlatır"""
         # Validate source file path
         if not self.secure_manager.validate_working_directory(str(Path(source_file).parent))[0]:
             raise SecurityError(f"Güvensiz kaynak dosya yolu: {source_file}")
-            
-        creationflags = 0
-        if sys.platform == 'win32':
-             creationflags = subprocess.CREATE_NO_WINDOW
 
         # FALLBACK: Simülatör
         if not self.is_compiler_viable():
@@ -97,34 +76,19 @@ class CompilerRunner:
             if not simulator_script.exists():
                 raise FileNotFoundError(f"Simülatör bulunamadı: {simulator_script}")
                 
-            # --trace argumentini simülatöre geç (Görsel izleme için)
-            process = subprocess.Popen(
-                [sys.executable, str(simulator_script), "--trace", str(source_file)],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                bufsize=0,
-                creationflags=creationflags,
-                cwd=str(PROJECT_ROOT)  # Secure working directory
+            # Use secure subprocess for simulator with trace
+            return self.secure_manager.execute_interactive(
+                sys.executable,
+                [str(simulator_script), "--trace", str(source_file)],
+                cwd=str(PROJECT_ROOT)
             )
-            return process
 
-        process = subprocess.Popen(
-            [str(COMPILER_PATH), "--dump-memory", str(source_file)],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            bufsize=0,
-            creationflags=creationflags,
-            cwd=str(PROJECT_ROOT)  # Secure working directory
+        # Use secure subprocess for compiler with memory dump
+        return self.secure_manager.execute_interactive(
+            str(COMPILER_PATH),
+            ["--dump-memory", str(source_file)],
+            cwd=str(PROJECT_ROOT)
         )
-        return process
 
     def run(self, source_file):
         """Derleyiciyi çalıştırır ve sonucu (stdout, stderr, exit_code) döner"""
@@ -211,8 +175,5 @@ class CompilerRunner:
         except Exception as e:
             return None, f"Güvenlik Hatası: {e}", -1
 
-# Security exception class
-class SecurityError(Exception):
-    """Güvenlik ihlali exception'ı"""
-    pass
+# Güvenlik exception'ı artık secure_subprocess.py'den import ediliyor
 

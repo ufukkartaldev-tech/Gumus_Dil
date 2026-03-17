@@ -14,6 +14,10 @@ import threading
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple, Union
 
+class SecurityError(Exception):
+    """Güvenlik ihlali exception'ı"""
+    pass
+
 class SecurityLevel:
     """Güvenlik seviyeleri"""
     UNTRUSTED = 0  # Hiçbir komuta izin verme
@@ -21,6 +25,10 @@ class SecurityLevel:
     MEDIUM = 2     # Sınırlı komut seti
     HIGH = 3       # Çoğu komuta izin ver
     SYSTEM = 4     # Tüm komutlara izin ver (dikkatli kullan!)
+
+    class SecurityError(Exception):
+        """Güvenlik ihlali exception'ı"""
+        pass
 
 class SecureSubprocessManager:
     """Güvenli subprocess yöneticisi"""
@@ -303,6 +311,65 @@ class SecureSubprocessManager:
     def set_max_output_size(self, size: int):
         """Maksimum çıktı boyutunu ayarla"""
         self.max_output_size = max(1024, min(size, 10 * 1024 * 1024))  # 1KB - 10MB arası
+    def execute_interactive(self, command: str, args: Optional[List[str]] = None,
+                          cwd: Optional[str] = None) -> subprocess.Popen:
+        """
+        İnteraktif process başlatır ve güvenli Popen nesnesi döner
+
+        Args:
+            command: Çalıştırılacak komut
+            args: Komut argümanları
+            cwd: Çalışma dizini
+
+        Returns:
+            subprocess.Popen: Güvenli process nesnesi
+
+        Raises:
+            SecurityError: Güvenlik ihlali durumunda
+        """
+        # Validate command
+        is_valid, error_msg = self.validate_command(command)
+        if not is_valid:
+            raise SecurityError(f"Komut güvenlik kontrolünden geçemedi: {error_msg}")
+
+        # Validate working directory
+        if cwd:
+            is_valid_dir, dir_error = self.validate_working_directory(cwd)
+            if not is_valid_dir:
+                raise SecurityError(f"Çalışma dizini güvenlik kontrolünden geçemedi: {dir_error}")
+
+        # Sanitize arguments
+        safe_args = []
+        if args:
+            safe_args = self.sanitize_arguments(args)
+
+        # Build command list
+        cmd_list = [command] + safe_args
+
+        # Set creation flags for Windows
+        creationflags = 0
+        if sys.platform == 'win32':
+            creationflags = subprocess.CREATE_NO_WINDOW
+
+        try:
+            # Create secure Popen process
+            process = subprocess.Popen(
+                cmd_list,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                bufsize=0,  # Unbuffered for interactive use
+                creationflags=creationflags,
+                cwd=cwd
+            )
+
+            return process
+
+        except Exception as e:
+            raise SecurityError(f"İnteraktif process başlatılamadı: {e}")
 
 # Global güvenli subprocess manager
 _secure_manager = SecureSubprocessManager()
