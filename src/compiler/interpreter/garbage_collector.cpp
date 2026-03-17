@@ -296,6 +296,11 @@ void GarbageCollector::markValue(std::shared_ptr<Value> value) {
             // Primitive types - no references to mark
             break;
     }
+    
+    // Mark references from this value
+    for (const auto& ref : value->references) {
+        mark(ref);
+    }
 }
 
 void GarbageCollector::markList(std::shared_ptr<ValueList> list) {

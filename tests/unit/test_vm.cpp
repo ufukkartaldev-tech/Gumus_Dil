@@ -5,6 +5,31 @@
 #include "../../src/compiler/lexer/tokenizer.h"
 #include "../../src/compiler/parser/parser.h"
 
+#include <gtest/gtest.h>
+#include "../../src/compiler/vm/vm.h"
+#include "../../src/compiler/vm/chunk.h"
+#include "../../src/compiler/vm/compiler.h"
+#include "../../src/compiler/vm/memory_pool.h"
+#include "../../src/compiler/lexer/tokenizer.h"
+#include "../../src/compiler/parser/parser.h"
+#include <chrono>
+
+// Forward declarations
+extern bool gumus_debug;
+
+class GumusException : public std::exception {
+public:
+    GumusException(const std::string& msg) : message(msg) {}
+    const char* what() const noexcept override { return message.c_str(); }
+private:
+    std::string message;
+};
+
+class MemoryArena {
+public:
+    // Simplified memory arena for tests
+};
+
 class VMTest : public ::testing::Test {
 protected:
     std::unique_ptr<VM> vm;
@@ -13,11 +38,19 @@ protected:
     void SetUp() override {
         vm = std::make_unique<VM>();
         chunk = std::make_unique<Chunk>();
+        
+        // Reset memory pools for clean tests
+        MemoryStats::resetAll();
     }
     
     void TearDown() override {
         vm.reset();
         chunk.reset();
+        
+        // Print memory statistics if debug enabled
+        if (gumus_debug) {
+            MemoryStats::printReport();
+        }
     }
     
     InterpretResult compileAndRun(const std::string& source) {
@@ -29,7 +62,7 @@ protected:
             Parser parser(tokens, arena);
             auto statements = parser.parse();
             
-            Compiler compiler;
+            Compiler compiler(OptimizationLevel::BASIC);
             *chunk = compiler.compile(statements);
             
             return vm->run(chunk.get());
@@ -238,4 +271,99 @@ TEST_F(VMTest, MemoryManagement) {
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
+}
+// 🎯 Performance and Memory Tests
+TEST_F(VMTest, PerformanceTest) {
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    InterpretResult result = compileAndRun(R"(
+        değişken toplam = 0
+        değişken i = 0
+        
+        döngü (i < 1000) {
+            toplam = toplam + i
+            i = i + 1
+        }
+        
+        toplam
+    )");
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    
+    EXPECT_EQ(result, INTERPRET_OK);
+    
+    // Performance should be reasonable (less than 10ms for 1000 iterations)
+    EXPECT_LT(duration.count(), 10000);
+    
+    if (gumus_debug) {
+        std::cout << "Performance test completed in " << duration.count() << " microseconds\n";
+        
+        auto stats = vm->getStats();
+        std::cout << "VM Stats:\n";
+        std::cout << "  Instructions executed: " << stats.instructionCount << "\n";
+        std::cout << "  Stack size: " << stats.stackSize << "\n";
+        std::cout << "  Memory usage: " << stats.memoryUsage << " bytes\n";
+    }
+}
+
+// 🧪 Memory Pool Integration Test
+TEST_F(VMTest, MemoryPoolIntegration) {
+    size_t initialMemory = MemoryStats::getTotalMemoryUsage();
+    
+    InterpretResult result = compileAndRun(R"(
+        değişken liste = []
+        değişken i = 0
+        
+        döngü (i < 100) {
+            liste[i] = "test_string_" + i
+            i = i + 1
+        }
+        
+        liste
+    )");
+    
+    EXPECT_EQ(result, INTERPRET_OK);
+    
+    size_t finalMemory = MemoryStats::getTotalMemoryUsage();
+    EXPECT_GT(finalMemory, initialMemory); // Memory should have increased
+    
+    if (gumus_debug) {
+        std::cout << "Memory usage increased by " << (finalMemory - initialMemory) << " bytes\n";
+    }
+}
+
+// 🎯 Stack Overflow Protection Test
+TEST_F(VMTest, StackOverflowProtection) {
+    InterpretResult result = compileAndRun(R"(
+        fonksiyon sonsuzRekürsif() {
+            sonsuzRekürsif()
+        }
+        
+        sonsuzRekürsif()
+    )");
+    
+    EXPECT_EQ(result, INTERPRET_RUNTIME_ERROR);
+}
+
+// 🧪 Bytecode Optimization Test
+TEST_F(VMTest, BytecodeOptimization) {
+    // Test that chunk optimization works
+    chunk->write(OP_CONSTANT, 1);
+    chunk->write(0, 1);
+    chunk->write(OP_POP, 1);
+    chunk->write(OP_POP, 1); // Redundant POP
+    chunk->write(OP_NOP, 1); // Should be removed
+    chunk->write(OP_RETURN, 1);
+    
+    size_t originalSize = chunk->code.size();
+    chunk->optimize();
+    size_t optimizedSize = chunk->code.size();
+    
+    EXPECT_LT(optimizedSize, originalSize);
+    
+    if (gumus_debug) {
+        std::cout << "Bytecode optimized from " << originalSize 
+                  << " to " << optimizedSize << " instructions\n";
+    }
 }

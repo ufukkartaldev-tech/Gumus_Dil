@@ -4,14 +4,40 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <stack>
 #include "../parser/ast.h"
 #include "chunk.h"
 #include "op_code.h"
+#include "../interpreter/value.h"
+
+// 🎯 Compiler optimization levels
+enum class OptimizationLevel {
+    NONE,       // No optimizations
+    BASIC,      // Basic optimizations (constant folding, dead code elimination)
+    ADVANCED,   // Advanced optimizations (loop unrolling, inlining)
+    AGGRESSIVE  // Aggressive optimizations (may increase compile time)
+};
+
+// 📊 Compilation statistics
+struct CompilerStats {
+    size_t instructionsGenerated = 0;
+    size_t constantsGenerated = 0;
+    size_t optimizationsApplied = 0;
+    double compilationTime = 0.0;
+    size_t bytecodeSize = 0;
+};
 
 class Compiler : public ExprVisitor, public StmtVisitor {
 public:
-    Compiler();
-    Chunk* compile(const std::vector<Stmt*>& statements);
+    Compiler(OptimizationLevel level = OptimizationLevel::BASIC);
+    ~Compiler();
+    
+    Chunk compile(const std::vector<Stmt*>& statements);
+    
+    // 📊 Statistics and debugging
+    CompilerStats getStats() const { return stats; }
+    void setOptimizationLevel(OptimizationLevel level) { optimizationLevel = level; }
+    void enableDebugInfo(bool enable) { debugInfo = enable; }
 
     // StmtVisitor
     void visitExpressionStmt(ExpressionStmt* stmt) override;
@@ -50,12 +76,33 @@ public:
 private:
     Chunk* currentChunk;
     std::map<std::string, int> globalsMap;
+    std::stack<int> breakJumps;
+    std::stack<int> continueJumps;
+    
+    // 🎯 Optimization settings
+    OptimizationLevel optimizationLevel;
+    bool debugInfo;
+    CompilerStats stats;
+    
+    // 🔧 Code generation helpers
     int getGlobalIndex(const std::string& name);
-    void emitByte(uint8_t byte, int line);
-    void emitBytes(uint8_t byte1, uint8_t byte2, int line);
-    void emitConstant(Value value, int line);
-    int emitJump(uint8_t instruction, int line);
+    void emitByte(uint8_t byte, int line = 0);
+    void emitBytes(uint8_t byte1, uint8_t byte2, int line = 0);
+    void emitConstant(Value value, int line = 0);
+    int emitJump(uint8_t instruction, int line = 0);
     void patchJump(int offset);
+    void emitLoop(int loopStart, int line = 0);
+    
+    // 🎯 Optimization methods
+    void optimizeChunk();
+    void constantFolding();
+    void deadCodeElimination();
+    void peepholeOptimization();
+    
+    // 📊 Statistics tracking
+    void trackInstruction();
+    void trackConstant();
+    void trackOptimization();
 };
 
 #endif // COMPILER_H

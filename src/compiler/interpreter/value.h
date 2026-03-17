@@ -44,6 +44,8 @@ struct Value {
     
     // 🗑️ Garbage Collection Desteği
     bool isMarked = false;
+    std::vector<std::shared_ptr<Value>> references; // GC için referanslar
+    mutable size_t refCount = 0; // Reference counting için
 
     // Kurucular
     Value() : type(ValueType::NIL), floatVal(0.0) {}
@@ -63,21 +65,121 @@ struct Value {
     ValueList& getList() const { return *std::static_pointer_cast<ValueList>(obj); }
     std::map<std::string, Value>& getMap() const { return *std::static_pointer_cast<std::map<std::string, Value>>(obj); }
 
-    // 📊 Bellek Analizi
+    // 📊 Bellek Analizi ve Optimizasyon
     size_t getSize() const {
         switch (type) {
             case ValueType::INTEGER: return sizeof(int);
             case ValueType::FLOAT: return sizeof(double);
             case ValueType::BOOLEAN: return sizeof(bool);
-            case ValueType::STRING: return obj ? getString().size() : 0;
-            case ValueType::LIST: return obj ? getList().size() * sizeof(Value) : 0;
-            case ValueType::MAP: return obj ? getMap().size() * 32 : 0; // Ortalama map düğüm boyutu
+            case ValueType::STRING: return obj ? getString().size() + sizeof(std::string) : 0;
+            case ValueType::LIST: return obj ? getList().size() * sizeof(Value) + sizeof(ValueList) : 0;
+            case ValueType::MAP: return obj ? getMap().size() * 32 + sizeof(std::map<std::string, Value>) : 0;
             case ValueType::CLASS:
             case ValueType::INSTANCE:
             case ValueType::FUNCTION: return 100; // Tahmini nesne boyutu
             case ValueType::NIL:
             default: return 0;
         }
+    }
+
+    // 🎯 Memory optimization methods
+    void optimize() {
+        switch (type) {
+            case ValueType::STRING:
+                if (obj) {
+                    auto& str = getString();
+                    str.shrink_to_fit();
+                }
+                break;
+            case ValueType::LIST:
+                if (obj) {
+                    auto& list = getList();
+                    list.shrink_to_fit();
+                }
+                break;
+            case ValueType::MAP:
+                // Maps don't have shrink_to_fit, but we can rehash
+                break;
+            default:
+                break;
+        }
+    }
+
+    bool equals(const Value& other) const {
+        if (type != other.type) return false;
+        
+        switch (type) {
+            case ValueType::INTEGER: return intVal == other.intVal;
+            case ValueType::FLOAT: return floatVal == other.floatVal;
+            case ValueType::BOOLEAN: return boolVal == other.boolVal;
+            case ValueType::NIL: return true;
+            case ValueType::STRING: 
+                return obj && other.obj && getString() == other.getString();
+            case ValueType::LIST:
+                if (!obj || !other.obj) return obj == other.obj;
+                return getList() == other.getList();
+            case ValueType::MAP:
+                if (!obj || !other.obj) return obj == other.obj;
+                return getMap() == other.getMap();
+            default:
+                return obj == other.obj;
+        }
+    }
+
+    // 🔄 Copy and move semantics for better memory management
+    Value(const Value& other) : type(other.type), obj(other.obj), isMarked(false), refCount(0) {
+        switch (type) {
+            case ValueType::INTEGER: intVal = other.intVal; break;
+            case ValueType::FLOAT: floatVal = other.floatVal; break;
+            case ValueType::BOOLEAN: boolVal = other.boolVal; break;
+            default: break;
+        }
+    }
+
+    Value(Value&& other) noexcept : type(other.type), obj(std::move(other.obj)), isMarked(false), refCount(0) {
+        switch (type) {
+            case ValueType::INTEGER: intVal = other.intVal; break;
+            case ValueType::FLOAT: floatVal = other.floatVal; break;
+            case ValueType::BOOLEAN: boolVal = other.boolVal; break;
+            default: break;
+        }
+        other.type = ValueType::NIL;
+    }
+
+    Value& operator=(const Value& other) {
+        if (this != &other) {
+            type = other.type;
+            obj = other.obj;
+            isMarked = false;
+            refCount = 0;
+            
+            switch (type) {
+                case ValueType::INTEGER: intVal = other.intVal; break;
+                case ValueType::FLOAT: floatVal = other.floatVal; break;
+                case ValueType::BOOLEAN: boolVal = other.boolVal; break;
+                default: break;
+            }
+        }
+        return *this;
+    }
+
+    Value& operator=(Value&& other) noexcept {
+        if (this != &other) {
+            type = other.type;
+            obj = std::move(other.obj);
+            isMarked = false;
+            refCount = 0;
+            
+            switch (type) {
+                case ValueType::INTEGER: intVal = other.intVal; break;
+                case ValueType::FLOAT: floatVal = other.floatVal; break;
+                case ValueType::BOOLEAN: boolVal = other.boolVal; break;
+                default: break;
+            }
+            
+            other.type = ValueType::NIL;
+        }
+        return *this;
     }
 
     static std::string valueTypeName(ValueType type) {
@@ -224,6 +326,9 @@ struct Value {
         return json;
     }
 };
+
+// 🔧 Utility functions
+std::string valueTypeName(ValueType type);
 
 #endif // VALUE_H
 

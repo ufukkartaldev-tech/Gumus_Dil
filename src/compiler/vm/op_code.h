@@ -6,6 +6,7 @@
 enum OpCode : uint8_t {
     // Constants and literals
     OP_CONSTANT,
+    OP_CONSTANT_LONG,  // For large constant pools (>256)
     OP_NIL,
     OP_TRUE,
     OP_FALSE,
