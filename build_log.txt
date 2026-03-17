@@ -1,9 +1,0 @@
-========================================
-GUMUSDIL PRO - TAM DERLEME (REBUILD)
-========================================
-[1/2] Baglantilar kuruluyor ve derleniyor...
-'g++' is not recognized as an internal or external command,
-operable program or batch file.
-
-[HATA] Derleme basarisiz oldu! Kodlari kontrol edin.
-Press any key to continue . . . 
