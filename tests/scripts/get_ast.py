@@ -17,7 +17,9 @@ try:
     source_file = current_dir / "test_transpiler.tr"
     print(f"Source file: {source_file}")
     
-    stdout, stderr, code = CompilerRunner.get_ast_json(source_file)
+    # Create compiler runner instance
+    compiler_runner = CompilerRunner()
+    stdout, stderr, code = compiler_runner.get_ast_json(source_file)
     
     print(f"Exit Code: {code}")
     if stderr:

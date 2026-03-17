@@ -179,7 +179,9 @@ class DialogManager:
             # 1. Native Derleyici Kontrolü
             native_ok = False
             if COMPILER_PATH.exists():
-                if CompilerRunner.is_compiler_viable():
+                # Create compiler runner instance
+                compiler_runner = CompilerRunner()
+                if compiler_runner.is_compiler_viable():
                     out.write_text(f"✅ Gümüş Native Derleyici: AKTİF ({COMPILER_PATH.name})\n", "success")
                     native_ok = True
                 else:

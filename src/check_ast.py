@@ -36,7 +36,9 @@ def main():
     
     print(f"Checking AST for: {source_file}")
     
-    stdout, stderr, code = CompilerRunner.get_ast_json(source_file)
+    # Create compiler runner instance
+    compiler_runner = CompilerRunner()
+    stdout, stderr, code = compiler_runner.get_ast_json(source_file)
     
     if code != 0:
         print(f"Error Code: {code}")

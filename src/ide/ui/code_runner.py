@@ -87,7 +87,9 @@ class CodeRunner:
     def _start_interactive_thread(self, file_path):
         """Process'i başlatır ve I/O threadlerini yönetir"""
         try:
-            self.process = CompilerRunner.start_with_memory(file_path)
+            # Create compiler runner instance
+            compiler_runner = CompilerRunner()
+            self.process = compiler_runner.start_with_memory(file_path)
             
             if not self.process:
                  self.main_window.root.after(0, lambda: self.main_window.terminal.write_text("❌ Kritik Hata: Process başlatılamadı!\n"))

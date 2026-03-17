@@ -27,6 +27,11 @@
 #include "lsp_server.h"
 #include "debug.h"
 
+// Security framework
+#include "security/input_validator.h"
+#include "security/secure_database.h"
+#include "security/secure_subprocess.h"
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -50,9 +55,14 @@ struct CompilerConfig {
     bool enableDebug = false;
     bool enableProfiling = false;
     std::string outputFile;
+    SecurityContext::TrustLevel securityLevel = SecurityContext::TrustLevel::MEDIUM;
 };
 
 CompilerConfig config;
+
+// Global security components
+InputValidator g_inputValidator;
+SecurityContext g_securityContext(SecurityContext::TrustLevel::MEDIUM);
 
 void printUsage(const char* programName) {
     std::cout << "GümüşDil Compiler v2.0\n";
@@ -64,6 +74,7 @@ void printUsage(const char* programName) {
     std::cout << "  --dump-memory       Dump memory state\n";
     std::cout << "  --debug             Enable debug mode\n";
     std::cout << "  --profile           Enable profiling\n";
+    std::cout << "  --security <level>  Security level (low|medium|high|system)\n";
     std::cout << "  --output <file>     Output file (for code generation)\n";
     std::cout << "  --help              Show this help message\n\n";
     std::cout << "Examples:\n";
@@ -116,6 +127,16 @@ bool parseArguments(int argc, char* argv[]) {
             gumus_debug = true;
         } else if (arg == "--profile") {
             config.enableProfiling = true;
+        } else if (arg == "--security" && i + 1 < argc) {
+            std::string level = argv[++i];
+            if (level == "low") config.securityLevel = SecurityContext::TrustLevel::LOW;
+            else if (level == "medium") config.securityLevel = SecurityContext::TrustLevel::MEDIUM;
+            else if (level == "high") config.securityLevel = SecurityContext::TrustLevel::HIGH;
+            else if (level == "system") config.securityLevel = SecurityContext::TrustLevel::SYSTEM;
+            else {
+                std::cerr << "Unknown security level: " << level << std::endl;
+                return false;
+            }
         } else if (arg == "--output" && i + 1 < argc) {
             config.outputFile = argv[++i];
         } else if (!arg.empty() && arg[0] != '-') {
@@ -285,6 +306,19 @@ void run(const std::string& source, const std::string& filename) {
 }
 
 void runFile(const std::string& path) {
+    // Security: Validate file path
+    auto pathValidation = g_inputValidator.validateFilePath(path);
+    if (pathValidation != InputValidator::ValidationResult::VALID) {
+        std::cerr << "🔒 Security Error: " << g_inputValidator.getValidationError(pathValidation) << std::endl;
+        exit(74);
+    }
+    
+    // Security: Check if file access is allowed
+    if (!g_securityContext.isPathAllowed(path)) {
+        std::cerr << "🔒 Security Error: File access denied: " << path << std::endl;
+        exit(74);
+    }
+    
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "Could not open file: " << path << std::endl;
@@ -295,6 +329,14 @@ void runFile(const std::string& path) {
                        std::istreambuf_iterator<char>());
     file.close();
     
+    // Security: Validate source code content
+    auto sourceValidation = g_inputValidator.validateString(source);
+    if (sourceValidation != InputValidator::ValidationResult::VALID) {
+        std::cerr << "🔒 Security Warning: " << g_inputValidator.getValidationError(sourceValidation) << std::endl;
+        // Continue with sanitized source
+        source = g_inputValidator.sanitizeString(source);
+    }
+    
     run(source, path);
 }
 
@@ -302,7 +344,7 @@ void runPrompt() {
     std::string line;
     Interpreter interpreter; // Keep state between REPL commands
     
-    std::cout << "GümüşDil REPL v2.0 (Bytecode VM)" << std::endl;
+    std::cout << "GümüşDil REPL v2.0 (Bytecode VM) - 🔒 Security Enabled" << std::endl;
     std::cout << "Type 'exit' to quit." << std::endl;
     
     while (true) {
@@ -319,11 +361,31 @@ void runPrompt() {
             continue;
         }
         
+        // Security: Validate REPL input
+        auto inputValidation = g_inputValidator.validateString(line);
+        if (inputValidation != InputValidator::ValidationResult::VALID) {
+            std::cerr << "🔒 Security Warning: " << g_inputValidator.getValidationError(inputValidation) << std::endl;
+            
+            // For REPL, we can be more permissive but still sanitize
+            if (inputValidation == InputValidator::ValidationResult::POTENTIAL_INJECTION ||
+                inputValidation == InputValidator::ValidationResult::MALICIOUS_PATTERN) {
+                std::cerr << "🔒 Input rejected for security reasons." << std::endl;
+                continue;
+            }
+            
+            // Sanitize and continue
+            line = g_inputValidator.sanitizeString(line);
+        }
+        
         // Run in interpreter mode for REPL
         CompilationMode oldMode = config.mode;
         config.mode = CompilationMode::INTERPRETER;
         
-        run(line, "<repl>");
+        try {
+            run(line, "<repl>");
+        } catch (const SecurityException& e) {
+            std::cerr << "🔒 Security Exception: " << e.what() << std::endl;
+        }
         
         config.mode = oldMode;
     }
@@ -338,10 +400,31 @@ int main(int argc, char* argv[]) {
     
     std::setlocale(LC_ALL, "tr_TR.UTF-8");
     
+    // Initialize security framework
+    g_securityContext.setTrustLevel(config.securityLevel);
+    g_securityContext.allowOperation(SecurityContext::Operation::READ_FILE);
+    g_securityContext.allowOperation(SecurityContext::Operation::EXECUTE_COMMAND);
+    
+    // Add safe paths for GümüşDil operations
+    g_securityContext.addAllowedPath(".");
+    g_securityContext.addAllowedPath("./lib");
+    g_securityContext.addAllowedPath("./ornekler");
+    g_securityContext.addAllowedPath("./src");
+    
+    // Block dangerous system paths
+    g_securityContext.addBlockedPath("/etc");
+    g_securityContext.addBlockedPath("/bin");
+    g_securityContext.addBlockedPath("/sbin");
+    g_securityContext.addBlockedPath("C:\\Windows");
+    g_securityContext.addBlockedPath("C:\\System32");
+    
     // Parse command line arguments
     if (!parseArguments(argc, argv)) {
         return 1;
     }
+    
+    // Update security context with parsed security level
+    g_securityContext.setTrustLevel(config.securityLevel);
     
     // Find input file
     std::string inputFile;

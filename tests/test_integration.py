@@ -20,7 +20,8 @@ class TestGumusIntegration(unittest.TestCase):
     def run_script(self, filename):
         script_path = os.path.join(TEST_DIR, filename)
         # Use CompilerRunner which handles fallback
-        stdout, stderr, returncode = CompilerRunner.run(script_path)
+        compiler_runner = CompilerRunner()
+        stdout, stderr, returncode = compiler_runner.run(script_path)
         
         # Mock result object for compatibility with existing tests
         class Result:

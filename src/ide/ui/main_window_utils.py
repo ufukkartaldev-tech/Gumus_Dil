@@ -72,7 +72,10 @@ class MainWindowActionsMixin:
 
         from .ast_viewer import ASTViewer
         self.show_toast("AST Analiz Ediliyor... 🌳", "info")
-        ast_json, err, code = CompilerRunner.get_ast_json(editor.file_path)
+        
+        # Create compiler runner instance
+        compiler_runner = CompilerRunner()
+        ast_json, err, code = compiler_runner.get_ast_json(editor.file_path)
         
         if code != 0:
             self.show_toast(f"AST Hatası: {err}", "error")
