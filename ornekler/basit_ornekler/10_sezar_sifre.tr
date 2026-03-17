@@ -56,11 +56,6 @@ eğer (seçim == "1") {
     değişken çözülmüş = sezar_çöz(metin_değeri, kaydırma);
     yazdır("\n🔓 Çözülmüş Metin: " + çözülmüş);
 } değilse {
-    yazdır("\n❌ Geçersiz seçim!");
+    yazdır("\n❌ Geçersiz seçim!")
 }
-💎 Gümüşdil kodunuzu buraya yazın...
-
-// Örnek:
-değişken x = 10
-yazdır("Merhaba Dünya!")
 

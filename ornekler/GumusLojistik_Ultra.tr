@@ -3,10 +3,10 @@
 // Tüm modüller pırlanta gibi bu dosyada birleştirilmiştir.
 // ============================================================================
 
-dahil_et("db_yonetimi.tr")
-dahil_et("ai_gelis.tr")
-dahil_et("coklu_islem.tr")
-dahil_et("grafik_3d.tr")
+dahil_et("../lib/db_yonetimi.tr")
+dahil_et("../lib/ai_gelis.tr")
+dahil_et("../lib/coklu_islem.tr")
+dahil_et("../lib/grafik_3d.tr")
 
 // --- MODÜL 1: Veritabanı ---
 sınıf VeriMerkezi {

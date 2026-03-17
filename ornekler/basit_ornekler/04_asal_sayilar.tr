@@ -39,9 +39,4 @@ döngü (sayaç < 20) {
     }
     num = num + 1
 }
-// 💎 Gümüşdil kodunuzu buraya yazın...
-
-// Örnek:
-// değişken x = 10
-// yazdır("Merhaba Dünya!")
 

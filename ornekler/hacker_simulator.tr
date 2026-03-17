@@ -3,50 +3,49 @@
 // Ag, Sifreleme ve Grafik kutuphanelerini kullanan eglenceli ornek
 // ---------------------------------------------------------
 
-dahil_et("ag.tr")
-dahil_et("sifreleme.tr")
-dahil_et("grafik_basit.tr")
-dahil_et("zaman_yonetimi.tr")
-dahil_et("io.tr")
+dahil_et("../lib/ag.tr")
+dahil_et("../lib/sifreleme.tr")
+dahil_et("../lib/grafik_basit.tr")
+dahil_et("../lib/zaman_yonetimi.tr")
 
 fonksiyon siber_saldiri_baslat(hedef) {
     grf_temizle()
-    renkli_yazdir("yesil", "==================================================")
-    renkli_yazdir("yesil", "   GUMUS SIBER GUVENLIK KONSOLU v2.0 (GUMUS-SEC)   ")
-    renkli_yazdir("yesil", "==================================================")
-    yazdır("")
+    renkli_yazdir("yeÅŸil", "==================================================")
+    renkli_yazdir("yeÅŸil", "   GÃœMÃœÅ SÄ°BER GÃœVENLÄ°K KONSOLU v2.0 (GÃœMÃœÅ-SEC)   ")
+    renkli_yazdir("yeÅŸil", "==================================================")
+    yazdÄ±r("")
     
-    renkli_yazdir("sari", "[*] Hedef Analiz Ediliyor: " + hedef)
+    renkli_yazdir("sarÄ±", "[*] Hedef Analiz Ediliyor: " + hedef)
     bekle(1000)
     
-    // IP Cozumleme (Ag kutuphanesi)
-    // ag_ping_at(hedef) // Gercek ping atmayalim, ses cikarabilir
-    yazdır("[+] Hedef Cevap Verdi (Ping: 24ms)")
+    // IP Ã‡Ã¶zÃ¼mleme (AÄŸ kÃ¼tÃ¼phanesi)
+    // ag_ping_at(hedef) // GerÃ§ek ping atmayalÄ±m, ses Ã§Ä±karabilir
+    yazdÄ±r("[+] Hedef Cevap Verdi (Ping: 24ms)")
     
-    // Port Tarama Simulasyonu (Grafik)
-    yazdır("[*] Port Taramasi Baslatiliyor...")
-    değişken i = 0
-    döngü (i <= 100) {
+    // Port Tarama SimÃ¼lasyonu (Grafik)
+    yazdÄ±r("[*] Port TaramasÄ± BaÅŸlatÄ±lÄ±yor...")
+    deÄŸiÅŸken i = 0
+    dÃ¶ngÃ¼ (i <= 100) {
         grf_ilerleme(i)
         bekle(20) // Hizli gecsin
         i = i + 5
     }
-    yazdır("")
-    yazdır("[+] Acik Port Bulundu: 80 (HTTP)")
-    yazdır("[+] Acik Port Bulundu: 443 (HTTPS)")
+    yazdï¿½r("")
+    yazdï¿½r("[+] Acik Port Bulundu: 80 (HTTP)")
+    yazdï¿½r("[+] Acik Port Bulundu: 443 (HTTPS)")
     
     // Sifre Kirma
     renkli_yazdir("kirmizi", "[!] Sifreli Veri Tespit Edildi!")
-    değişken gizli_mesaj = "BunuCozemezsin"
-    değişken hash = sifre_basit_hash(gizli_mesaj)
-    yazdır("    HASH: " + hash)
+    deï¿½iï¿½ken gizli_mesaj = "BunuCozemezsin"
+    deï¿½iï¿½ken hash = sifre_basit_hash(gizli_mesaj)
+    yazdï¿½r("    HASH: " + hash)
     
-    yazdır("[*] Brute-Force Saldirisi Baslatiliyor...")
+    yazdï¿½r("[*] Brute-Force Saldirisi Baslatiliyor...")
     bekle(1000)
     
     // Matriks efekti gibi rastgele sayilar
-    değişken j = 0
-    döngü (j < 10) {
+    deï¿½iï¿½ken j = 0
+    dï¿½ngï¿½ (j < 10) {
         renkli_yazdir("yesil", metin(rastgele()) + " " + metin(rastgele()) + " " + metin(rastgele()))
         bekle(100)
         j = j + 1
@@ -56,39 +55,39 @@ fonksiyon siber_saldiri_baslat(hedef) {
     renkli_yazdir("turkuaz", "[!!!] SIFRE KIRILDI: " + gizli_mesaj)
     
     // Base64 kodla arsive at
-    değişken arsiv = sifre_base64_kodla(gizli_mesaj)
-    yazdır("[+] Veri Arsivlendi (Base64): " + arsiv)
+    deï¿½iï¿½ken arsiv = sifre_base64_kodla(gizli_mesaj)
+    yazdï¿½r("[+] Veri Arsivlendi (Base64): " + arsiv)
     
-    yazdır("")
+    yazdï¿½r("")
     renkli_yazdir("yesil", "ISLEM BASARIYLA TAMAMLANDI.")
 }
 
 // Ana Menu
 io_temizle()
-yazdır("1. Hedef IP'ye Saldir")
-yazdır("2. Kendi IP Adresimi Ogren")
-yazdır("3. Cikis")
+yazdï¿½r("1. Hedef IP'ye Saldir")
+yazdï¿½r("2. Kendi IP Adresimi Ogren")
+yazdï¿½r("3. Cikis")
 
-yazdır("Seciminiz:")
-değişken secim = sayı(girdi())
+yazdï¿½r("Seciminiz:")
+deï¿½iï¿½ken secim = sayï¿½(girdi())
 
-eğer (secim == 1) {
-    yazdır("Hedef IP veya Domain girin (Ornek: google.com):")
-    değişken hedef = girdi()
+eï¿½er (secim == 1) {
+    yazdï¿½r("Hedef IP veya Domain girin (Ornek: google.com):")
+    deï¿½iï¿½ken hedef = girdi()
     siber_saldiri_baslat(hedef)
 }
 
-eğer (secim == 2) {
+eï¿½er (secim == 2) {
     grf_temizle()
-    yazdır("IP Adresiniz Sorgulaniyor...")
-    değişken ip = ag_ip_ogren()
+    yazdï¿½r("IP Adresiniz Sorgulaniyor...")
+    deï¿½iï¿½ken ip = ag_ip_ogren()
     renkli_yazdir("yesil", "IP ADRESINIZ: " + ip)
 }
 
-yazdır("Program sonlandi.")
-// ?? Gümüşdil kodunuzu buraya yazın...
+yazdï¿½r("Program sonlandi.")
+// ?? Gï¿½mï¿½ï¿½dil kodunuzu buraya yazï¿½n...
 
-// Örnek:
-// değişken x = 10
-// yazdır("Merhaba Dünya!")
+// ï¿½rnek:
+// deï¿½iï¿½ken x = 10
+// yazdï¿½r("Merhaba Dï¿½nya!")
 

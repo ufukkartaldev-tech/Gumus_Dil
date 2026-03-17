@@ -15,33 +15,33 @@ yazdır("========================================")
 
 sınıf TarayiciGecmisi {
     kurucu() {
-        oz.geriYigini = yeni Yigin()
-        oz.ileriYigini = yeni Yigin()
-        oz.mevcutSayfa = "anasayfa.com"
+        öz.geriYigini = yeni Yigin()
+        öz.ileriYigini = yeni Yigin()
+        öz.mevcutSayfa = "anasayfa.com"
     }
     
     fonksiyon sayfayaGit(url) {
-        oz.geriYigini.ekle(oz.mevcutSayfa)
-        oz.mevcutSayfa = url
-        oz.ileriYigini.temizle()  // Yeni sayfaya gidince ileri geçmişi sil
+        öz.geriYigini.ekle(öz.mevcutSayfa)
+        öz.mevcutSayfa = url
+        öz.ileriYigini.temizle()  // Yeni sayfaya gidince ileri geçmişi sil
         yazdır("→ " + url)
     }
     
     fonksiyon geri() {
-        eğer (!oz.geriYigini.bosmu()) {
-            oz.ileriYigini.ekle(oz.mevcutSayfa)
-            oz.mevcutSayfa = oz.geriYigini.cikar()
-            yazdır("← Geri: " + oz.mevcutSayfa)
+        eğer (!öz.geriYigini.bosmu()) {
+            öz.ileriYigini.ekle(öz.mevcutSayfa)
+            öz.mevcutSayfa = öz.geriYigini.cikar()
+            yazdır("← Geri: " + öz.mevcutSayfa)
         } değilse {
             yazdır("Geri gidilecek sayfa yok!")
         }
     }
     
     fonksiyon ileri() {
-        eğer (!oz.ileriYigini.bosmu()) {
-            oz.geriYigini.ekle(oz.mevcutSayfa)
-            oz.mevcutSayfa = oz.ileriYigini.cikar()
-            yazdır("→ İleri: " + oz.mevcutSayfa)
+        eğer (!öz.ileriYigini.bosmu()) {
+            öz.geriYigini.ekle(öz.mevcutSayfa)
+            öz.mevcutSayfa = öz.ileriYigini.cikar()
+            yazdır("→ İleri: " + öz.mevcutSayfa)
         } değilse {
             yazdır("İleri gidilecek sayfa yok!")
         }
@@ -67,22 +67,22 @@ yazdır("========================================")
 
 sınıf YaziciKuyrugu {
     kurucu() {
-        oz.kuyruk = yeni Kuyruk()
-        oz.toplamYazdirildi = 0
+        öz.kuyruk = yeni Kuyruk()
+        öz.toplamYazdirildi = 0
     }
     
     fonksiyon belgeyiEkle(belgeAdi) {
-        oz.kuyruk.ekle(belgeAdi)
+        öz.kuyruk.ekle(belgeAdi)
         yazdır("📄 Kuyruğa eklendi: " + belgeAdi)
-        yazdır("   Sırada bekleyen: " + metin(oz.kuyruk.boyut))
+        yazdır("   Sırada bekleyen: " + metin(öz.kuyruk.boyut))
     }
     
     fonksiyon yazdir() {
-        eğer (!oz.kuyruk.bosmu()) {
-            değişken belge = oz.kuyruk.cikar()
+        eğer (!öz.kuyruk.bosmu()) {
+            değişken belge = öz.kuyruk.cikar()
             yazdır("🖨️  Yazdırılıyor: " + belge)
-            oz.toplamYazdirildi = oz.toplamYazdirildi + 1
-            yazdır("   Kalan: " + metin(oz.kuyruk.boyut))
+            öz.toplamYazdirildi = öz.toplamYazdirildi + 1
+            yazdır("   Kalan: " + metin(öz.kuyruk.boyut))
         } değilse {
             yazdır("Kuyrukta belge yok!")
         }
@@ -90,10 +90,10 @@ sınıf YaziciKuyrugu {
     
     fonksiyon tumunuYazdir() {
         yazdır("🖨️  Tüm belgeler yazdırılıyor...")
-        döngü (!oz.kuyruk.bosmu()) {
-            oz.yazdir()
+        döngü (!öz.kuyruk.bosmu()) {
+            öz.yazdir()
         }
-        yazdır("✅ Toplam " + metin(oz.toplamYazdirildi) + " belge yazdırıldı")
+        yazdır("✅ Toplam " + metin(öz.toplamYazdirildi) + " belge yazdırıldı")
     }
 }
 
@@ -116,11 +116,11 @@ yazdır("========================================")
 
 sınıf AcilServis {
     kurucu() {
-        oz.kuyruk = yeni OncelikliKuyruk()
+        öz.kuyruk = yeni OncelikliKuyruk()
     }
     
     fonksiyon hastaEkle(isim, aciliyet) {
-        oz.kuyruk.ekle(isim, aciliyet)
+        öz.kuyruk.ekle(isim, aciliyet)
         değişken durum = ""
         eğer (aciliyet == 1) {
             durum = "KRİTİK"
@@ -135,8 +135,8 @@ sınıf AcilServis {
     }
     
     fonksiyon sonrakiHasta() {
-        eğer (!oz.kuyruk.bosmu()) {
-            değişken hasta = oz.kuyruk.cikar()
+        eğer (!öz.kuyruk.bosmu()) {
+            değişken hasta = öz.kuyruk.cikar()
             yazdır("👨‍⚕️ Muayene: " + hasta)
         } değilse {
             yazdır("Bekleyen hasta yok")
@@ -168,22 +168,22 @@ yazdır("========================================")
 
 sınıf Kullanici {
     kurucu(isim) {
-        oz.isim = isim
-        oz.arkadaslar = yeni BagliListe()
+        öz.isim = isim
+        öz.arkadaslar = yeni BagliListe()
     }
     
     fonksiyon arkadasEkle(arkadas) {
-        oz.arkadaslar.sonaEkle(arkadas)
-        yazdır("👥 " + oz.isim + " → " + arkadas + " arkadaş eklendi")
+        öz.arkadaslar.sonaEkle(arkadas)
+        yazdır("👥 " + öz.isim + " → " + arkadas + " arkadaş eklendi")
     }
     
     fonksiyon arkadaslariGoster() {
         yazdır("")
-        yazdır(oz.isim + " adlı kullanıcının arkadaşları:")
-        eğer (oz.arkadaslar.bosmu()) {
+        yazdır(öz.isim + " adlı kullanıcının arkadaşları:")
+        eğer (öz.arkadaslar.bosmu()) {
             yazdır("  (Henüz arkadaş yok)")
         } değilse {
-            oz.arkadaslar.yazdir()
+            öz.arkadaslar.yazdir()
         }
     }
 }
@@ -205,41 +205,41 @@ yazdır("========================================")
 
 sınıf WebOnbellek {
     kurucu() {
-        oz.onbellek = yeni HashTablosu(20)
-        oz.isabetSayisi = 0
-        oz.kaybetmeSayisi = 0
+        öz.onbellek = yeni HashTablosu(20)
+        öz.isabetSayisi = 0
+        öz.kaybetmeSayisi = 0
     }
     
     fonksiyon sayfayiAl(url) {
-        değişken icerik = oz.onbellek.al(url)
+        değişken icerik = öz.onbellek.al(url)
         
-        eğer (icerik != bos) {
-            oz.isabetSayisi = oz.isabetSayisi + 1
+        eğer (icerik != boş) {
+            öz.isabetSayisi = öz.isabetSayisi + 1
             yazdır("✅ ÖNBELLEK İSABETİ: " + url)
             yazdır("   → " + icerik)
         } değilse {
-            oz.kaybetmeSayisi = oz.kaybetmeSayisi + 1
+            öz.kaybetmeSayisi = öz.kaybetmeSayisi + 1
             yazdır("❌ ÖNBELLEK KAYBETME: " + url)
             yazdır("   → Sunucudan yükleniyor...")
             
             // Simüle: Sunucudan yükle ve önbelleğe ekle
             değişken yeniIcerik = url + " içeriği"
-            oz.onbellek.ekle(url, yeniIcerik)
+            öz.onbellek.ekle(url, yeniIcerik)
             yazdır("   → Önbelleğe eklendi")
         }
     }
     
     fonksiyon istatistikler() {
-        değişken toplam = oz.isabetSayisi + oz.kaybetmeSayisi
+        değişken toplam = öz.isabetSayisi + öz.kaybetmeSayisi
         değişken isabet_orani = 0
         eğer (toplam > 0) {
-            isabet_orani = (oz.isabetSayisi * 100) / toplam
+            isabet_orani = (öz.isabetSayisi * 100) / toplam
         }
         
         yazdır("")
         yazdır("📊 Önbellek İstatistikleri:")
-        yazdır("   İsabet: " + metin(oz.isabetSayisi))
-        yazdır("   Kaybetme: " + metin(oz.kaybetmeSayisi))
+        yazdır("   İsabet: " + metin(öz.isabetSayisi))
+        yazdır("   Kaybetme: " + metin(öz.kaybetmeSayisi))
         yazdır("   İsabet Oranı: %" + metin(isabet_orani))
     }
 }
@@ -263,16 +263,16 @@ yazdır("========================================")
 
 sınıf SayiVeritabani {
     kurucu() {
-        oz.agac = yeni IkiliAramaAgaci()
+        öz.agac = yeni IkiliAramaAgaci()
     }
     
     fonksiyon ekle(sayi) {
-        oz.agac.ekle(sayi)
+        öz.agac.ekle(sayi)
         yazdır("➕ Eklendi: " + metin(sayi))
     }
     
     fonksiyon ara(sayi) {
-        değişken bulundu = oz.agac.ara(sayi)
+        değişken bulundu = öz.agac.ara(sayi)
         eğer (bulundu) {
             yazdır("🔍 " + metin(sayi) + " → BULUNDU")
         } değilse {
@@ -283,7 +283,7 @@ sınıf SayiVeritabani {
     fonksiyon siraliListele() {
         yazdır("")
         yazdır("📋 Sıralı Liste (Inorder):")
-        oz.agac.inorder()
+        öz.agac.inorder()
     }
 }
 
@@ -305,4 +305,3 @@ yazdır("")
 yazdır("===========================================")
 yazdır("✅ TÜM ÖRNEKLER TAMAMLANDI!")
 yazdır("===========================================")
-

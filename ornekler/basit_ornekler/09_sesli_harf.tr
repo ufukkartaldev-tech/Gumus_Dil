@@ -3,45 +3,45 @@
 // ============================================
 
 fonksiyon sesli_harf_mi(harf) {
-    değişken sesliler = "aeıioöuüAEIİOÖUÜ";
-    değişken i = 0;
+    değişken sesliler = "aeıioöuüAEIİOÖUÜ"
+    değişken i = 0
     
     döngü (i < uzunluk(sesliler)) {
         eğer (harf == sesliler[i]) {
-            dön doğru;
+            dön doğru
         }
-        i = i + 1;
+        i = i + 1
     }
     
-    dön yanlış;
+    dön yanlış
 }
 
 fonksiyon sesli_harf_say(metin_değeri) {
-    değişken sayaç = 0;
-    değişken i = 0;
+    değişken sayaç = 0
+    değişken i = 0
     
     döngü (i < uzunluk(metin_değeri)) {
         eğer (sesli_harf_mi(metin_değeri[i])) {
-            sayaç = sayaç + 1;
+            sayaç = sayaç + 1
         }
-        i = i + 1;
+        i = i + 1
     }
     
-    dön sayaç;
+    dön sayaç
 }
 
 yazdır("=== SESLİ HARF SAYACI ===\n");
 
-yazdır("Bir metin girin:");
-değişken metin_değeri = girdi();
+yazdır("Bir metin girin:")
+değişken metin_değeri = girdi()
 
-değişken sesli_sayısı = sesli_harf_say(metin_değeri);
-değişken toplam_harf = uzunluk(metin_değeri);
-değişken sessiz_sayısı = toplam_harf - sesli_sayısı;
+değişken sesli_sayısı = sesli_harf_say(metin_değeri)
+değişken toplam_harf = uzunluk(metin_değeri)
+değişken sessiz_sayısı = toplam_harf - sesli_sayısı
 
-yazdır("\n📊 İSTATİSTİKLER:");
-yazdır("─────────────────");
-yazdır("Toplam Karakter: " + metin(toplam_harf));
-yazdır("Sesli Harf: " + metin(sesli_sayısı));
-yazdır("Sessiz Harf: " + metin(sessiz_sayısı));
+yazdır("\n📊 İSTATİSTİKLER:")
+yazdır("─────────────────")
+yazdır("Toplam Karakter: " + metin(toplam_harf))
+yazdır("Sesli Harf: " + metin(sesli_sayısı))
+yazdır("Sessiz Harf: " + metin(sessiz_sayısı))
 

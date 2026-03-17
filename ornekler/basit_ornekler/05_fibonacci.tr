@@ -7,7 +7,7 @@ değişken n = sayı(girdi())
 
 fonksiyon fibonacci(terim) {
     eğer (terim <= 1) {
-        dön terim  // ✅ Noktalı virgül kaldırıldı
+        dön terim
     }
     dön fibonacci(terim - 1) + fibonacci(terim - 2)
 }
@@ -15,7 +15,7 @@ fonksiyon fibonacci(terim) {
 yazdır("\nFibonacci Dizisi:")
 yazdır("==================")
 
-değişken i = 0  // ✅ Noktalı virgül kaldırıldı
+değişken i = 0
 döngü (i < n) {
     yazdır("F(" + metin(i) + ") = " + metin(fibonacci(i)))
     i = i + 1
