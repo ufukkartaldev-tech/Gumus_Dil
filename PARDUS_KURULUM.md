@@ -121,7 +121,7 @@ GümüşDil IDE, Pardus işletim sistemi için özel araçlar ve temimarir içer
 
 ---
 
-## 📋 TEKNOFEST Demo Hazırlığı
+## 📋 Demo Hazırlığı
 
 ### 1. Temiz Pardus Kurulumu
 ```bash
@@ -172,7 +172,6 @@ gumusdil --help
 
 - **GitHub:** https://github.com/ufukkartal/gumusdil
 - **E-posta:** ufukkartal@gumusdil.org
-- **TEKNOFEST:** Eğitim Teknolojileri Kategorisi
 
 ---
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # GümüşDil - Pardus Paket Oluşturucu
-# TEKNOFEST 2026 - Tek Tıkla .deb Paketi
+# Tek Tıkla .deb Paketi
 
 import os
 import subprocess
@@ -26,7 +26,7 @@ class PardusPackageBuilder:
         """Paket oluşturucu dialog'unu göster"""
         
         dialog = ctk.CTkToplevel(self.parent)
-        dialog.title("📦 Pardus Paketi Oluştur - TEKNOFEST 2026")
+        dialog.title("📦 Pardus Paketi Oluştur")
         dialog.geometry("700x600")
         dialog.transient(self.parent)
         dialog.grab_set()
@@ -225,7 +225,7 @@ Maintainer: {developer} <{email}>
 Description: {description}
  GümüşDil ile geliştirilmiş Pardus uygulaması.
  .
- TEKNOFEST 2026 - Yerli ve Milli Yazılım
+ Yerli ve Milli Yazılım
 Homepage: https://gumusdil.org
 """
             

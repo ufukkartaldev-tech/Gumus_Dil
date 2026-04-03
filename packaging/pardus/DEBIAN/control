@@ -6,7 +6,7 @@ Architecture: amd64
 Depends: python3 (>= 3.8), python3-tk, python3-pip, g++ (>= 9.0)
 Maintainer: Ufuk Kartal <ufukkartal@gumusdil.org>
 Description: GümüşDil - Türkçe Programlama Dili ve IDE
- GümüşDil, TEKNOFEST 2026 için geliştirilmiş Türkçe programlama dilidir.
+ GümüşDil, Türkçe programlama dilidir.
  .
  Özellikler:
   - Tamamen Türkçe sözdizimi
@@ -16,5 +16,5 @@ Description: GümüşDil - Türkçe Programlama Dili ve IDE
   - Türkçe hata mesajları
   - Pardus/Linux tam desteği
  .
- TEKNOFEST Eğitim Teknolojileri Yarışması Projesi
+ Eğitim Teknolojileri Projesi
 Homepage: https://gumusdil.org

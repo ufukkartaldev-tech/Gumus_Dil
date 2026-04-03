@@ -1,5 +1,5 @@
 # 🇹🇷 GümüşDil - Pardus Öğretmen Kılavuzu
-## TEKNOFEST 2026 - Eğitim Kurumları İçin
+## Eğitim Kurumları İçin
 
 ---
 
@@ -396,7 +396,7 @@ sudo pip3 install customtkinter pillow
 
 ### Örnek 1: Ankara Atatürk Lisesi
 
-> "9. sınıf öğrencilerimiz GümüşDil ile Pardus yönetim paneli geliştirdi. TEKNOFEST'te sergiledik!"  
+> "9. sınıf öğrencilerimiz GümüşDil ile Pardus yönetim paneli geliştirdi. Harika bir deneyim oldu!"  
 > — Mehmet Öğretmen, Bilişim Teknolojileri
 
 ### Örnek 2: İzmir FATİH Projesi Okulu
@@ -410,5 +410,5 @@ sudo pip3 install customtkinter pillow
 
 ---
 
-*Bu kılavuz TEKNOFEST 2026 Eğitim Teknolojileri Yarışması için hazırlanmıştır.*
+*Bu kılavuz eğitim kurumları için hazırlanmıştır.*
 

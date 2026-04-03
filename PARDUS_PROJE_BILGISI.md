@@ -1,4 +1,4 @@
-# 🐆 GümüşDil - Pardus Proje Teknik Detayları (TEKNOFEST 2026)
+# 🐆 GümüşDil - Pardus Proje Teknik Detayları
 
 Bu belge, GümüşDil projesinin Pardus işletim sistemi ile olan derin entegrasyonunu ve ekosistemdeki yerini teknik detaylarıyla açıklar.
 

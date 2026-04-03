@@ -1,0 +1,89 @@
+// ============================================
+// GÜMÜŞHAFİZA V3.0 DEMO - Advanced Memory Visualization
+// Bu örnek yeni 3D bellek görselleştirme özelliklerini gösterir
+// ============================================
+
+yazdır("🧠 GümüşHafıza V3.0 Demo Başlatılıyor...")
+yazdır("IDE'de sağ panelden 'GümüşHafıza' sekmesini açın!")
+yazdır("")
+
+// Stack değişkenleri (basit tipler)
+değişken sayı = 42
+değişken ondalık = 3.14159
+değişken metin = "Merhaba GümüşDil!"
+değişken doğru_mu = doğru
+
+yazdır("📦 Stack değişkenleri oluşturuldu")
+yazdır("🎮 3D View'da mavi STACK bölgesini kontrol edin")
+
+// Heap değişkenleri (karmaşık tipler)
+değişken liste = [1, 2, 3, 4, 5]
+değişken harita = {"isim": "Ahmet", "yaş": 25, "şehir": "Ankara"}
+
+yazdır("📋 Heap değişkenleri oluşturuldu")
+yazdır("🎮 3D View'da pembe HEAP bölgesini kontrol edin")
+
+// Bellek erişim simülasyonu (heat mapping için)
+yazdır("")
+yazdır("🔥 Bellek erişim simülasyonu başlatılıyor...")
+
+değişken i = 0
+döngü (i < 10) {
+    // Bu değişkenlere sık erişim (hot variables)
+    sayı = sayı + 1
+    metin = metin + "!"
+    
+    // Liste manipülasyonu
+    eğer (i % 2 == 0) {
+        liste[0] = liste[0] * 2
+    }
+    
+    i = i + 1
+}
+
+yazdır("🌡️ Hot variables oluşturuldu (kırmızı renk)")
+yazdır("📊 Performance sekmesinde metrikleri kontrol edin")
+
+// Pointer simülasyonu
+sınıf Düğüm {
+    değişken veri
+    değişken sonraki
+    
+    fonksiyon __init__(değer) {
+        bu.veri = değer
+        bu.sonraki = boş
+    }
+}
+
+yazdır("")
+yazdır("➡️ Pointer bağlantıları oluşturuluyor...")
+
+değişken düğüm1 = Düğüm(100)
+değişken düğüm2 = Düğüm(200)
+değişken düğüm3 = Düğüm(300)
+
+// Bağlı liste oluştur
+düğüm1.sonraki = düğüm2
+düğüm2.sonraki = düğüm3
+
+yazdır("🔗 Bağlı liste oluşturuldu")
+yazdır("🎮 3D View'da mavi okları (pointer connections) görebilirsiniz")
+
+// Bellek analizi
+yazdır("")
+yazdır("📈 Bellek analizi:")
+yazdır("- Stack: " + metin(sayı) + ", " + metin(ondalık) + ", " + metin(doğru_mu))
+yazdır("- Heap: Liste boyutu = " + metin(liste.uzunluk()))
+yazdır("- Pointers: 3 düğüm bağlı")
+
+yazdır("")
+yazdır("✨ GümüşHafıza V3.0 özellikleri:")
+yazdır("🎮 3D görselleştirme - Fare ile döndürün, scroll ile zoom")
+yazdır("📋 Gelişmiş memory cards - Breakpoint ve watch özellikleri")
+yazdır("📊 Performance dashboard - Gerçek zamanlı metrikler")
+yazdır("🔍 Filtreleme ve arama - Değişkenleri kolayca bulun")
+yazdır("📸 Snapshot - Bellek durumunu kaydedin")
+yazdır("🤖 AI analizi - Bellek kullanımı hakkında öneriler alın")
+
+yazdır("")
+yazdır("🎯 Demo tamamlandı! IDE'daki GümüşHafıza panelini keşfedin.")

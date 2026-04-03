@@ -83,8 +83,7 @@ class PardusPanel(ctk.CTkFrame):
         links = [
             ("🌐 Pardus Resmi Sayfa", "https://www.pardus.org.tr"),
             ("📖 Pardus Wiki", "https://wiki.pardus.org.tr"),
-            ("💬 Pardus Forum", "https://gonullu.pardus.org.tr"),
-            ("🏆 TEKNOFEST 2026", "https://teknofest.org")
+            ("💬 Pardus Forum", "https://gonullu.pardus.org.tr")
         ]
         
         for text, url in links:

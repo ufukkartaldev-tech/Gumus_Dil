@@ -43,7 +43,7 @@ Exec=/usr/bin/gumusdil
 Icon=/usr/share/gumusdil/icon.png
 Terminal=false
 Categories=Development;Education;IDE;
-Keywords=programming;turkish;education;teknofest;
+Keywords=programming;turkish;education;
 StartupNotify=true
 EOF
 

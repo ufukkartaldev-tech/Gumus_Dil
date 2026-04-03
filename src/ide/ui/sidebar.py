@@ -3,7 +3,7 @@ import customtkinter as ctk
 import os
 from pathlib import Path
 from ..config import EXAMPLES_DIR
-from .memory_view_v2 import MemoryViewV2 as MemoryView
+from .memory_view_v3 import MemoryViewV3 as MemoryView
 from .ai_panel import AIPanel
 from .notes_panel import NotesPanel
 from ..core.debugger import DebuggerManager

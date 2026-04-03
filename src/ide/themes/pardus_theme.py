@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Pardus Özel Tema - GümüşDil IDE
-# TEKNOFEST 2026 - Yerli ve Milli
+# Yerli ve Milli
 
 PARDUS_THEME = {
     'name': '🇹🇷 Pardus (Yerli ve Milli)',
@@ -54,7 +54,6 @@ PARDUS_FONTS = {
 PARDUS_UI_CONFIG = {
     'show_pardus_logo': True,
     'show_turkish_flag': True,
-    'show_teknofest_badge': True,
     'animation_speed': 'normal',  # Pardus performans optimizasyonu
     'use_native_dialogs': True,   # Pardus native dialog'ları
 }

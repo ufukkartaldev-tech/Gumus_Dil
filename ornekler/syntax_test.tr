@@ -1,4 +1,4 @@
-// 🎯 GümüşDil Syntax Test - TEKNOFEST 2026
+// 🎯 GümüşDil Syntax Test
 // Bu dosya güncel syntax'ı gösterir
 
 // ============================================================================
@@ -6,7 +6,7 @@
 // ============================================================================
 
 değişken sayi = 42
-değişken metin = "Merhaba TEKNOFEST"
+değişken metin = "Merhaba Dünya"
 değişken ondalik = 3.14
 değişken mantiksal = doğru
 
@@ -64,7 +64,7 @@ fonksiyon selamla(isim) {
 
 değişken sonuc = topla(10, 20)
 yazdır("10 + 20 = " + metin(sonuc))
-selamla("TEKNOFEST")
+selamla("Dünya")
 
 // ============================================================================
 // 5. SINIFLAR VE NESNELER

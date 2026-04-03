@@ -1,10 +1,10 @@
 #!/bin/bash
 # GümüşDil - Pardus Otomatik Test Sistemi
-# TEKNOFEST 2026 - Kalite Güvence
+# Kalite Güvence
 
 echo "╔════════════════════════════════════════════════════════════════╗"
 echo "║   🧪 GÜMÜŞDİL PARDUS OTOMATİK TEST SİSTEMİ                    ║"
-echo "║   TEKNOFEST 2026 - Yerli ve Milli Yazılım                      ║"
+echo "║   Yerli ve Milli Yazılım                                        ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # GümüşDil Pardus Paketi Oluşturma Script'i
-# TEKNOFEST 2026 - Eğitim Teknolojileri
+# Eğitim Teknolojileri
 
 set -e
 

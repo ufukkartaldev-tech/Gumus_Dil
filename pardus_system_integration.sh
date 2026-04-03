@@ -1,6 +1,5 @@
 #!/bin/bash
 # GümüşDil - Pardus Sistem Entegrasyon Araçları
-# TEKNOFEST 2026
 
 # ============================================================================
 # 1. PARDUS DOSYA İLİŞKİLENDİRMESİ
@@ -58,13 +57,13 @@ Name=GümüşDil IDE
 Name[tr]=GümüşDil IDE
 GenericName=Türkçe Programlama Dili
 GenericName[tr]=Türkçe Programlama Dili
-Comment=TEKNOFEST 2026 - Yerli ve Milli Programlama Dili
-Comment[tr]=TEKNOFEST 2026 - Yerli ve Milli Programlama Dili
+Comment=Yerli ve Milli Programlama Dili
+Comment[tr]=Yerli ve Milli Programlama Dili
 Icon=applications-development
 Exec=gumusdil %F
 Terminal=false
 Categories=Development;Education;IDE;GTK;
-Keywords=programming;turkish;pardus;teknofest;yerli;milli;kod;programlama;
+Keywords=programming;turkish;pardus;yerli;milli;kod;programlama;
 MimeType=text/x-gumusdil;text/plain;
 StartupNotify=true
 X-Pardus-App=true
@@ -131,7 +130,6 @@ setup_keyboard_shortcuts() {
     mkdir -p ~/.config/gumusdil
     cat > ~/.config/gumusdil/shortcuts.conf << 'EOF'
 # GümüşDil Pardus Klavye Kısayolları
-# TEKNOFEST 2026
 
 [Global]
 open_ide=<Super>g          # Super+G ile IDE aç
@@ -181,8 +179,7 @@ Mimari: amd64
 Bağımlılıklar: python3 (>= 3.8), python3-tk, g++
 Boyut: ~15 MB
 Açıklama: Türkçe programlama dili ve IDE
- GümüşDil, TEKNOFEST 2026 için geliştirilmiş yerli ve milli
- programlama dilidir. Pardus işletim sistemi ile tam uyumludur.
+ GümüşDil, yerli ve milli programlama dilidir. Pardus işletim sistemi ile tam uyumludur.
 Etiketler: education, programming, turkish, pardus
 Bölüm: education
 Öncelik: optional
@@ -319,7 +316,7 @@ EOF
 main() {
     echo "╔════════════════════════════════════════════════════════════════╗"
     echo "║   GümüşDil - Pardus Sistem Entegrasyonu                       ║"
-    echo "║   TEKNOFEST 2026 - Yerli ve Milli Yazılım                     ║"
+    echo "║   Yerli ve Milli Yazılım                                       ║"
     echo "╚════════════════════════════════════════════════════════════════╝"
     echo ""
     

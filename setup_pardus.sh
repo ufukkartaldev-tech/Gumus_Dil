@@ -1,6 +1,6 @@
 #!/bin/bash
 # GümüşDil - Pardus Entegrasyon Scripti
-# TEKNOFEST 2026 - Yerli ve Milli Yazılım
+# Yerli ve Milli Yazılım
 
 echo "🇹🇷 GümüşDil - Pardus Entegrasyonu Başlatılıyor..."
 echo ""
@@ -73,13 +73,13 @@ Name=GümüşDil IDE
 Name[tr]=GümüşDil IDE
 GenericName=Türkçe Programlama Dili
 GenericName[tr]=Türkçe Programlama Dili
-Comment=TEKNOFEST 2026 - Yerli ve Milli Programlama Dili
-Comment[tr]=TEKNOFEST 2026 - Yerli ve Milli Programlama Dili
+Comment=Yerli ve Milli Programlama Dili
+Comment[tr]=Yerli ve Milli Programlama Dili
 Exec=/usr/bin/gumusdil
 Icon=applications-development
 Terminal=false
 Categories=Development;Education;IDE;
-Keywords=programming;turkish;pardus;teknofest;yerli;milli;
+Keywords=programming;turkish;pardus;yerli;milli;
 StartupNotify=true
 X-Pardus-App=true
 EOF
@@ -91,7 +91,6 @@ echo "5️⃣ Pardus optimizasyonları uygulanıyor..."
 mkdir -p ~/.config/gumusdil
 cat > ~/.config/gumusdil/pardus.conf << 'EOF'
 # GümüşDil Pardus Konfigürasyonu
-# TEKNOFEST 2026
 
 [Platform]
 os=pardus
@@ -109,7 +108,7 @@ font_size=12
 theme=pardus-premium
 show_turkish_tips=true
 
-[TEKNOFEST]
+[DEMO]
 mode=demo
 show_branding=true
 highlight_turkish=true
@@ -120,7 +119,7 @@ echo ""
 echo "6️⃣ Sistem PATH'i güncelleniyor..."
 if ! grep -q "gumusdil" ~/.bashrc; then
     echo "" >> ~/.bashrc
-    echo "# GümüşDil - TEKNOFEST 2026" >> ~/.bashrc
+    echo "# GümüşDil" >> ~/.bashrc
     echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.bashrc
     echo "export GUMUSDIL_HOME=\"$(pwd)\"" >> ~/.bashrc
     echo "alias gumusdil='python3 -m ide.ui.main_window'" >> ~/.bashrc
@@ -181,6 +180,6 @@ echo "📚 Örnekler:"
 echo "   cd $GUMUSDIL_HOME/ornekler"
 echo "   gumusdil syntax_test.tr"
 echo ""
-echo "🏆 TEKNOFEST 2026 - Yerli ve Milli Yazılım"
+echo "🏆 Yerli ve Milli Yazılım"
 echo "   Pardus İşletim Sistemi Desteği ✅"
 echo ""
