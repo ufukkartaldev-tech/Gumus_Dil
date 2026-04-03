@@ -573,13 +573,11 @@ class MemoryViewV3(ctk.CTkFrame):
     """
     GümüşHafıza V3.0 - Advanced Memory Visualizer with 3D view
     """
-    def __init__(self, parent, config, on_jump: Optional[Callable] = None, 
-                 on_ask_ai: Optional[Callable] = None):
+    def __init__(self, parent, config, on_jump: Optional[Callable] = None):
         super().__init__(parent, fg_color="transparent")
         
         self.config = config
         self.on_jump = on_jump
-        self.on_ask_ai = on_ask_ai
         self.theme = config.THEMES[config.theme]
         
         # Data structures
@@ -755,15 +753,11 @@ class MemoryViewV3(ctk.CTkFrame):
         
         tool_buttons = [
             ("📸", self.take_snapshot, "Take snapshot"),
-            ("🤖", self.ask_ai_analysis, "AI Analysis"),
             ("📊", self.show_performance_report, "Performance Report"),
             ("🗑️", self.clear_history, "Clear history")
         ]
         
         for icon, command, tooltip in tool_buttons:
-            if icon == "🤖" and not self.on_ask_ai:
-                continue
-                
             btn = ctk.CTkButton(
                 tools_frame,
                 text=icon,
@@ -1264,48 +1258,6 @@ class MemoryViewV3(ctk.CTkFrame):
         except Exception as e:
             print(f"❌ Snapshot error: {e}")
             
-    def ask_ai_analysis(self):
-        """Enhanced AI analysis with performance context"""
-        if not self.on_ask_ai or not self.history:
-            return
-            
-        # Prepare comprehensive analysis context
-        variables = self._collect_variables(self.history[self.current_step])
-        
-        # Performance summary
-        perf_summary = f"""
-Performance Metrics:
-- Total Allocations: {self.performance_data['total_allocations']}
-- Total Deallocations: {self.performance_data['total_deallocations']}
-- Peak Memory: {self.performance_data['peak_memory']} bytes
-- Current Memory: {self.performance_data['current_memory']} bytes
-"""
-        
-        # Variable summary
-        var_summary = f"Step {self.current_step + 1}: {len(variables)} active variables\n"
-        
-        # Hot variables (most accessed)
-        hot_vars = sorted(variables.items(), key=lambda x: x[1].get('access_count', 0), reverse=True)[:5]
-        if hot_vars:
-            var_summary += "\nMost Accessed Variables:\n"
-            for name, info in hot_vars:
-                var_summary += f"- {name}: {info.get('value', '?')} (accessed {info.get('access_count', 0)}x)\n"
-        
-        query = f"""Analyze this GümüşDil memory state:
-
-{perf_summary}
-
-{var_summary}
-
-Please provide insights about:
-1. Memory usage patterns
-2. Potential optimizations
-3. Variable lifecycle analysis
-4. Performance bottlenecks
-"""
-        
-        self.on_ask_ai(query)
-        
     def show_performance_report(self):
         """Show detailed performance report"""
         self.content_notebook.set("📊 Performance")

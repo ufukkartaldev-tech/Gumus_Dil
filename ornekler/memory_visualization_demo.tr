@@ -83,7 +83,6 @@ yazdır("📋 Gelişmiş memory cards - Breakpoint ve watch özellikleri")
 yazdır("📊 Performance dashboard - Gerçek zamanlı metrikler")
 yazdır("🔍 Filtreleme ve arama - Değişkenleri kolayca bulun")
 yazdır("📸 Snapshot - Bellek durumunu kaydedin")
-yazdır("🤖 AI analizi - Bellek kullanımı hakkında öneriler alın")
 
 yazdır("")
 yazdır("🎯 Demo tamamlandı! IDE'daki GümüşHafıza panelini keşfedin.")
