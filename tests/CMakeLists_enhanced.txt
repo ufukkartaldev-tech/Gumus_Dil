@@ -1,0 +1,88 @@
+cmake_minimum_required(VERSION 3.14)
+project(GumusDilTests)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages with fallbacks
+find_package(GTest QUIET)
+find_package(GMock QUIET)
+
+# If GTest not found, use FetchContent to download it
+if(NOT GTest_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/03597a01ee50f33f9142fd2d6f828fa7e0e24253.zip
+    )
+    
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+endif()
+
+# Compiler-specific options
+if(MSVC)
+    add_compile_options(/W4 /WX-)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# Mock implementations for missing components
+set(MOCK_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks/mock_tokenizer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks/mock_parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks/mock_interpreter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks/mock_vm.cpp
+)
+
+# Create mock source files if they don't exist
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mocks)
+
+# Enhanced test executable
+add_executable(enhanced_tests
+    cpp_test_improvements.cpp
+    ${MOCK_SOURCES}
+)
+
+# Link libraries
+if(GTest_FOUND)
+    target_link_libraries(enhanced_tests GTest::gtest GTest::gtest_main)
+    if(GMock_FOUND)
+        target_link_libraries(enhanced_tests GTest::gmock GTest::gmock_main)
+    endif()
+else()
+    target_link_libraries(enhanced_tests gtest gtest_main gmock gmock_main)
+endif()
+
+# Platform-specific libraries
+if(WIN32)
+    target_link_libraries(enhanced_tests ws2_32)
+endif()
+
+# Test discovery
+include(GoogleTest)
+gtest_discover_tests(enhanced_tests)
+
+# Custom test target
+add_custom_target(run_enhanced_tests
+    COMMAND enhanced_tests --gtest_output=xml:test_results.xml
+    DEPENDS enhanced_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+# Install test executable
+install(TARGETS enhanced_tests DESTINATION bin)
+
+# Print configuration summary
+message(STATUS "GümüşDil Enhanced Tests Configuration:")
+message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "  GTest Found: ${GTest_FOUND}")
+message(STATUS "  GMock Found: ${GMock_FOUND}")
+message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
