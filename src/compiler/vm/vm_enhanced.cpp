@@ -334,7 +334,7 @@ InterpretResult VM::runLoop() {
 void VM::push(Value value) {
     if (stackTop - stack.data() >= STACK_MAX) {
         runtimeError("Stack overflow.");
-        return;
+        throw std::runtime_error("Stack overflow");
     }
     *stackTop = value;
     stackTop++;
@@ -343,7 +343,7 @@ void VM::push(Value value) {
 Value VM::pop() {
     if (stackTop == stack.data()) {
         runtimeError("Stack underflow.");
-        return Value();
+        throw std::runtime_error("Stack underflow");
     }
     stackTop--;
     return *stackTop;
@@ -443,10 +443,28 @@ void VM::checkGC() {
     // Trigger GC if memory usage exceeds threshold
     size_t currentMemory = getCurrentMemoryUsage();
     if (currentMemory > gcTriggerThreshold) {
-        if (g_gc) {
-            g_gc->collect();
+        if (gumus_debug) {
+            std::cout << "🧹 Triggering GC: " << currentMemory << " bytes used\n";
         }
-        gcTriggerThreshold = currentMemory * 2; // Adaptive threshold
+        
+        if (g_gc) {
+            try {
+                g_gc->collect();
+                
+                // Update threshold adaptively
+                size_t newMemory = getCurrentMemoryUsage();
+                gcTriggerThreshold = std::max(newMemory * 2, static_cast<size_t>(1024 * 1024));
+                
+                if (gumus_debug) {
+                    std::cout << "✅ GC completed: " << newMemory << " bytes, new threshold: " 
+                              << gcTriggerThreshold << "\n";
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "⚠️ GC Error: " << e.what() << std::endl;
+                // Continue execution but increase threshold to avoid repeated failures
+                gcTriggerThreshold *= 2;
+            }
+        }
     }
 }
 

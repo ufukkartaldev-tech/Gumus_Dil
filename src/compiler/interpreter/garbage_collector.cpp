@@ -6,34 +6,70 @@
 // Global GC instance
 std::unique_ptr<GarbageCollector> g_gc;
 
+// Constants for stability
+const int MAX_MARK_DEPTH = 1000;
+const size_t MAX_HEAP_SIZE = 1024 * 1024; // 1M objects max
+
 // 🗑️ Core GC Operations
 void GarbageCollector::mark(std::shared_ptr<Value> obj) {
     if (!obj || isMarked(obj)) return;
     
-    setMarked(obj, true);
-    markValue(obj);
+    // Prevent infinite recursion with depth limit
+    static thread_local int markDepth = 0;
+    if (markDepth > MAX_MARK_DEPTH) {
+        std::cerr << "⚠️ GC Mark depth limit reached, potential circular reference\n";
+        return;
+    }
+    
+    markDepth++;
+    
+    try {
+        setMarked(obj, true);
+        markValue(obj);
+    } catch (const std::exception& e) {
+        std::cerr << "⚠️ GC Mark Error: " << e.what() << std::endl;
+    }
+    
+    markDepth--;
 }
 
 void GarbageCollector::sweep() {
     auto start = std::chrono::high_resolution_clock::now();
     
     size_t initialHeapSize = heap.size();
-    heap.erase(
-        std::remove_if(heap.begin(), heap.end(), 
-            [this](std::shared_ptr<Value> obj) {
-                if (!isMarked(obj)) {
-                    // Object is unreachable - collect it
-                    objectsCollected++;
-                    memoryFreed += obj->getSize();
-                    return true;
-                }
-                // Reset mark for next collection
-                setMarked(obj, false);
-                return false;
+    size_t currentCollected = 0;
+    size_t currentFreed = 0;
+    
+    // Safer sweep with error handling
+    try {
+        auto it = heap.begin();
+        while (it != heap.end()) {
+            if (!*it) {
+                // Remove null pointers
+                it = heap.erase(it);
+                continue;
             }
-        ),
-        heap.end()
-    );
+            
+            if (!isMarked(*it)) {
+                // Object is unreachable - collect it
+                currentCollected++;
+                if (*it) {
+                    currentFreed += (*it)->getSize();
+                }
+                it = heap.erase(it);
+            } else {
+                // Reset mark for next collection
+                setMarked(*it, false);
+                ++it;
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "⚠️ GC Sweep Error: " << e.what() << std::endl;
+        // Continue with partial cleanup
+    }
+    
+    objectsCollected += currentCollected;
+    memoryFreed += currentFreed;
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -43,13 +79,14 @@ void GarbageCollector::sweep() {
     
     // Track min/max pause times (Stop-the-World metrics)
     if (duration > maxGCPause) maxGCPause = duration;
-    if (duration < minGCPause) minGCPause = duration;
+    if (minGCPause.count() == 0 || duration < minGCPause) minGCPause = duration;
     
     if (gumus_debug) {
-        std::cout << "🗑️ GC: Collected " << objectsCollected 
-                  << " objects, freed " << memoryFreed 
+        std::cout << "🗑️ GC: Collected " << currentCollected 
+                  << " objects, freed " << currentFreed 
                   << " bytes in " << duration.count() << "ms\n";
         std::cout << "   🔴 Stop-the-World pause: " << duration.count() << "ms\n";
+        std::cout << "   📊 Heap: " << initialHeapSize << " -> " << heap.size() << " objects\n";
     }
 }
 
@@ -73,8 +110,26 @@ void GarbageCollector::collect() {
 
 // 📊 Memory Management
 void GarbageCollector::addToHeap(std::shared_ptr<Value> obj) {
-    if (obj) {
-        heap.push_back(obj);
+    if (!obj) return;
+    
+    // Prevent heap overflow
+    if (heap.size() >= MAX_HEAP_SIZE) {
+        std::cerr << "⚠️ Heap size limit reached, forcing GC\n";
+        collect();
+        
+        // If still at limit after GC, reject new allocation
+        if (heap.size() >= MAX_HEAP_SIZE) {
+            throw std::runtime_error("Out of memory: heap size limit exceeded");
+        }
+    }
+    
+    heap.push_back(obj);
+    
+    // Trigger GC if heap is getting large
+    if (heap.size() % 10000 == 0) {
+        if (gumus_debug) {
+            std::cout << "📊 Heap size: " << heap.size() << " objects\n";
+        }
     }
 }
 

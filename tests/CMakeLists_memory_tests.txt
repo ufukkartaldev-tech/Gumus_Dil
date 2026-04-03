@@ -1,0 +1,128 @@
+cmake_minimum_required(VERSION 3.16)
+project(GumusDilMemoryTests)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
+find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
+
+# Include directories
+include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+# Compiler flags for better debugging and optimization
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+
+# Source files for the compiler/interpreter
+set(COMPILER_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/compiler/interpreter/value.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/interpreter/garbage_collector.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/interpreter/interpreter.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/codegen/bytecode_generator.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/vm/vm_enhanced.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/vm/chunk.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/vm/memory_pool.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/ir/ir_instruction.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/ir/ast_to_ir.cpp
+    ${CMAKE_SOURCE_DIR}/src/compiler/optimizer/optimizer.cpp
+)
+
+# Test executables
+add_executable(test_garbage_collector
+    tests/unit/test_garbage_collector.cpp
+    ${COMPILER_SOURCES}
+)
+
+add_executable(test_bytecode_generator
+    tests/unit/test_bytecode_generator.cpp
+    ${COMPILER_SOURCES}
+)
+
+add_executable(test_vm_enhanced
+    tests/unit/test_vm_enhanced.cpp
+    ${COMPILER_SOURCES}
+)
+
+add_executable(test_memory_management
+    tests/unit/test_memory_management.cpp
+    ${COMPILER_SOURCES}
+)
+
+add_executable(test_performance_benchmarks
+    tests/performance/test_performance_benchmarks.cpp
+    ${COMPILER_SOURCES}
+)
+
+# Link libraries
+target_link_libraries(test_garbage_collector ${GTEST_LIBRARIES} Threads::Threads)
+target_link_libraries(test_bytecode_generator ${GTEST_LIBRARIES} Threads::Threads)
+target_link_libraries(test_vm_enhanced ${GTEST_LIBRARIES} Threads::Threads)
+target_link_libraries(test_memory_management ${GTEST_LIBRARIES} Threads::Threads)
+target_link_libraries(test_performance_benchmarks ${GTEST_LIBRARIES} Threads::Threads)
+
+# Test discovery
+enable_testing()
+add_test(NAME GarbageCollectorTests COMMAND test_garbage_collector)
+add_test(NAME BytecodeGeneratorTests COMMAND test_bytecode_generator)
+add_test(NAME VMEnhancedTests COMMAND test_vm_enhanced)
+add_test(NAME MemoryManagementTests COMMAND test_memory_management)
+add_test(NAME PerformanceBenchmarkTests COMMAND test_performance_benchmarks)
+
+# Custom test targets
+add_custom_target(run_unit_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -R "GarbageCollectorTests|BytecodeGeneratorTests|VMEnhancedTests|MemoryManagementTests"
+    DEPENDS test_garbage_collector test_bytecode_generator test_vm_enhanced test_memory_management
+)
+
+add_custom_target(run_performance_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -R "PerformanceBenchmarkTests"
+    DEPENDS test_performance_benchmarks
+)
+
+add_custom_target(run_all_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    DEPENDS test_garbage_collector test_bytecode_generator test_vm_enhanced test_memory_management test_performance_benchmarks
+)
+
+# Memory testing with Valgrind (if available)
+find_program(VALGRIND_PROGRAM valgrind)
+if(VALGRIND_PROGRAM)
+    add_custom_target(run_memory_tests
+        COMMAND ${VALGRIND_PROGRAM} --tool=memcheck --leak-check=full --show-leak-kinds=all 
+                --track-origins=yes --verbose --error-exitcode=1 
+                $<TARGET_FILE:test_memory_management>
+        DEPENDS test_memory_management
+    )
+endif()
+
+# Coverage target (if gcov is available)
+find_program(GCOV_PROGRAM gcov)
+if(GCOV_PROGRAM)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage")
+    add_custom_target(coverage
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        COMMAND gcov ${COMPILER_SOURCES}
+        COMMAND lcov --capture --directory . --output-file coverage.info
+        COMMAND genhtml coverage.info --output-directory coverage_report
+        DEPENDS run_all_tests
+    )
+endif()
+
+# Benchmark target
+add_custom_target(benchmark
+    COMMAND echo "🚀 Running Performance Benchmarks..."
+    COMMAND $<TARGET_FILE:test_performance_benchmarks> --gtest_filter="*Performance*"
+    DEPENDS test_performance_benchmarks
+)
+
+# Quick test target (essential tests only)
+add_custom_target(quick_test
+    COMMAND echo "⚡ Running Quick Tests..."
+    COMMAND $<TARGET_FILE:test_garbage_collector> --gtest_filter="*Basic*"
+    COMMAND $<TARGET_FILE:test_vm_enhanced> --gtest_filter="*Basic*"
+    DEPENDS test_garbage_collector test_vm_enhanced
+)
