@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "native_functions.h" // Modüler Native Fonksiyonlar
+#include "../stability/error_recovery.h" // Enhanced error recovery
 #include <functional>
 #include <cstdlib>
 #include <ctime>
@@ -109,22 +110,39 @@ void Interpreter::interpret(const std::vector<Stmt*>& statements) {
 void Interpreter::execute(Stmt* stmt) {
     if (stmt == nullptr) return;
     currentLine = stmt->line;
-    stmt->accept(*this);
-    ExecutionStatus result = lastEvaluatedStatus;
-    if (gumus_memory_dump) {
-        std::cout << "\n__MEMORY_JSON_START__\n";
-        std::cout << "{ \"line\": " << currentLine << ", ";
-        std::cout << "\"stack\": [";
-        for (size_t i = 0; i < callStack.size(); ++i) {
-            std::cout << "\"" << callStack[i] << "\"";
-            if (i < callStack.size() - 1) std::cout << ", ";
+    
+    try {
+        stmt->accept(*this);
+        ExecutionStatus result = lastEvaluatedStatus;
+        
+        // Report successful execution to stability system
+        if (GumusStability::g_error_recovery) {
+            GumusStability::g_error_recovery->markComponentHealthy("interpreter");
         }
-        std::cout << "], ";
-        std::cout << "\"env\": " ;
-        if (environment != nullptr) std::cout << environment->toJson();
-        else std::cout << "null";
-        std::cout << " }\n";
-        std::cout << "__MEMORY_JSON_END__\n";
+        
+        if (gumus_memory_dump) {
+            std::cout << "\n__MEMORY_JSON_START__\n";
+            std::cout << "{ \"line\": " << currentLine << ", ";
+            std::cout << "\"stack\": [";
+            for (size_t i = 0; i < callStack.size(); ++i) {
+                std::cout << "\"" << callStack[i] << "\"";
+                if (i < callStack.size() - 1) std::cout << ", ";
+            }
+            std::cout << "], ";
+            std::cout << "\"env\": " ;
+            if (environment != nullptr) std::cout << environment->toJson();
+            else std::cout << "null";
+            std::cout << " }\n";
+            std::cout << "__MEMORY_JSON_END__\n";
+        }
+    } catch (const LoxRuntimeException& e) {
+        // Report runtime error to stability system
+        REPORT_ERROR("interpreter", "execute", e.what(), GumusStability::ErrorSeverity::ERROR, e.line);
+        throw; // Re-throw for proper handling
+    } catch (const std::exception& e) {
+        // Report unexpected error
+        REPORT_CRITICAL_ERROR("interpreter", "execute", e.what(), currentLine);
+        throw;
     }
 }
 
