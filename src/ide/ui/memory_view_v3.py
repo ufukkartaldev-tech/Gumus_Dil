@@ -63,7 +63,7 @@ class MemoryBlock3D:
 
 class MemoryCanvas3D(Canvas):
     """
-    3D-like memory visualization canvas with stack/heap separation
+    High-performance 3D-like memory visualization canvas with incremental updates
     """
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
@@ -74,10 +74,27 @@ class MemoryCanvas3D(Canvas):
         self.heap_blocks = []
         self.animation_running = False
         
+        # Performance optimization: Track what needs redrawing
+        self.dirty_blocks = set()  # Blocks that need redrawing
+        self.dirty_connections = set()  # Connections that need redrawing
+        self.full_redraw_needed = True  # Force full redraw on first render
+        
+        # Canvas object tracking for incremental updates
+        self.block_canvas_objects = {}  # address -> list of canvas object IDs
+        self.connection_canvas_objects = {}  # (source, target) -> canvas object ID
+        
         # 3D projection parameters
         self.camera_angle = 45
         self.camera_height = 0.5
         self.zoom = 1.0
+        
+        # Performance metrics
+        self.render_stats = {
+            "total_renders": 0,
+            "full_redraws": 0,
+            "incremental_updates": 0,
+            "blocks_updated": 0
+        }
         
         # Bind mouse events for interaction
         self.bind("<Button-1>", self.on_click)
@@ -103,63 +120,136 @@ class MemoryCanvas3D(Canvas):
         return canvas_x, canvas_y
         
     def add_memory_block(self, block: MemoryBlock3D, is_stack: bool = True):
-        """Add a memory block to visualization"""
+        """Add a memory block to visualization with incremental update"""
+        # Check if block already exists
+        if block.address in self.blocks:
+            old_block = self.blocks[block.address]
+            # If value changed, mark for update
+            if old_block.value != block.value or old_block.access_count != block.access_count:
+                self.dirty_blocks.add(block.address)
+        else:
+            # New block
+            self.dirty_blocks.add(block.address)
+        
         self.blocks[block.address] = block
         
         if is_stack:
-            block.x = 0
-            block.y = len(self.stack_blocks)
-            block.z = 0
-            self.stack_blocks.append(block)
+            if block not in self.stack_blocks:
+                block.x = 0
+                block.y = len(self.stack_blocks)
+                block.z = 0
+                self.stack_blocks.append(block)
         else:
-            # Heap blocks arranged in a grid
-            heap_count = len(self.heap_blocks)
-            block.x = (heap_count % 8) - 4
-            block.y = -(heap_count // 8) - 1
-            block.z = 2
-            self.heap_blocks.append(block)
-            
-        self.redraw()
+            if block not in self.heap_blocks:
+                # Heap blocks arranged in a grid
+                heap_count = len(self.heap_blocks)
+                block.x = (heap_count % 8) - 4
+                block.y = -(heap_count // 8) - 1
+                block.z = 2
+                self.heap_blocks.append(block)
+                
+        # Incremental redraw instead of full redraw
+        self.incremental_redraw()
         
     def remove_memory_block(self, address: str):
-        """Remove a memory block"""
+        """Remove a memory block with incremental update"""
         if address in self.blocks:
+            # Remove canvas objects for this block
+            if address in self.block_canvas_objects:
+                for obj_id in self.block_canvas_objects[address]:
+                    self.delete(obj_id)
+                del self.block_canvas_objects[address]
+            
             block = self.blocks[address]
             if block in self.stack_blocks:
                 self.stack_blocks.remove(block)
                 # Reposition remaining stack blocks
                 for i, stack_block in enumerate(self.stack_blocks):
-                    stack_block.y = i
+                    if stack_block.y != i:
+                        stack_block.y = i
+                        self.dirty_blocks.add(stack_block.address)
             elif block in self.heap_blocks:
                 self.heap_blocks.remove(block)
                 # Reposition remaining heap blocks
                 for i, heap_block in enumerate(self.heap_blocks):
-                    heap_block.x = (i % 8) - 4
-                    heap_block.y = -(i // 8) - 1
+                    new_x = (i % 8) - 4
+                    new_y = -(i // 8) - 1
+                    if heap_block.x != new_x or heap_block.y != new_y:
+                        heap_block.x = new_x
+                        heap_block.y = new_y
+                        self.dirty_blocks.add(heap_block.address)
                     
             del self.blocks[address]
-            self.redraw()
+            self.incremental_redraw()
             
-    def redraw(self):
-        """Redraw the entire memory visualization"""
+    def incremental_redraw(self):
+        """High-performance incremental redraw - only update changed elements"""
+        self.render_stats["total_renders"] += 1
+        
+        # If camera moved or full redraw needed, do complete redraw
+        if self.full_redraw_needed:
+            self.full_redraw()
+            return
+            
+        # Update only dirty blocks
+        if self.dirty_blocks:
+            self.render_stats["incremental_updates"] += 1
+            self.render_stats["blocks_updated"] += len(self.dirty_blocks)
+            
+            for address in self.dirty_blocks:
+                if address in self.blocks:
+                    self._update_single_block(self.blocks[address])
+                    
+            self.dirty_blocks.clear()
+            
+        # Update dirty connections
+        if self.dirty_connections:
+            self._update_connections()
+            self.dirty_connections.clear()
+            
+    def _update_single_block(self, block: MemoryBlock3D):
+        """Update a single memory block efficiently"""
+        # Remove old canvas objects for this block
+        if block.address in self.block_canvas_objects:
+            for obj_id in self.block_canvas_objects[block.address]:
+                self.delete(obj_id)
+                
+        # Redraw the block
+        self.block_canvas_objects[block.address] = []
+        self._draw_memory_block(block)
+        
+    def full_redraw(self):
+        """Complete redraw - use only when necessary (camera changes, etc.)"""
+        self.render_stats["full_redraws"] += 1
         self.delete("all")
+        
+        # Clear tracking
+        self.block_canvas_objects.clear()
+        self.connection_canvas_objects.clear()
         
         # Draw coordinate system
         self._draw_axes()
         
-        # Draw stack section
+        # Draw section labels
         self._draw_section_label("STACK", -200, 50, "#3b82f6")
-        
-        # Draw heap section  
         self._draw_section_label("HEAP", 200, 50, "#ec4899")
         
-        # Draw memory blocks
+        # Draw all memory blocks
         all_blocks = sorted(self.blocks.values(), key=lambda b: b.z)
         for block in all_blocks:
+            self.block_canvas_objects[block.address] = []
             self._draw_memory_block(block)
             
         # Draw pointer connections
         self._draw_connections()
+        
+        self.full_redraw_needed = False
+        self.dirty_blocks.clear()
+        self.dirty_connections.clear()
+        
+    def redraw(self):
+        """Legacy method - now uses incremental redraw"""
+        self.incremental_redraw()
         
     def _draw_axes(self):
         """Draw 3D coordinate axes"""
@@ -183,7 +273,7 @@ class MemoryCanvas3D(Canvas):
         self.create_text(x, y, text=text, fill=color, font=("Consolas", 14, "bold"))
         
     def _draw_memory_block(self, block: MemoryBlock3D):
-        """Draw a single memory block in 3D"""
+        """Draw a single memory block in 3D with object tracking"""
         # Calculate heat color based on access frequency
         heat_factor = min(block.access_count / 10.0, 1.0)
         base_color = block.color
@@ -199,11 +289,18 @@ class MemoryCanvas3D(Canvas):
         # Convert back to hex
         heat_color = f"#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}"
         
-        # Draw 3D cube
-        self._draw_cube(block.x, block.y, block.z, 0.8, heat_color, block)
+        # Draw 3D cube and track canvas objects
+        cube_objects = self._draw_cube(block.x, block.y, block.z, 0.8, heat_color, block)
         
-    def _draw_cube(self, x: float, y: float, z: float, size: float, color: str, block: MemoryBlock3D):
-        """Draw a 3D cube representing a memory block"""
+        # Store canvas object IDs for this block
+        if block.address not in self.block_canvas_objects:
+            self.block_canvas_objects[block.address] = []
+        self.block_canvas_objects[block.address].extend(cube_objects)
+        
+    def _draw_cube(self, x: float, y: float, z: float, size: float, color: str, block: MemoryBlock3D) -> List[int]:
+        """Draw a 3D cube representing a memory block, return canvas object IDs"""
+        canvas_objects = []
+        
         # Define cube vertices
         vertices = [
             (x - size/2, y - size/2, z - size/2),  # 0: bottom-left-back
@@ -245,13 +342,59 @@ class MemoryCanvas3D(Canvas):
             
             face_color = f"#{r:02x}{g:02x}{b:02x}"
             
-            self.create_polygon(
+            obj_id = self.create_polygon(
                 face_points,
                 fill=face_color,
                 outline="#ffffff",
                 width=1,
                 tags=f"block_{block.address}"
             )
+            canvas_objects.append(obj_id)
+            
+        # Add text label
+        center_x, center_y = self.project_3d(x, y + size/2 + 0.3, z)
+        label_id = self.create_text(
+            center_x, center_y,
+            text=f"{block.name}\n{block.value[:10]}",
+            fill="white",
+            font=("Consolas", 8),
+            tags=f"label_{block.address}"
+        )
+        canvas_objects.append(label_id)
+        
+        return canvas_objects
+        
+    def _update_connections(self):
+        """Update pointer connections efficiently"""
+        # Clear old connections
+        for obj_id in self.connection_canvas_objects.values():
+            self.delete(obj_id)
+        self.connection_canvas_objects.clear()
+        
+        # Redraw all connections
+        self._draw_connections()
+        
+    def _draw_connections(self):
+        """Draw pointer connections between memory blocks"""
+        for block in self.blocks.values():
+            for target_addr in block.connections:
+                if target_addr in self.blocks:
+                    target = self.blocks[target_addr]
+                    
+                    # Draw arrow from source to target
+                    x1, y1 = self.project_3d(block.x, block.y, block.z)
+                    x2, y2 = self.project_3d(target.x, target.y, target.z)
+                    
+                    connection_key = (block.address, target_addr)
+                    obj_id = self.create_line(
+                        x1, y1, x2, y2,
+                        fill="#06b6d4",
+                        width=2,
+                        arrow=tk.LAST,
+                        arrowshape=(10, 12, 3),
+                        tags="connection"
+                    )
+                    self.connection_canvas_objects[connection_key] = obj_id
             
         # Add text label
         center_x, center_y = self.project_3d(x, y + size/2 + 0.3, z)
@@ -289,7 +432,7 @@ class MemoryCanvas3D(Canvas):
         self.last_mouse_y = event.y
         
     def on_drag(self, event):
-        """Handle mouse drag for camera rotation"""
+        """Handle mouse drag for camera rotation with optimized redraw"""
         dx = event.x - self.last_mouse_x
         dy = event.y - self.last_mouse_y
         
@@ -299,17 +442,26 @@ class MemoryCanvas3D(Canvas):
         self.last_mouse_x = event.x
         self.last_mouse_y = event.y
         
-        self.redraw()
+        # Camera changed - need full redraw
+        self.full_redraw_needed = True
+        self.full_redraw()
         
     def on_zoom(self, event):
-        """Handle mouse wheel for zooming"""
+        """Handle mouse wheel for zooming with optimized redraw"""
         if event.delta > 0:
             self.zoom *= 1.1
         else:
             self.zoom *= 0.9
             
         self.zoom = max(0.1, min(self.zoom, 3.0))
-        self.redraw()
+        
+        # Camera changed - need full redraw
+        self.full_redraw_needed = True
+        self.full_redraw()
+        
+    def get_render_stats(self) -> dict:
+        """Get rendering performance statistics"""
+        return self.render_stats.copy()
         
     def animate_access(self, address: str):
         """Animate memory access"""
@@ -1089,42 +1241,52 @@ class MemoryViewV3(ctk.CTkFrame):
             self.memory_cards[var_name] = card
             
     def _update_3d_view(self, data: dict = None):
-        """Update 3D visualization"""
+        """Update 3D visualization with native type system integration"""
         if data is None and self.current_step < len(self.history):
             data = self.history[self.current_step]
         elif data is None:
             return
             
-        # Clear existing blocks
+        # Clear existing blocks efficiently
         self.canvas_3d.blocks.clear()
         self.canvas_3d.stack_blocks.clear()
         self.canvas_3d.heap_blocks.clear()
+        self.canvas_3d.full_redraw_needed = True
         
-        # Add memory blocks
+        # Add memory blocks using native type system
         variables = self._collect_variables(data)
         
         for var_name, var_info in variables.items():
             block = MemoryBlock3D(
                 address=var_info.get("address", "null"),
-                size=var_info.get("size", 8),
+                size=var_info.get("size", 8),  # Now accurate from type system
                 var_type=var_info.get("type", "unknown"),
                 value=var_info.get("value", "?"),
                 name=var_name
             )
             
-            # Determine if stack or heap based on type
-            is_stack = var_info.get("type", "").lower() in ["int", "float", "bool"]
+            # Use native type system to determine stack vs heap
+            is_stack = var_info.get("is_stack", False)
             
             self.canvas_3d.add_memory_block(block, is_stack)
             
-        # Add pointer connections
+        # Add pointer connections with better detection
         for var_name, var_info in variables.items():
-            if var_info.get("type", "").lower() == "pointer":
+            var_type = var_info.get("type", "").lower()
+            type_category = var_info.get("type_category", "")
+            
+            # Enhanced pointer detection
+            if (type_category == "pointer" or 
+                "pointer" in var_type or "işaretçi" in var_type or
+                "ref" in var_type or "referans" in var_type):
+                
                 target_addr = var_info.get("points_to")
                 if target_addr and var_info.get("address") in self.canvas_3d.blocks:
                     self.canvas_3d.blocks[var_info.get("address")].add_connection(target_addr)
+                    self.canvas_3d.dirty_connections.add((var_info.get("address"), target_addr))
                     
-        self.canvas_3d.redraw()
+        # Efficient redraw
+        self.canvas_3d.incremental_redraw()
         
     def _apply_filters(self, variables: dict) -> dict:
         """Apply search and type filters"""
@@ -1159,7 +1321,7 @@ class MemoryViewV3(ctk.CTkFrame):
         return filtered
         
     def _collect_variables(self, scope_data: dict) -> dict:
-        """Collect variables from all scopes with enhanced info"""
+        """Collect variables from all scopes with enhanced info using native type system"""
         variables = {}
         
         def traverse(scope, depth=0):
@@ -1168,15 +1330,25 @@ class MemoryViewV3(ctk.CTkFrame):
                 
             # Current scope variables
             for name, info in scope.get("variables", {}).items():
-                # Enhanced variable info
+                var_type = info.get("type", "unknown")
+                var_value = info.get("value", "")
+                
+                # Use GümüşDil native type system for accurate sizing
+                accurate_size = GumusDilTypeSystem.get_type_size(var_type, var_value)
+                type_category = GumusDilTypeSystem.get_type_category(var_type)
+                
+                # Enhanced variable info with native type data
                 enhanced_info = {
-                    "value": info.get("value", "?"),
-                    "type": info.get("type", "unknown"),
+                    "value": var_value,
+                    "type": var_type,
                     "address": info.get("address", f"0x{hash(name) & 0xFFFFFF:06x}"),
-                    "size": info.get("size", self._estimate_size(info.get("type", ""), info.get("value", ""))),
+                    "size": accurate_size,  # Now using native type system
                     "access_count": info.get("access_count", 0),
                     "scope_depth": depth,
-                    "points_to": info.get("points_to")  # For pointers
+                    "points_to": info.get("points_to"),  # For pointers
+                    "type_category": type_category,  # stack/heap/pointer/special
+                    "is_stack": type_category == "stack",
+                    "memory_region": "stack" if type_category == "stack" else "heap"
                 }
                 variables[name] = enhanced_info
                 
@@ -1186,20 +1358,140 @@ class MemoryViewV3(ctk.CTkFrame):
         traverse(scope_data)
         return variables
         
-    def _estimate_size(self, var_type: str, value: str) -> int:
-        """Estimate variable size in bytes"""
-        size_map = {
-            "int": 4,
-            "float": 8,
-            "bool": 1,
-            "string": len(str(value)) + 1,
-            "list": len(str(value)) * 4,  # Rough estimate
-            "map": len(str(value)) * 8,   # Rough estimate
-            "class": 16,
-            "pointer": 8,
-            "null": 0
+class GumusDilTypeSystem:
+    """
+    Interface to GümüşDil's native type system for accurate size calculation
+    """
+    
+    @staticmethod
+    def get_type_size(var_type: str, value: str = "", compiler_context=None) -> int:
+        """
+        Get accurate type size from GümüşDil compiler's type system
+        Falls back to estimates if compiler context unavailable
+        """
+        
+        # Try to get from compiler context first
+        if compiler_context and hasattr(compiler_context, 'get_type_size'):
+            try:
+                return compiler_context.get_type_size(var_type, value)
+            except:
+                pass  # Fall back to estimates
+        
+        # GümüşDil native type sizes (based on C++ backend)
+        native_sizes = {
+            # Primitive types (from C++ implementation)
+            "int": 4,           # 32-bit integer
+            "uzun": 8,          # 64-bit long
+            "kısa": 2,          # 16-bit short  
+            "float": 8,         # 64-bit double precision
+            "ondalık": 8,       # Same as float
+            "bool": 1,          # Boolean
+            "doğru": 1,         # Boolean true
+            "yanlış": 1,        # Boolean false
+            "char": 1,          # Single character
+            "karakter": 1,      # Turkish char
+            
+            # Complex types
+            "string": GumusDilTypeSystem._calculate_string_size(value),
+            "metin": GumusDilTypeSystem._calculate_string_size(value),
+            "list": GumusDilTypeSystem._calculate_list_size(value),
+            "liste": GumusDilTypeSystem._calculate_list_size(value),
+            "map": GumusDilTypeSystem._calculate_map_size(value),
+            "harita": GumusDilTypeSystem._calculate_map_size(value),
+            "dict": GumusDilTypeSystem._calculate_map_size(value),
+            
+            # Object types
+            "class": 16,        # Base object overhead
+            "sınıf": 16,        # Turkish class
+            "object": 16,       # Object overhead
+            "nesne": 16,        # Turkish object
+            
+            # Pointer types
+            "pointer": 8,       # 64-bit pointer
+            "işaretçi": 8,      # Turkish pointer
+            "ref": 8,           # Reference
+            "referans": 8,      # Turkish reference
+            
+            # Special types
+            "null": 0,          # Null pointer
+            "boş": 0,           # Turkish null
+            "void": 0,          # Void type
+            "hiç": 0,           # Turkish void
         }
-        return size_map.get(var_type.lower(), 8)
+        
+        # Get size with fallback
+        return native_sizes.get(var_type.lower(), 8)  # Default 8 bytes
+    
+    @staticmethod
+    def _calculate_string_size(value: str) -> int:
+        """Calculate string size including UTF-8 encoding and null terminator"""
+        if not value:
+            return 1  # Just null terminator
+        
+        # UTF-8 encoding can use 1-4 bytes per character
+        # Turkish characters (ğ, ü, ş, ı, ö, ç) use 2 bytes in UTF-8
+        utf8_size = 0
+        for char in value:
+            if ord(char) < 128:
+                utf8_size += 1  # ASCII
+            elif ord(char) < 2048:
+                utf8_size += 2  # Turkish chars, most Unicode
+            elif ord(char) < 65536:
+                utf8_size += 3  # Most Unicode
+            else:
+                utf8_size += 4  # Rare Unicode
+                
+        return utf8_size + 1 + 8  # +1 for null terminator, +8 for string object overhead
+    
+    @staticmethod
+    def _calculate_list_size(value: str) -> int:
+        """Calculate list size based on estimated element count"""
+        if not value or value in ["[]", "boş"]:
+            return 24  # Empty list overhead (vector in C++)
+        
+        # Estimate element count from string representation
+        element_count = value.count(',') + 1 if ',' in value else 1
+        
+        # List overhead + (element_count * average_element_size)
+        return 24 + (element_count * 8)  # 8 bytes per element pointer
+    
+    @staticmethod
+    def _calculate_map_size(value: str) -> int:
+        """Calculate map/dictionary size based on key-value pairs"""
+        if not value or value in ["{}", "boş"]:
+            return 48  # Empty map overhead (std::unordered_map in C++)
+        
+        # Estimate key-value pair count
+        pair_count = value.count(':') if ':' in value else 1
+        
+        # Map overhead + (pair_count * (key_size + value_size + node_overhead))
+        return 48 + (pair_count * 32)  # 32 bytes per key-value pair average
+    
+    @staticmethod
+    def get_type_category(var_type: str) -> str:
+        """Get type category for visualization grouping"""
+        categories = {
+            # Stack types (primitive)
+            "stack": ["int", "uzun", "kısa", "float", "ondalık", "bool", 
+                     "doğru", "yanlış", "char", "karakter"],
+            
+            # Heap types (complex)
+            "heap": ["string", "metin", "list", "liste", "map", "harita", 
+                    "dict", "class", "sınıf", "object", "nesne"],
+            
+            # Pointer types
+            "pointer": ["pointer", "işaretçi", "ref", "referans"],
+            
+            # Special types
+            "special": ["null", "boş", "void", "hiç"]
+        }
+        
+        var_type_lower = var_type.lower()
+        for category, types in categories.items():
+            if var_type_lower in types:
+                return category
+        
+        return "heap"  # Default to heap for unknown types
         
     def step(self, direction: int):
         """Enhanced step navigation"""
@@ -1259,7 +1551,7 @@ class MemoryViewV3(ctk.CTkFrame):
             print(f"❌ Snapshot error: {e}")
             
     def show_performance_report(self):
-        """Show detailed performance report"""
+        """Show detailed performance report with 3D rendering stats"""
         self.content_notebook.set("📊 Performance")
         
         # Update performance metrics display
@@ -1277,6 +1569,32 @@ class MemoryViewV3(ctk.CTkFrame):
                 
                 self.perf_metrics["avg_access_time"].configure(text=f"{avg_vars:.1f}")
                 self.perf_metrics["hot_variables"].configure(text=str(hot_vars))
+                
+        # Show 3D rendering performance
+        render_stats = self.canvas_3d.get_render_stats()
+        print("🎮 3D Rendering Performance:")
+        print(f"  Total Renders: {render_stats['total_renders']}")
+        print(f"  Full Redraws: {render_stats['full_redraws']}")
+        print(f"  Incremental Updates: {render_stats['incremental_updates']}")
+        print(f"  Blocks Updated: {render_stats['blocks_updated']}")
+        
+        if render_stats['total_renders'] > 0:
+            efficiency = (render_stats['incremental_updates'] / render_stats['total_renders']) * 100
+            print(f"  Rendering Efficiency: {efficiency:.1f}% incremental")
+            
+    def get_performance_summary(self) -> dict:
+        """Get comprehensive performance summary"""
+        render_stats = self.canvas_3d.get_render_stats()
+        
+        return {
+            "memory_performance": self.performance_data.copy(),
+            "rendering_performance": render_stats,
+            "efficiency_metrics": {
+                "avg_variables_per_step": sum(len(self._collect_variables(step)) for step in self.history) / max(len(self.history), 1),
+                "rendering_efficiency": (render_stats['incremental_updates'] / max(render_stats['total_renders'], 1)) * 100,
+                "memory_efficiency": (self.performance_data['current_memory'] / max(self.performance_data['peak_memory'], 1)) * 100
+            }
+        }
         
     def clear_history(self):
         """Enhanced clear with performance reset"""
