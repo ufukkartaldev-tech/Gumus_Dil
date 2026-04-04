@@ -1,5 +1,4 @@
-#ifndef INTERPRETER_H
-#define INTERPRETER_H
+#pragma once
 
 #include "../parser/ast.h"
 #include "../parser/arena.h"
@@ -11,6 +10,15 @@
 #include <vector>
 #include <string>
 #include <set>
+
+namespace gumus {
+namespace compiler {
+namespace interpreter {
+
+// Forward declarations for modular components
+class StatementExecutor;
+class ExpressionEvaluator;
+class ErrorSuggestion;
 
 // Forward decls
 class Interpreter;
@@ -24,7 +32,7 @@ struct Callable {
     virtual std::string toString() = 0;
 };
 
-// Environment Class for Scoping (Moved UP because UserFunction needs it)
+// Environment Class for Scoping
 class Environment : public std::enable_shared_from_this<Environment> {
 public:
     std::weak_ptr<Environment> enclosing;
@@ -48,7 +56,89 @@ public:
             if (parent == nullptr) break;
             current = parent.get();
         }
-        throw std::runtime_error("Tanimlanmamis degisken: '" + name + "'.");
+        
+        throw GumusException("runtime_error", 0, "Tanımlanmamış değişken '" + name + "'.");
+    }
+
+    void assign(const std::string& name, Value value) {
+        Environment* current = this;
+        while (current != nullptr) {
+            auto it = current->values.find(name);
+            if (it != current->values.end()) {
+                it->second = value;
+                return;
+            }
+            
+            auto parent = current->enclosing.lock();
+            if (parent == nullptr) break;
+            current = parent.get();
+        }
+        
+        throw GumusException("runtime_error", 0, "Tanımlanmamış değişken '" + name + "'.");
+    }
+};
+
+/**
+ * Main Interpreter class - now modular and focused on coordination
+ * Delegates specific execution tasks to specialized components
+ */
+class Interpreter : public ExprVisitor<Value>, public StmtVisitor<Value> {
+public:
+    Interpreter();
+    
+    // Main execution methods
+    void interpret(const std::vector<Stmt*>& statements);
+    Value evaluate(Expr* expr);
+    void execute(Stmt* stmt);
+    
+    // Public interface for modular components
+    std::shared_ptr<Environment> globals;
+    std::shared_ptr<Environment> environment;
+    std::unordered_map<std::string, std::shared_ptr<GumusFunction>> functions;
+    std::vector<std::string> searchPaths;
+    
+    // Visitor interface (delegated to modules)
+    Value visitBinaryExpr(BinaryExpr* expr) override;
+    Value visitUnaryExpr(UnaryExpr* expr) override;
+    Value visitCallExpr(CallExpr* expr) override;
+    Value visitGetExpr(GetExpr* expr) override;
+    Value visitSetExpr(SetExpr* expr) override;
+    Value visitAssignExpr(AssignExpr* expr) override;
+    Value visitVariableExpr(VariableExpr* expr) override;
+    Value visitLiteralExpr(LiteralExpr* expr) override;
+    Value visitGroupingExpr(GroupingExpr* expr) override;
+    Value visitLogicalExpr(LogicalExpr* expr) override;
+    Value visitThisExpr(ThisExpr* expr) override;
+    Value visitSuperExpr(SuperExpr* expr) override;
+    
+    Value visitFunctionStmt(FunctionStmt* stmt) override;
+    Value visitClassStmt(ClassStmt* stmt) override;
+    Value visitBlockStmt(BlockStmt* stmt) override;
+    Value visitVarStmt(VarStmt* stmt) override;
+    Value visitIfStmt(IfStmt* stmt) override;
+    Value visitWhileStmt(WhileStmt* stmt) override;
+    Value visitReturnStmt(ReturnStmt* stmt) override;
+    Value visitPrintStmt(PrintStmt* stmt) override;
+    Value visitExpressionStmt(ExpressionStmt* stmt) override;
+
+private:
+    // Modular components
+    std::unique_ptr<StatementExecutor> statementExecutor;
+    std::unique_ptr<ExpressionEvaluator> expressionEvaluator;
+    std::unique_ptr<ErrorSuggestion> errorSuggestion;
+    
+    // Helper methods
+    void initializeNativeFunctions();
+    void setupSearchPaths();
+    
+    friend class StatementExecutor;
+    friend class ExpressionEvaluator;
+    friend class ErrorSuggestion;
+};
+
+} // namespace interpreter
+} // namespace compiler  
+} // namespace gumus        throw std::runtime_error("Tanimlanmamis degisken: '" + name + "'.");
     }
 
     void assign(const std::string& name, Value value) {

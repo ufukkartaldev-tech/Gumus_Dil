@@ -5,21 +5,22 @@ import time
 import json
 from ..config import TEMP_DIR
 from ..core.compiler import CompilerRunner
+from .output_parser import OutputParser
+from .process_manager import ProcessManager
 
 class CodeRunner:
-    """Kod Yürütme ve Process Yönetimi (Thread-Safe)"""
+    """Kod Yürütme ve Process Yönetimi (Thread-Safe) - Modüler Yapı"""
     
     def __init__(self, main_window, config):
         self.main_window = main_window
         self.config = config
-        self.process = None
-        self.is_collecting_memory = False
-        self.memory_buffer = []
+        
+        # Modüler bileşenler
+        self.output_parser = OutputParser(main_window)
+        self.process_manager = ProcessManager(main_window, config)
         
         # UI Throttle
-        self.last_ui_update_time = 0
         self.last_vars_update_time = 0
-        self.ui_update_interval = 0.05 # 50ms
 
     def run_code(self):
         """Aktif editördeki kodu çalıştır"""
@@ -29,40 +30,23 @@ class CodeRunner:
         # UI Temizliği
         editor.clear_errors() if hasattr(editor, 'clear_errors') else None
         self.main_window.terminal.clear()
+        self.output_parser.clear_buffers()
         
-        # Bellek Görünümünü Sıfırla (Sidebaer -> MemoryPanel)
-        if hasattr(self.main_window, 'sidebar') and hasattr(self.main_window.sidebar, 'memory_panel'):
-            mp = self.main_window.sidebar.memory_panel
-            if hasattr(mp, 'reset'): mp.reset() # Varsa reset metodunu kullan
-            else:
-                 # Elle resetle
-                 mp.history = []
-                 mp.current_index = -1
-                 mp.cells = {}
-                 mp.canvas.delete("all")
+        # Bellek Görünümünü Sıfırla
+        self._reset_memory_panel()
         
         self.main_window.terminal.write_text(">>> Program Başlatılıyor...\n")
         self.main_window.terminal.prompt_label.configure(text=" GİRDİ > ")
         self.main_window.terminal.set_input_callback(self._send_input_to_process)
         
         # Geçici Dosyaya Yaz
-        if not TEMP_DIR.exists(): os.makedirs(TEMP_DIR)
-        run_file = TEMP_DIR / "temp_run.tr"
-        
-        try:
-            with open(run_file, 'w', encoding='utf-8') as f:
-                f.write(editor.get('1.0', tk.END))
-        except Exception as e:
-            self.main_window.terminal.write_text(f"Geçici dosya hatası: {e}\n")
+        run_file = self._create_temp_file(editor)
+        if not run_file:
             return
             
         # UI Güncelle (Butonları Kilitle)
-        if hasattr(self.main_window, 'toolbar'):
-            self.main_window.toolbar.set_run_state(True)
-        elif hasattr(self.main_window, 'run_btn'): # Eski uyumluluk
-            self.main_window.run_btn.configure(state="disabled", text="⏳ Çalışıyor...")
-            self.main_window.stop_btn.configure(state="normal")
-            
+        self._update_ui_state(running=True)
+        
         # Thread Başlat
         t = threading.Thread(target=self._start_interactive_thread, args=(run_file,))
         t.daemon = True
@@ -70,14 +54,71 @@ class CodeRunner:
         
     def stop_code(self):
         """Çalışan programı zorla durdur"""
-        if self.process:
-            try:
-                self.process.kill()
-                self.main_window.terminal.write_text("\n>>> Program kullanıcı tarafından durduruldu. 🛑\n")
-            except: pass
-            self.process = None
+        self.process_manager.stop_process()
+        self.main_window.terminal.write_text("\n>>> Program kullanıcı tarafından durduruldu. 🛑\n")
+        self._update_ui_state(running=False)
+        
+    def _reset_memory_panel(self):
+        """Bellek panelini sıfırlar"""
+        if hasattr(self.main_window, 'sidebar') and hasattr(self.main_window.sidebar, 'memory_panel'):
+            mp = self.main_window.sidebar.memory_panel
+            if hasattr(mp, 'reset'): 
+                mp.reset()
+            else:
+                # Elle resetle
+                mp.history = []
+                mp.current_index = -1
+                mp.cells = {}
+                mp.canvas.delete("all")
+                
+    def _create_temp_file(self, editor):
+        """Geçici dosya oluşturur"""
+        if not TEMP_DIR.exists(): 
+            os.makedirs(TEMP_DIR)
+        run_file = TEMP_DIR / "temp_run.tr"
+        
+        try:
+            with open(run_file, 'w', encoding='utf-8') as f:
+                f.write(editor.get('1.0', tk.END))
+            return run_file
+        except Exception as e:
+            self.main_window.terminal.write_text(f"Geçici dosya hatası: {e}\n")
+            return None
             
-        # UI Güncelle
+    def _update_ui_state(self, running):
+        """UI durumunu günceller"""
+        if hasattr(self.main_window, 'toolbar'):
+            self.main_window.toolbar.set_run_state(running)
+        elif hasattr(self.main_window, 'run_btn'):
+            if running:
+                self.main_window.run_btn.configure(state="disabled", text="⏳ Çalışıyor...")
+                self.main_window.stop_btn.configure(state="normal")
+            else:
+                self.main_window.run_btn.configure(state="normal", text="▶ Çalıştır")
+                self.main_window.stop_btn.configure(state="disabled")
+                
+    def _start_interactive_thread(self, run_file):
+        """Interactive thread başlatır"""
+        try:
+            if not self.process_manager.start_process(run_file):
+                return
+                
+            # Çıktı okuma döngüsü
+            while self.process_manager.is_process_running():
+                line = self.process_manager.read_output()
+                if line is not None:
+                    self.output_parser.parse_output_line(line)
+                else:
+                    time.sleep(0.01)  # CPU kullanımını azalt
+                    
+        except Exception as e:
+            self.main_window.terminal.write_text(f"Thread hatası: {e}\n")
+        finally:
+            self._update_ui_state(running=False)
+            
+    def _send_input_to_process(self, text):
+        """Process'e input gönderir"""
+        return self.process_manager.send_input(text)
         if hasattr(self.main_window, 'toolbar'):
              self.main_window.toolbar.set_run_state(False)
         elif hasattr(self.main_window, 'run_btn'):

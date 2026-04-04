@@ -1,5 +1,4 @@
-#ifndef GUMUS_PARSER_PARSER_H
-#define GUMUS_PARSER_PARSER_H
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -8,57 +7,58 @@
 #include "ast.h"
 #include "arena.h"
 
+namespace gumus {
+namespace compiler {
+namespace parser {
+
+// Forward declarations for modular components
+class StatementParser;
+class ExpressionParser;
+class ErrorRecovery;
+
+/**
+ * Main Parser class - now modular and focused on coordination
+ * Delegates specific parsing tasks to specialized components
+ */
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens, MemoryArena& arena);
     std::vector<Stmt*> parse();
     bool hasError() const;
 
-private:
+    // Public interface for modular components
     std::vector<Token> tokens;
     MemoryArena& arena;
     int current;
     bool hadError;
-    std::unordered_map<int, int> errorCountPerLine;
 
-    Stmt* varDeclaration();
-    Stmt* classDeclaration();
-    Stmt* moduleDeclaration(); // Yeni Modul Destegi
-    Stmt* statement();
-    Stmt* ifStatement();
-    Stmt* whileStatement();
-    Stmt* tryCatchStatement();
-    Stmt* function(const std::string& kind);
-
-    Stmt* returnStatement();
-    Stmt* printStatement();
-    Stmt* expressionStatement();
-    std::vector<Stmt*> block();
-
-    Expr* expression();
-    Expr* assignment();
-    Expr* logicOr();
-    Expr* logicAnd();
-    Expr* equality();
-
-    Expr* comparison();
-    Expr* term();
-    Expr* factor();
-    Expr* unary();
-    Expr* call();
-    Expr* finishCall(Expr* callee);
-    Expr* finishIndex(Expr* object, Token bracket);
-    Expr* primary();
-
+    // Token navigation methods (public for modules)
     Token peek() const;
     Token previous() const;
     Token advance();
     bool isAtEnd() const;
     bool check(TokenType type) const;
+    bool checkNext(TokenType type) const;
     bool match(const std::vector<TokenType>& types);
     Token consume(TokenType type, const std::string& message);
-    void consumeStatementEnd(); // Noktali virgul veya yeni satir kontrolu
+
+    // Expression parsing (delegated to ExpressionParser)
+    Expr* expression();
+
+private:
+    // Modular components
+    std::unique_ptr<StatementParser> statementParser;
+    std::unique_ptr<ExpressionParser> expressionParser;
+    std::unique_ptr<ErrorRecovery> errorRecovery;
+
+    // Helper methods
     void skipNewLines();
+    
+    friend class StatementParser;
+    friend class ExpressionParser;
+    friend class ErrorRecovery;
 };
 
-#endif // GUMUS_PARSER_PARSER_H
+} // namespace parser
+} // namespace compiler  
+} // namespace gumus
