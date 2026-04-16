@@ -47,9 +47,10 @@ enum class TokenType {
     LBRACE,     // {
     RBRACE,     // }
 
-    KW_SINIF,   // sinif
+    KW_SINIF,   // sınıf
     KW_OZ,      // öz (this)
-    KW_MODUL,   // modul (module)
+    KW_MODUL,   // modül (module)
+    KW_DAHIL_ET, // dahil_et (import)
     DOT,        // .
     COLON_COLON, // :: (Scope Resolution)
     
@@ -128,6 +129,7 @@ struct Token {
             case TokenType::KW_SINIF: return "KW_SINIF";
             case TokenType::KW_OZ: return "KW_OZ";
             case TokenType::KW_MODUL: return "KW_MODUL";
+            case TokenType::KW_DAHIL_ET: return "KW_DAHIL_ET";
             case TokenType::DOT: return "DOT";
             case TokenType::COLON_COLON: return "COLON_COLON";
             case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL";

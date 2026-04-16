@@ -39,6 +39,7 @@ struct VarStmt;
 struct ClassStmt;
 struct TryCatchStmt;
 struct ModuleStmt;
+struct ImportStmt;  // dahil_et komutu icin yeni AST dugumu
 
 // Base Node
 struct AstNode {
@@ -84,6 +85,7 @@ public:
     virtual void visitClassStmt(ClassStmt* stmt) = 0;
     virtual void visitTryCatchStmt(TryCatchStmt* stmt) = 0;
     virtual void visitModuleStmt(ModuleStmt* stmt) = 0;
+    virtual void visitImportStmt(ImportStmt* stmt) = 0;
 };
 
 // Expressions
@@ -308,6 +310,17 @@ struct ModuleStmt : public Stmt {
     std::vector<Stmt*> statements;
     ModuleStmt(Token n, std::vector<Stmt*> s) : name(n), statements(std::move(s)) {}
     void accept(StmtVisitor& visitor) override { visitor.visitModuleStmt(this); }
+};
+
+// dahil_et "dosya.gd" - Dosya import komutu
+struct ImportStmt : public Stmt {
+    Token keyword;     // 'dahil_et' tokeni (hata konumu icin)
+    Token path;        // Dosya yolu (STRING token)
+    Token alias;       // Takma ad: dahil_et "mat.gd" { Mat } -- opsiyonel, value="" ise yok
+
+    ImportStmt(Token keyword, Token path, Token alias = {})
+        : keyword(keyword), path(path), alias(alias) {}
+    void accept(StmtVisitor& visitor) override { visitor.visitImportStmt(this); }
 };
 
 struct ForStmt : public Stmt {

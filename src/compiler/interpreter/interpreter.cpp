@@ -605,6 +605,167 @@ void Interpreter::visitModuleStmt(ModuleStmt* stmt) {
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
+// ============================================================
+// visitImportStmt - Modül Sistemi (Import Module System)
+// Sözdizimi:
+//   dahil_et "dosya.gd"                  -- Global scope'a aktarir
+//   dahil_et "dosya.gd" olarak MatLib    -- modules["MatLib"] olarak saklar
+// ============================================================
+void Interpreter::visitImportStmt(ImportStmt* stmt) {
+    const std::string filename = stmt->path.value;
+
+    // -------------------------------------------------------
+    // 1. Döngüsel Bağımlılık Kontrolü (Circular Dependency)
+    //    loadedFiles, hem dahil_et hem native dahil_et() için ortak set.
+    // -------------------------------------------------------
+    if (loadedFiles.count(filename)) {
+        // Zaten yuklendi - sessizce gec (sarki soyleme)
+        lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
+        return;
+    }
+
+    // -------------------------------------------------------
+    // 2. Dosyayı Bul (searchPaths üzerinden)
+    // -------------------------------------------------------
+    std::string resolvedPath;
+    std::ifstream file;
+
+    // Mutlak veya göreceli yolu önce dene
+    {
+        std::ifstream test(filename);
+        if (test.good()) {
+            resolvedPath = filename;
+            file.open(filename);
+        }
+    }
+
+    // searchPaths üzerinden ara
+    if (!file.is_open()) {
+        for (const auto& dir : searchPaths) {
+            std::string candidate = dir + "/" + filename;
+            // Windows path separator uyumu
+            std::replace(candidate.begin(), candidate.end(), '/', '\\');
+            std::ifstream test(candidate);
+            if (test.good()) {
+                resolvedPath = candidate;
+                file.open(candidate);
+                break;
+            }
+            // Unix slash ile de dene
+            candidate = dir + "/" + filename;
+            test = std::ifstream(candidate);
+            if (test.good()) {
+                resolvedPath = candidate;
+                file.open(candidate);
+                break;
+            }
+        }
+    }
+
+    if (!file.is_open()) {
+        throw LoxRuntimeException(stmt->keyword,
+            "Dosya bulunamadi: '" + filename + "'. Aranan dizinler: . lib std_lib");
+    }
+
+    // -------------------------------------------------------
+    // 3. Döngüsel koruma — ziyaret listesine ekle
+    // -------------------------------------------------------
+    loadedFiles.insert(filename);
+
+    // -------------------------------------------------------
+    // 4. Kaynak Kodu Oku + BOM Temizle
+    // -------------------------------------------------------
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string source = buffer.str();
+    file.close();
+
+    if (source.size() >= 3 &&
+        (unsigned char)source[0] == 0xEF &&
+        (unsigned char)source[1] == 0xBB &&
+        (unsigned char)source[2] == 0xBF) {
+        source.erase(0, 3); // UTF-8 BOM
+    }
+
+    // -------------------------------------------------------
+    // 5. Tokenize → Parse
+    // -------------------------------------------------------
+    std::vector<Stmt*> importedStatements;
+    try {
+        Tokenizer tokenizer(source);
+        std::vector<Token> tokens = tokenizer.tokenize();
+
+        Parser importParser(tokens, astArena);
+        importedStatements = importParser.parse();
+        persistAst(importedStatements);
+
+        if (importParser.hasError()) {
+            throw LoxRuntimeException(stmt->keyword,
+                "'" + filename + "' dosyasinda sozdizimi hatasi.");
+        }
+
+        // ---------------------------------------------------
+        // 6. Semantic Analysis (Resolver)
+        // ---------------------------------------------------
+        Resolver resolver(*this);
+        resolver.resolve(importedStatements);
+
+    } catch (const LoxRuntimeException&) {
+        throw; // Zaten formatlanmis, tekrar fir lat
+    } catch (const std::exception& e) {
+        throw LoxRuntimeException(stmt->keyword,
+            "'" + filename + "' dosyasi yuklenirken hata: " + std::string(e.what()));
+    }
+
+    // -------------------------------------------------------
+    // 7a. Alias VARSA → ModuleStmt gibi izole scope'a yukle
+    //     Alias YOKSA → Global scope'a doğrudan aktar
+    // -------------------------------------------------------
+    if (!stmt->alias.value.empty()) {
+        // Modül izole ortamı — alias adıyla modules map'ine ekle
+        auto moduleEnv = std::make_shared<Environment>(globals, "Modul:" + stmt->alias.value);
+        auto mod = std::make_shared<Module>();
+        mod->name = stmt->alias.value;
+        mod->environment = moduleEnv;
+        modules[stmt->alias.value] = mod;
+
+        auto previousEnv = this->environment;
+        this->environment = moduleEnv;
+        try {
+            for (auto* importedStmt : importedStatements) {
+                execute(importedStmt);
+            }
+        } catch (...) {
+            this->environment = previousEnv;
+            throw;
+        }
+        this->environment = previousEnv;
+
+        if (gumus_debug) {
+            std::cout << "✅ dahil_et: '" << filename << "' -> modules[\"" << stmt->alias.value << "\"] yuklendi\n";
+        }
+    } else {
+        // Alias yok: tanımları global scope'a doğrudan ekle
+        auto previousEnv = this->environment;
+        this->environment = globals;
+        try {
+            for (auto* importedStmt : importedStatements) {
+                execute(importedStmt);
+            }
+        } catch (...) {
+            this->environment = previousEnv;
+            throw;
+        }
+        this->environment = previousEnv;
+
+        if (gumus_debug) {
+            std::cout << "✅ dahil_et: '" << filename << "' global scope'a yuklendi\n";
+        }
+    }
+
+    lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
+}
+
 void Interpreter::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {
     std::string moduleName = expr->moduleName.value;
     if (modules.find(moduleName) == modules.end()) throw LoxRuntimeException(expr->moduleName, "Modul bulunamadi: '" + moduleName + "'.");
@@ -612,6 +773,7 @@ void Interpreter::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {
     try { lastEvaluatedValue = module->environment->get(expr->name.value); }
     catch (...) { throw LoxRuntimeException(expr->name, "Modul '" + moduleName + "' icinde '" + expr->name.value + "' bulunamadi."); }
 }
+
 static bool _containsDeclaration(Stmt* stmt) {
     if (!stmt) return false;
     if (dynamic_cast<FunctionStmt*>(stmt) || dynamic_cast<ClassStmt*>(stmt) || dynamic_cast<ModuleStmt*>(stmt)) {

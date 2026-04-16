@@ -190,6 +190,13 @@ void Resolver::visitModuleStmt(ModuleStmt* stmt) {
     endScope();
 }
 
+void Resolver::visitImportStmt(ImportStmt* stmt) {
+    // Import dosyasi, Interpreter::visitImportStmt icinde ayri Resolver ile cozumlenir.
+    // Bu noktada yapilacak ek analiz yok — sadece pure virtual tatmin.
+    (void)stmt;
+}
+
+
 // Expr Visitors
 void Resolver::visitVariableExpr(VariableExpr* expr) {
     resolveLocal(expr, expr->name);

@@ -90,6 +90,28 @@ Stmt* StatementParser::moduleDeclaration() {
     return stmt;
 }
 
+// dahil_et "dosya.gd"
+// dahil_et "dosya.gd" olarak TakmaAd
+Stmt* StatementParser::importStatement() {
+    Token keyword = parser->previous(); // 'dahil_et' tokeni
+    
+    // Dosya yolu: string literal olmali
+    Token path = parser->consume(TokenType::STRING, "'dahil_et' komutundan sonra dosya yolu (\"dosya.gd\") bekleniyor.");
+    
+    // Opsiyonel takma ad: olarak TakmaAd
+    Token alias;
+    alias.value = ""; // bos = takma ad yok
+    if (parser->check(TokenType::IDENTIFIER) && parser->peek().value == "olarak") {
+        parser->advance(); // 'olarak' tüket
+        alias = parser->consume(TokenType::IDENTIFIER, "'olarak' dan sonra takma ad bekleniyor.");
+    }
+    
+    consumeStatementEnd();
+    auto stmt = parser->arena.alloc<ImportStmt>(keyword, path, alias);
+    stmt->line = keyword.line;
+    return stmt;
+}
+
 Stmt* StatementParser::function(const std::string& kind) {
     Token name;
     if (parser->check(TokenType::KW_KURUCU)) {
@@ -269,6 +291,7 @@ Stmt* StatementParser::statement() {
     if (parser->match({TokenType::KW_KIR})) return breakStatement();
     if (parser->match({TokenType::KW_DEVAM})) return continueStatement();
     if (parser->match({TokenType::KW_YAZDIR})) return printStatement();
+    if (parser->match({TokenType::KW_DAHIL_ET})) return importStatement();
     if (parser->match({TokenType::LBRACE})) return blockStatement();
 
     return expressionStatement();

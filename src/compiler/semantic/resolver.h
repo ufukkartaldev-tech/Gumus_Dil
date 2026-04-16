@@ -63,6 +63,7 @@ private:
     void visitClassStmt(ClassStmt* stmt) override;
     void visitTryCatchStmt(TryCatchStmt* stmt) override;
     void visitModuleStmt(ModuleStmt* stmt) override;
+    void visitImportStmt(ImportStmt* stmt) override;
 
     // Expr Visitors
     void visitVariableExpr(VariableExpr* expr) override;

@@ -21,6 +21,7 @@ public:
     Stmt* varDeclaration();
     Stmt* classDeclaration();
     Stmt* moduleDeclaration();
+    Stmt* importStatement();  // dahil_et "dosya.gd" [as TakmaAd]
     Stmt* function(const std::string& kind);
     
     // Control flow statements

@@ -393,6 +393,9 @@ Token Tokenizer::identifier() {
         return {TokenType::KW_BOS, value, line, startColumn};
     if (value == "yeni") 
         return {TokenType::KW_YENI, value, line, startColumn};
+    if (value == "dahil_et" || value == "dahilet") 
+        return {TokenType::KW_DAHIL_ET, value, line, startColumn};
+
 
 
 

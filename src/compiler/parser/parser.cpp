@@ -37,9 +37,12 @@ std::vector<Stmt*> Parser::parse() {
                 statements.push_back(statementParser->function("function"));
             } else if (match({TokenType::KW_MODUL})) {
                 statements.push_back(statementParser->moduleDeclaration());
+            } else if (match({TokenType::KW_DAHIL_ET})) {
+                statements.push_back(statementParser->importStatement());
             } else {
                 statements.push_back(statementParser->statement());
             }
+
 
         } catch (const GumusException& error) {
             errorRecovery->handleGumusException(error);
