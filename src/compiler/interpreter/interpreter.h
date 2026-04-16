@@ -32,16 +32,41 @@ struct Callable {
     virtual std::string toString() = 0;
 };
 
-// Environment Class for Scoping
 class Environment : public std::enable_shared_from_this<Environment> {
 public:
     std::weak_ptr<Environment> enclosing;
-    std::unordered_map<std::string, Value> values;
+    std::unordered_map<std::string, Value> values; // Geriye donuk uyumluluk
+    std::vector<Value> valuesArray;                // YENI: Hizli Index tabanli erisim
     std::string name;
 
     Environment() : name("Global") {}
     Environment(std::shared_ptr<Environment> enclosing, std::string name = "Blok") : enclosing(enclosing), name(name) {}
 
+    // Yeni Hizli Erisim Yapisi (Resolver'da slot atamasi gectikten sonra kullanilacak)
+    int defineFast(Value value) {
+        valuesArray.push_back(value);
+        return valuesArray.size() - 1; // Slot indexini donderir
+    }
+
+    Value getAtSlot(int distance, int slot) {
+        Environment* current = this;
+        for (int i = 0; i < distance; i++) {
+            auto parent = current->enclosing.lock();
+            current = parent.get();
+        }
+        return current->valuesArray[slot];
+    }
+
+    void assignAtSlot(int distance, int slot, Value value) {
+        Environment* current = this;
+        for (int i = 0; i < distance; i++) {
+            auto parent = current->enclosing.lock();
+            current = parent.get();
+        }
+        current->valuesArray[slot] = value;
+    }
+
+    // Klasik yavas map tabanli methodlar 
     void define(const std::string& name, Value value) {
         values[name] = value;
     }
