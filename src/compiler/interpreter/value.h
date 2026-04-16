@@ -26,12 +26,58 @@ enum class ValueType {
 struct Value;
 using ValueList = std::vector<Value>;
 
+enum class ObjectType {
+    OBJ_STRING,
+    OBJ_LIST,
+    OBJ_MAP,
+    OBJ_CLASS,
+    OBJ_INSTANCE,
+    OBJ_FUNCTION,
+    OBJ_NATIVE
+};
+
+struct GumusObject {
+    ObjectType objType;
+    bool isMarked;
+    GumusObject* next; // GC Chain
+
+    GumusObject(ObjectType type) : objType(type), isMarked(false), next(nullptr) {}
+    virtual ~GumusObject() = default;
+    virtual void mark() {} // Polymorphic mark for GC
+};
+
+struct Value;
+using ValueList = std::vector<Value>;
+
+struct GumusString : public GumusObject {
+    std::string str;
+    GumusString(const std::string& str) : GumusObject(ObjectType::OBJ_STRING), str(str) {}
+};
+
+struct GumusList : public GumusObject {
+    ValueList elements;
+    GumusList() : GumusObject(ObjectType::OBJ_LIST) {}
+    void mark() override; // To be implemented in gc/interpreter
+};
+
+struct GumusMap : public GumusObject {
+    std::map<std::string, Value> items;
+    GumusMap() : GumusObject(ObjectType::OBJ_MAP) {}
+    void mark() override; // To be implemented
+};
+
+// Object Macros to safely extract types
+#define IS_OBJ(value)       ((value).type >= ValueType::STRING) // Assuming types after string are objects.
+#define AS_OBJ(value)       ((value).as.obj)
+#define AS_STRING(value)    ((GumusString*)AS_OBJ(value))
+#define AS_CSTRING(value)   (((GumusString*)AS_OBJ(value))->str)
+#define AS_LIST(value)      ((GumusList*)AS_OBJ(value))
+#define AS_MAP(value)       ((GumusMap*)AS_OBJ(value))
+
 /**
- * @brief GümüşDil Değer (Value) Yapısı
+ * @brief GümüşDil Değer (Value) Yapısı - RAW POINTER REVISION
  * 
- * Bellek kullanımını minimize etmek için 'union' ve 'shared_ptr' kullanır.
- * Küçük değerler (int, float, bool) doğrudan stack'te tutulurken,
- * karmaşık nesneler (string, liste, harita, nesne) Heap'te tutulur.
+ * shared_ptr tamamen kaldirildi! Object tabanli Mark-and-Sweep modeli kullanilir.
  */
 struct Value {
     ValueType type;
@@ -39,31 +85,30 @@ struct Value {
         int intVal;
         double floatVal;
         bool boolVal;
-    };
-    std::shared_ptr<void> obj; // Heap nesneleri için genel işaretçi
+        GumusObject* obj; // Heap nesneleri için RAW işaretçi
+    } as;
     
-    // 🗑️ Garbage Collection Desteği
-    bool isMarked = false;
-    std::vector<std::shared_ptr<Value>> references; // GC için referanslar
-    mutable size_t refCount = 0; // Reference counting için
-
     // Kurucular
-    Value() : type(ValueType::NIL), floatVal(0.0) {}
-    explicit Value(ValueType t) : type(t), floatVal(0.0) {}
-    Value(int v) : type(ValueType::INTEGER), intVal(v) {}
-    Value(double v) : type(ValueType::FLOAT), floatVal(v) {}
-    Value(bool v) : type(ValueType::BOOLEAN), boolVal(v) {}
-    Value(std::string v) : type(ValueType::STRING), obj(std::make_shared<std::string>(v)) {}
-    Value(std::shared_ptr<ValueList> v) : type(ValueType::LIST), obj(v) {}
-    Value(std::shared_ptr<std::map<std::string, Value>> v) : type(ValueType::MAP), obj(v) {}
-    Value(std::shared_ptr<void> o, ValueType t, std::string n = "") : type(t), obj(o) {
-        // Not: 'name' meta-verisi artık nesnenin kendisinden alınmalıdır.
-    }
+    Value() : type(ValueType::NIL) { as.floatVal = 0.0; }
+    explicit Value(ValueType t) : type(t) { as.floatVal = 0.0; }
+    Value(int v) : type(ValueType::INTEGER) { as.intVal = v; }
+    Value(double v) : type(ValueType::FLOAT) { as.floatVal = v; }
+    Value(bool v) : type(ValueType::BOOLEAN) { as.boolVal = v; }
+    
+    // Note: C++ std::string -> Value yapicisi dogrudan kullaniliyorsa obj yaratimi VM veya Garbage Collector uzerinden olmali.
+    // Simdilik geriye donuk uyumluluk icin gecici bir cozum
+    // Value(std::string v) -> Artik otomatik yaratilmamali (Memory arena uzerinden olmali)
+    // Asagidaki raw pointer ile atamalar manuel olacak
+    Value(GumusObject* o, ValueType t) : type(t) { as.obj = o; }
+    Value(std::shared_ptr<void> fake, ValueType t, std::string n = "") : type(t) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ } 
+    Value(std::shared_ptr<ValueList> fake) : type(ValueType::LIST) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ }
+    Value(std::string v) : type(ValueType::STRING) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ }
+    Value(std::shared_ptr<std::map<std::string, Value>> fake) : type(ValueType::MAP) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ }
 
-    // Yardımcı Erişim Metotları
-    std::string& getString() const { return *std::static_pointer_cast<std::string>(obj); }
-    ValueList& getList() const { return *std::static_pointer_cast<ValueList>(obj); }
-    std::map<std::string, Value>& getMap() const { return *std::static_pointer_cast<std::map<std::string, Value>>(obj); }
+    // Yardımcı Erişim Metotları (Gecici)
+    std::string& getString() const { return AS_STRING(*this)->str; }
+    ValueList& getList() const { return AS_LIST(*this)->elements; }
+    std::map<std::string, Value>& getMap() const { return AS_MAP(*this)->items; }
 
     // 📊 Bellek Analizi ve Optimizasyon
     size_t getSize() const {
@@ -71,9 +116,9 @@ struct Value {
             case ValueType::INTEGER: return sizeof(int);
             case ValueType::FLOAT: return sizeof(double);
             case ValueType::BOOLEAN: return sizeof(bool);
-            case ValueType::STRING: return obj ? getString().size() + sizeof(std::string) : 0;
-            case ValueType::LIST: return obj ? getList().size() * sizeof(Value) + sizeof(ValueList) : 0;
-            case ValueType::MAP: return obj ? getMap().size() * 32 + sizeof(std::map<std::string, Value>) : 0;
+            case ValueType::STRING: return as.obj ? AS_CSTRING(*this).size() + sizeof(GumusString) : 0;
+            case ValueType::LIST: return as.obj ? getList().size() * sizeof(Value) + sizeof(GumusList) : 0;
+            case ValueType::MAP: return as.obj ? getMap().size() * 32 + sizeof(GumusMap) : 0;
             case ValueType::CLASS:
             case ValueType::INSTANCE:
             case ValueType::FUNCTION: return 100; // Tahmini nesne boyutu
@@ -82,104 +127,21 @@ struct Value {
         }
     }
 
-    // 🎯 Memory optimization methods
-    void optimize() {
-        switch (type) {
-            case ValueType::STRING:
-                if (obj) {
-                    auto& str = getString();
-                    str.shrink_to_fit();
-                }
-                break;
-            case ValueType::LIST:
-                if (obj) {
-                    auto& list = getList();
-                    list.shrink_to_fit();
-                }
-                break;
-            case ValueType::MAP:
-                // Maps don't have shrink_to_fit, but we can rehash
-                break;
-            default:
-                break;
-        }
-    }
+    void optimize() {}
 
     bool equals(const Value& other) const {
         if (type != other.type) return false;
         
         switch (type) {
-            case ValueType::INTEGER: return intVal == other.intVal;
-            case ValueType::FLOAT: return floatVal == other.floatVal;
-            case ValueType::BOOLEAN: return boolVal == other.boolVal;
+            case ValueType::INTEGER: return as.intVal == other.as.intVal;
+            case ValueType::FLOAT: return as.floatVal == other.as.floatVal;
+            case ValueType::BOOLEAN: return as.boolVal == other.as.boolVal;
             case ValueType::NIL: return true;
             case ValueType::STRING: 
-                return obj && other.obj && getString() == other.getString();
-            case ValueType::LIST:
-                if (!obj || !other.obj) return obj == other.obj;
-                return getList() == other.getList();
-            case ValueType::MAP:
-                if (!obj || !other.obj) return obj == other.obj;
-                return getMap() == other.getMap();
+                return as.obj && other.as.obj && AS_CSTRING(*this) == AS_CSTRING(other);
             default:
-                return obj == other.obj;
+                return as.obj == other.as.obj; // Pointer checking for objects
         }
-    }
-
-    // 🔄 Copy and move semantics for better memory management
-    Value(const Value& other) : type(other.type), obj(other.obj), isMarked(false), refCount(0) {
-        switch (type) {
-            case ValueType::INTEGER: intVal = other.intVal; break;
-            case ValueType::FLOAT: floatVal = other.floatVal; break;
-            case ValueType::BOOLEAN: boolVal = other.boolVal; break;
-            default: break;
-        }
-    }
-
-    Value(Value&& other) noexcept : type(other.type), obj(std::move(other.obj)), isMarked(false), refCount(0) {
-        switch (type) {
-            case ValueType::INTEGER: intVal = other.intVal; break;
-            case ValueType::FLOAT: floatVal = other.floatVal; break;
-            case ValueType::BOOLEAN: boolVal = other.boolVal; break;
-            default: break;
-        }
-        other.type = ValueType::NIL;
-    }
-
-    Value& operator=(const Value& other) {
-        if (this != &other) {
-            type = other.type;
-            obj = other.obj;
-            isMarked = false;
-            refCount = 0;
-            
-            switch (type) {
-                case ValueType::INTEGER: intVal = other.intVal; break;
-                case ValueType::FLOAT: floatVal = other.floatVal; break;
-                case ValueType::BOOLEAN: boolVal = other.boolVal; break;
-                default: break;
-            }
-        }
-        return *this;
-    }
-
-    Value& operator=(Value&& other) noexcept {
-        if (this != &other) {
-            type = other.type;
-            obj = std::move(other.obj);
-            isMarked = false;
-            refCount = 0;
-            
-            switch (type) {
-                case ValueType::INTEGER: intVal = other.intVal; break;
-                case ValueType::FLOAT: floatVal = other.floatVal; break;
-                case ValueType::BOOLEAN: boolVal = other.boolVal; break;
-                default: break;
-            }
-            
-            other.type = ValueType::NIL;
-        }
-        return *this;
     }
 
     static std::string valueTypeName(ValueType type) {
@@ -201,33 +163,37 @@ struct Value {
 
     std::string toString() const {
         switch (type) {
-            case ValueType::INTEGER: return std::to_string(intVal);
+            case ValueType::INTEGER: return std::to_string(as.intVal);
             case ValueType::FLOAT: {
                 std::ostringstream ss;
                 ss.imbue(std::locale::classic());
-                ss << floatVal;
+                ss << as.floatVal;
                 return ss.str();
             }
-            case ValueType::STRING: return getString();
-            case ValueType::BOOLEAN: return boolVal ? "dogru" : "yanlis";
+            case ValueType::STRING: return AS_CSTRING(*this);
+            case ValueType::BOOLEAN: return as.boolVal ? "dogru" : "yanlis";
             case ValueType::LIST: {
                 std::string s = "[";
-                const auto& list = getList();
-                for (size_t i = 0; i < list.size(); ++i) {
-                    s += list[i].toString();
-                    if (i < list.size() - 1) s += ", ";
+                if (as.obj) {
+                    const auto& list = getList();
+                    for (size_t i = 0; i < list.size(); ++i) {
+                        s += list[i].toString();
+                        if (i < list.size() - 1) s += ", ";
+                    }
                 }
                 s += "]";
                 return s;
             }
             case ValueType::MAP: {
                 std::string s = "{";
-                const auto& map = getMap();
-                bool first = true;
-                for (const auto& pair : map) {
-                    if (!first) s += ", ";
-                    s += "\"" + pair.first + "\": " + pair.second.toString();
-                    first = false;
+                if (as.obj) {
+                    const auto& map = getMap();
+                    bool first = true;
+                    for (const auto& pair : map) {
+                        if (!first) s += ", ";
+                        s += "\"" + pair.first + "\": " + pair.second.toString();
+                        first = false;
+                    }
                 }
                 s += "}";
                 return s;
@@ -288,8 +254,8 @@ struct Value {
         }
         json += "\"value\": \"" + escaped + "\", ";
         
-        void* addr = obj.get();
-        if (type == ValueType::LIST) {
+        void* addr = as.obj;
+        if (type == ValueType::LIST && as.obj) {
             json += "\"size\": " + std::to_string(getList().size()) + ", ";
             json += "\"elements\": [";
             const auto& list = getList();
@@ -299,7 +265,7 @@ struct Value {
             }
             json += "], ";
         }
-        else if (type == ValueType::MAP) {
+        else if (type == ValueType::MAP && as.obj) {
             json += "\"size\": " + std::to_string(getMap().size()) + ", ";
             json += "\"items\": {";
             bool first = true;
@@ -310,8 +276,8 @@ struct Value {
             }
             json += "}, ";
         }
-        else if (type == ValueType::STRING) {
-            json += "\"length\": " + std::to_string(getString().length()) + ", ";
+        else if (type == ValueType::STRING && as.obj) {
+            json += "\"length\": " + std::to_string(AS_CSTRING(*this).length()) + ", ";
         }
         
         std::stringstream ss;
