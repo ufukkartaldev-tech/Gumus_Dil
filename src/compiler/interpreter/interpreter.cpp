@@ -156,7 +156,16 @@ void Interpreter::visitFunctionStmt(FunctionStmt* stmt) {
 void Interpreter::visitVarStmt(VarStmt* stmt) {
     Value value;
     if (stmt->initializer != nullptr) value = evaluate(stmt->initializer);
-    environment->define(stmt->name.value, value);
+    
+    if (stmt->slot != -1) {
+        // Fast Array Eklemesi
+        environment->defineFast(value);
+        // Hem de globals ve dynamic scope lara uyum saglasin
+        environment->define(stmt->name.value, value);
+    } else {
+        environment->define(stmt->name.value, value);
+    }
+    
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
@@ -267,8 +276,13 @@ void Interpreter::visitCallExpr(CallExpr* expr) {
 void Interpreter::visitVariableExpr(VariableExpr* expr) {
     if (expr->name.type == TokenType::KW_DOGRU) { lastEvaluatedValue = Value(true); return; }
     if (expr->name.type == TokenType::KW_YANLIS) { lastEvaluatedValue = Value(false); return; }
-    if (expr->distance != -1) lastEvaluatedValue = environment->getAt(expr->distance, expr->name.value);
-    else {
+    if (expr->distance != -1) {
+        if (expr->slot != -1) {
+            lastEvaluatedValue = environment->getAtSlot(expr->distance, expr->slot);
+        } else {
+            lastEvaluatedValue = environment->getAt(expr->distance, expr->name.value);
+        }
+    } else {
         try { lastEvaluatedValue = globals->get(expr->name.value); }
         catch (const std::runtime_error&) {
             if (functions.count(expr->name.value)) {
@@ -282,7 +296,12 @@ void Interpreter::visitVariableExpr(VariableExpr* expr) {
 
 void Interpreter::visitAssignExpr(AssignExpr* expr) {
     Value value = evaluate(expr->value);
-    if (expr->distance != -1) environment->assignAt(expr->distance, expr->name.value, value);
+    if (expr->distance != -1) {
+        if (expr->slot != -1) {
+            environment->assignAtSlot(expr->distance, expr->slot, value);
+        }
+        environment->assignAt(expr->distance, expr->name.value, value); // Legacy fallback sync
+    }
     else globals->assign(expr->name.value, value);
     lastEvaluatedValue = value;
 }

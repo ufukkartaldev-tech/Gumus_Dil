@@ -18,7 +18,7 @@ void Resolver::resolve(Expr* expr) {
 }
 
 void Resolver::beginScope() {
-    scopes.push_back(std::unordered_map<std::string, bool>());
+    scopes.push_back(std::unordered_map<std::string, VariableInfo>());
 }
 
 void Resolver::endScope() {
@@ -28,25 +28,31 @@ void Resolver::endScope() {
 void Resolver::declare(const Token& name) {
     if (scopes.empty()) return;
 
-    std::unordered_map<std::string, bool>& scope = scopes.back();
-    scope[name.value] = false; // Tanımlandı ama henüz başlatılmadı
+    auto& scope = scopes.back();
+    if (scope.count(name.value) == 0) {
+        int slot = scope.size();
+        scope[name.value] = {false, slot}; // Tanımlandı ama henüz başlatılmadı
+    }
 }
 
 void Resolver::define(const Token& name) {
     if (scopes.empty()) return;
-    scopes.back()[name.value] = true; // Başlatıldı
+    scopes.back()[name.value].isDefined = true; // Başlatıldı
 }
 
 void Resolver::resolveLocal(Expr* expr, const Token& name) {
     for (int i = (int)scopes.size() - 1; i >= 0; i--) {
         if (scopes[i].count(name.value)) {
             int distance = (int)scopes.size() - 1 - i;
+            int slot = scopes[i][name.value].slot;
             
             // Raw pointer cast işlemleri
             if (auto var = dynamic_cast<VariableExpr*>(expr)) {
                 var->distance = distance;
+                var->slot = slot;
             } else if (auto assign = dynamic_cast<AssignExpr*>(expr)) {
                 assign->distance = distance;
+                assign->slot = slot;
             } else if (auto thiz = dynamic_cast<ThisExpr*>(expr)) {
                 thiz->distance = distance;
             } else if (auto superNode = dynamic_cast<SuperExpr*>(expr)) {
@@ -85,6 +91,12 @@ void Resolver::visitVarStmt(VarStmt* stmt) {
     if (stmt->initializer != nullptr) {
         resolve(stmt->initializer);
     }
+    
+    // Slot ID'sini kaydet
+    if (!scopes.empty()) {
+        stmt->slot = scopes.back()[stmt->name.value].slot;
+    }
+    
     define(stmt->name);
 }
 
@@ -142,11 +154,13 @@ void Resolver::visitClassStmt(ClassStmt* stmt) {
         currentClass = ClassType::SUBCLASS;
         resolve(stmt->superclass);
         beginScope();
-        scopes.back()["ata"] = true;
+        int slot = scopes.back().size();
+        scopes.back()["ata"] = {true, slot};
     }
 
     beginScope();
-    scopes.back()["oz"] = true; // Use "oz" consistently
+    int slot = scopes.back().size();
+    scopes.back()["oz"] = {true, slot}; // Use "oz" consistently
 
     for (const auto& method : stmt->methods) {
         FunctionType declaration = FunctionType::METHOD;

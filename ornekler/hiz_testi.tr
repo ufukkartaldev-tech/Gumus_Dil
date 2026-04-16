@@ -1,0 +1,19 @@
+// GümüşDil Performans (Hız) Testi: Fast Array Slot Lookup
+// 1'den 100.000'e kadar sayilari toplayip gecen sureyi (eger zaman() fonksiyonu varsa) dondurur.
+
+yazdır("Hız Testi Başlıyor: 1'den 100.000'e kadar olan sayıların toplamı");
+
+// NOT: C++ tarafında 'zaman()' gibi millisaniye veren bir Native Function varsa 
+// değişken baslangic = zaman() şeklinde açılabilir.
+
+değişken toplam = 0;
+değişken i = 1;
+
+döngü (i <= 100000) {
+    toplam = toplam + i;
+    i = i + 1;
+}
+
+yazdır("İşlem Tamamlandı!");
+yazdır("Toplam Sonuç: " + metin(toplam));
+yazdır("Fast Array (Slot-based Variable Access) aktif edildiği için test anında tamamlanmalıdır.");

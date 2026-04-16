@@ -143,6 +143,7 @@ struct AssignExpr : public Expr {
     Token name;
     Expr* value;
     int distance = -1; // Resolver tarafından doldurulacak
+    int slot = -1;     // YENI: Resolver tarafindan doldurulacak yerel index (Hizli Erisim)
 
     AssignExpr(Token name, Expr* value) : name(name), value(value) {}
     void accept(ExprVisitor& visitor) override { visitor.visitAssignExpr(this); }
@@ -284,6 +285,7 @@ struct ClassStmt : public Stmt {
 struct VarStmt : public Stmt {
     Token name;
     Expr* initializer;
+    int slot = -1; // YENI: Resolver tarafindan hazirlanir
     VarStmt(Token n, Expr* i) : name(n), initializer(i) {}
     void accept(StmtVisitor& visitor) override { visitor.visitVarStmt(this); }
 };
