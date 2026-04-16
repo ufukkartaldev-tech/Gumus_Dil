@@ -3,8 +3,8 @@
 
 yazdır("Hız Testi Başlıyor: 1'den 100.000'e kadar olan sayıların toplamı");
 
-// NOT: C++ tarafında 'zaman()' gibi millisaniye veren bir Native Function varsa 
-// değişken baslangic = zaman() şeklinde açılabilir.
+// Milisaniye formatında şimdiki zamanı al
+değişken baslangic = zaman();
 
 değişken toplam = 0;
 değişken i = 1;
@@ -14,6 +14,10 @@ döngü (i <= 100000) {
     i = i + 1;
 }
 
+değişken bitis = zaman();
+değişken sure = bitis - baslangic;
+
 yazdır("İşlem Tamamlandı!");
 yazdır("Toplam Sonuç: " + metin(toplam));
+yazdır("Geçen Süre: " + metin(sure) + " ms.");
 yazdır("Fast Array (Slot-based Variable Access) aktif edildiği için test anında tamamlanmalıdır.");

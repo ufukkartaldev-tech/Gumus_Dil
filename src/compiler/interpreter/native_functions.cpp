@@ -190,34 +190,37 @@ void registerNativeFunctions(Interpreter& interpreter) {
     });
     interpreter.functions["girdi"] = girdi;
 
-    // sayi(deger)
-    auto sayi = std::make_shared<NativeFunction>("sayi", 1, [](Interpreter&, const std::vector<Value>& args) {
+    // sayiYap(deger)
+    auto sayiYap = std::make_shared<NativeFunction>("sayiYap", 1, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type == ValueType::STRING) {
-            try { return Value(std::stoi(args[0].getString())); } catch(...) { return Value(0); }
+            try { return Value(std::stod(args[0].getString())); } catch(...) { return Value(0); }
         }
         if (args[0].type == ValueType::INTEGER) return args[0];
+        if (args[0].type == ValueType::FLOAT) return args[0];
         if (args[0].type == ValueType::BOOLEAN) return Value(args[0].boolVal ? 1 : 0);
         return Value(0);
     });
-    interpreter.functions["sayi"] = sayi;
-    interpreter.functions["say\xC4\xB1"] = sayi; // Türkçe karakter desteği
+    interpreter.functions["sayiYap"] = sayiYap;
 
     // metin(deger)
     auto metin = std::make_shared<NativeFunction>("metin", 1, [](Interpreter&, const std::vector<Value>& args) {
-        return Value(args[0].toString());
+        return Value(g_gc->allocateObject<GumusString>(args[0].toString()), ValueType::STRING);
     });
     interpreter.functions["metin"] = metin;
 
-    // zaman()
+    // zaman() -> Milisaniye cinsinden doner! (Performans olcumu icin)
     auto zaman = std::make_shared<NativeFunction>("zaman", 0, [](Interpreter&, const std::vector<Value>& args) {
-        return Value((int)time(NULL));
+        auto now = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
+        double ms = (double)now.time_since_epoch().count();
+        return Value(ms);
     });
     interpreter.functions["zaman"] = zaman;
     
     // bekle(ms)
     auto bekle = std::make_shared<NativeFunction>("bekle", 1, [](Interpreter&, const std::vector<Value>& args) {
-        if (args[0].type == ValueType::INTEGER) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(args[0].intVal));
+        if (args[0].type == ValueType::INTEGER || args[0].type == ValueType::FLOAT) {
+            long long ms = (args[0].type == ValueType::INTEGER) ? args[0].intVal : (long long)args[0].floatVal;
+            std::this_thread::sleep_for(std::chrono::milliseconds(ms));
         }
         return Value();
     });
@@ -252,6 +255,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
         std::sort(args[0].getList().begin(), args[0].getList().end(), [](const Value& a, const Value& b) {
             if (a.type != b.type) return a.type < b.type;
             if (a.type == ValueType::INTEGER) return a.intVal < b.intVal;
+            if (a.type == ValueType::FLOAT) return a.floatVal < b.floatVal;
             if (a.type == ValueType::STRING) return a.getString() < b.getString();
             return false;
         });
@@ -264,21 +268,22 @@ void registerNativeFunctions(Interpreter& interpreter) {
     
     // karekok(sayi)
     auto karekok = std::make_shared<NativeFunction>("karekok", 1, [](Interpreter&, const std::vector<Value>& args) {
-        if (args[0].type == ValueType::INTEGER) return Value((int)std::sqrt(args[0].intVal));
+        if (args[0].type == ValueType::INTEGER) return Value((double)std::sqrt(args[0].intVal));
+        if (args[0].type == ValueType::FLOAT) return Value((double)std::sqrt(args[0].floatVal));
         return Value(0);
     });
     interpreter.functions["karekok"] = karekok;
     
     auto rastgele = std::make_shared<NativeFunction>("rastgele", 0, [](Interpreter&, const std::vector<Value>& args) {
-        return Value((int)std::rand());
+        return Value((int)std::rand()); // Tam sayi
     });
     interpreter.functions["rastgele"] = rastgele;
 
     // 4. DOSYA İŞLEMLERİ (Core)
     // -------------------------
 
-    // dosya_yaz(yol, icerik)
-    auto dosya_yaz = std::make_shared<NativeFunction>("dosya_yaz", 2, [](Interpreter&, const std::vector<Value>& args) {
+    // yaz(yol, icerik)
+    auto yaz = std::make_shared<NativeFunction>("yaz", 2, [](Interpreter&, const std::vector<Value>& args) {
         if (args[0].type != ValueType::STRING || args[1].type != ValueType::STRING) return Value(false);
         std::ofstream file(args[0].getString());
         if (file.is_open()) {
@@ -288,22 +293,22 @@ void registerNativeFunctions(Interpreter& interpreter) {
         }
         return Value(false);
     });
-    interpreter.functions["_dosya_yaz"] = dosya_yaz;
-    interpreter.functions["dosya_yaz"] = dosya_yaz; // Alias
+    interpreter.functions["yaz"] = yaz;
+    interpreter.functions["dosya_yaz"] = yaz; // Alias geriye donuk uyumluluk icin
 
-    // dosya_oku(yol)
-    auto dosya_oku = std::make_shared<NativeFunction>("dosya_oku", 1, [](Interpreter&, const std::vector<Value>& args) {
-        if (args[0].type != ValueType::STRING) return Value(std::string("")); 
+    // oku(yol)
+    auto oku = std::make_shared<NativeFunction>("oku", 1, [](Interpreter&, const std::vector<Value>& args) {
+        if (args[0].type != ValueType::STRING) return Value(g_gc->allocateObject<GumusString>(""), ValueType::STRING); 
         std::ifstream file(args[0].getString());
         if (file.is_open()) {
             std::stringstream buffer;
             buffer << file.rdbuf();
-            return Value(buffer.str());
+            return Value(g_gc->allocateObject<GumusString>(buffer.str()), ValueType::STRING);
         }
-        return Value(std::string("")); 
+        return Value(g_gc->allocateObject<GumusString>(""), ValueType::STRING); 
     });
-    interpreter.functions["_dosya_oku"] = dosya_oku;
-    interpreter.functions["dosya_oku"] = dosya_oku; // Alias
+    interpreter.functions["oku"] = oku;
+    interpreter.functions["dosya_oku"] = oku; // Alias geriye donuk uyumluluk
 
     // dosya_ekle(yol, icerik)
     auto dosya_ekle = std::make_shared<NativeFunction>("dosya_ekle", 2, [](Interpreter&, const std::vector<Value>& args) {
@@ -316,8 +321,7 @@ void registerNativeFunctions(Interpreter& interpreter) {
         }
         return Value(false);
     });
-    interpreter.functions["_dosya_ekle"] = dosya_ekle;
-    interpreter.functions["dosya_ekle"] = dosya_ekle; // Alias
+    interpreter.functions["dosya_ekle"] = dosya_ekle;
     
     // dahil_et(dosya) - Critical
     auto dahil_et = std::make_shared<NativeFunction>("dahil_et", 1, [](Interpreter& interpreter, const std::vector<Value>& args) {
