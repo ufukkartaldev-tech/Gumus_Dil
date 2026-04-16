@@ -232,10 +232,10 @@ void Interpreter::visitLiteralExpr(LiteralExpr* expr) {
     else if (expr->value.type == TokenType::KW_YANLIS || expr->value.value == "yanlis") lastEvaluatedValue = Value(false);
     else if (expr->value.type == TokenType::KW_BOS || expr->value.value == "bos") lastEvaluatedValue = Value();
     else if (expr->value.type == TokenType::INTEGER) {
-        if (expr->value.value.find('.') != std::string::npos) lastEvaluatedValue = Value(std::stod(expr->value.value));
-        else {
-            try { lastEvaluatedValue = Value(std::stoi(expr->value.value)); }
-            catch (...) { lastEvaluatedValue = Value(expr->value.value); }
+        if (expr->value.isFloat) {
+            lastEvaluatedValue = Value(expr->value.floatVal);
+        } else {
+            lastEvaluatedValue = Value(expr->value.intVal);
         }
     } else lastEvaluatedValue = Value(expr->value.value);
 }

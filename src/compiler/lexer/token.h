@@ -19,12 +19,14 @@ enum class TokenType {
     KW_VAR,     // degisken
 
     KW_EGER,    // eger
-    KW_DEGILSE, // degilse
+    KW_YOKSA,   // yoksa
     KW_DONGU,   // dongu
+    KW_ICIN,    // icin
     KW_DOGRU,   // dogru
     KW_YANLIS,  // yanlis
-    KW_DENEME,  // deneme (try)
+    KW_DENE,    // dene (try)
     KW_YAKALA,  // yakala (catch)
+    KW_SONUNDA, // sonunda (finally)
 
     KW_FONKSIYON, // fonksiyon
     KW_DON,       // don (return)
@@ -81,6 +83,10 @@ struct Token {
     int line;
     int column;
 
+    double floatVal = 0.0;
+    int intVal = 0;
+    bool isFloat = false;
+
     std::string toString() const {
         switch (type) {
             case TokenType::INTEGER: return "INTEGER(" + value + ")";
@@ -97,12 +103,14 @@ struct Token {
             case TokenType::KW_VAR: return "KW_VAR";
             
             case TokenType::KW_EGER: return "KW_EGER";
-            case TokenType::KW_DEGILSE: return "KW_DEGILSE";
+            case TokenType::KW_YOKSA: return "KW_YOKSA";
             case TokenType::KW_DONGU: return "KW_DONGU";
+            case TokenType::KW_ICIN: return "KW_ICIN";
             case TokenType::KW_DOGRU: return "KW_DOGRU";
             case TokenType::KW_YANLIS: return "KW_YANLIS";
-            case TokenType::KW_DENEME: return "KW_DENEME";
+            case TokenType::KW_DENE: return "KW_DENE";
             case TokenType::KW_YAKALA: return "KW_YAKALA";
+            case TokenType::KW_SONUNDA: return "KW_SONUNDA";
 
             case TokenType::KW_FONKSIYON: return "KW_FONKSIYON";
             case TokenType::KW_DON: return "KW_DON";

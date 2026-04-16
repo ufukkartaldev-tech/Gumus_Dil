@@ -244,17 +244,25 @@ Token Tokenizer::number() {
         value += advance();
     }
 
+    bool isFloat = false;
     // Decimal part
     if (peek() == '.' && isdigit(peek(1))) {
+        isFloat = true;
         value += advance(); // Consume '.'
         while (isdigit(peek())) {
             value += advance();
         }
     }
 
-    return {TokenType::INTEGER, value, line, startColumn};
-
-    return {TokenType::INTEGER, value, line, startColumn};
+    Token t = {TokenType::INTEGER, value, line, startColumn};
+    t.isFloat = isFloat;
+    if (isFloat) {
+        try { t.floatVal = std::stod(value); } catch (...) { t.floatVal = 0.0; }
+    } else {
+        try { t.intVal = std::stoi(value); } catch (...) { t.intVal = 0; }
+    }
+    
+    return t;
 }
 
 Token Tokenizer::string() {
@@ -317,10 +325,12 @@ Token Tokenizer::identifier() {
         return {TokenType::KW_YAZDIR, value, line, startColumn};
     if (value == "e\xC4\x9F" "er") 
         return {TokenType::KW_EGER, value, line, startColumn};
-    if (value == "de\xC4\x9F" "ilse") 
-        return {TokenType::KW_DEGILSE, value, line, startColumn};
+    if (value == "yoksa") 
+        return {TokenType::KW_YOKSA, value, line, startColumn};
     if (value == "d\xC3\xB6" "ng\xC3\xBC") 
         return {TokenType::KW_DONGU, value, line, startColumn};
+    if (value == "i\xC3\xA7" "in") 
+        return {TokenType::KW_ICIN, value, line, startColumn};
     if (value == "fonksiyon") 
         return {TokenType::KW_FONKSIYON, value, line, startColumn};
     if (value == "d\xC3\xB6" "n") 
@@ -339,10 +349,12 @@ Token Tokenizer::identifier() {
         return {TokenType::KW_DOGRU, value, line, startColumn};
     if (value == "yanl\xC4\xB1\xC5\x9F") 
         return {TokenType::KW_YANLIS, value, line, startColumn};
-    if (value == "deneme") 
-        return {TokenType::KW_DENEME, value, line, startColumn};
+    if (value == "dene") 
+        return {TokenType::KW_DENE, value, line, startColumn};
     if (value == "yakala") 
         return {TokenType::KW_YAKALA, value, line, startColumn};
+    if (value == "sonunda") 
+        return {TokenType::KW_SONUNDA, value, line, startColumn};
     if (value == "ve") 
         return {TokenType::LOGIC_AND, value, line, startColumn};
     if (value == "veya") 
@@ -380,10 +392,10 @@ Token Tokenizer::identifier() {
         throw GumusException("syntax_error", line, "❌ 'if' değil, 'eğer' yazılmalı! (Türkçe karakter kullan)");
 
     if (value == "else") 
-        throw GumusException("syntax_error", line, "❌ 'else' değil, 'değilse' yazılmalı! (Türkçe karakter kullan)");
+        throw GumusException("syntax_error", line, "❌ 'else' değil, 'yoksa' yazılmalı!");
 
     if (value == "while" || value == "for" || value == "loop") 
-        throw GumusException("syntax_error", line, "❌ Döngüler için 'döngü' veya 'her' yazılmalı! (Türkçe karakter kullan)");
+        throw GumusException("syntax_error", line, "❌ Döngüler için 'için' veya 'her' yazılmalı!");
 
     if (value == "function" || value == "func") 
         throw GumusException("syntax_error", line, "❌ 'function' değil, 'fonksiyon' yazılmalı! (Türkçe karakter kullan)");
@@ -400,10 +412,14 @@ Token Tokenizer::identifier() {
         throw GumusException("syntax_error", line, "❌ 'yazdir' değil, 'yazdır' yazılmalı! (Türkçe karakter kullan)");
     if (value == "eger") 
         throw GumusException("syntax_error", line, "❌ 'eger' değil, 'eğer' yazılmalı! (Türkçe karakter kullan)");
-    if (value == "degilse") 
-        throw GumusException("syntax_error", line, "❌ 'degilse' değil, 'değilse' yazılmalı! (Türkçe karakter kullan)");
+    if (value == "de\xC4\x9F" "ilse" || value == "degilse") 
+        throw GumusException("syntax_error", line, "❌ 'değilse' kaldırıldı, yerine 'yoksa' kullanılmalı!");
     if (value == "dongu") 
         throw GumusException("syntax_error", line, "❌ 'dongu' değil, 'döngü' yazılmalı! (Türkçe karakter kullan)");
+    if (value == "icin") 
+        throw GumusException("syntax_error", line, "❌ 'icin' değil, 'için' yazılmalı! (Türkçe karakter kullan)");
+    if (value == "deneme") 
+        throw GumusException("syntax_error", line, "❌ 'deneme' kaldırıldı, yerine 'dene' kullanılmalı!");
     if (value == "don") 
         throw GumusException("syntax_error", line, "❌ 'don' değil, 'dön' yazılmalı! (Türkçe karakter kullan)");
     if (value == "sinif") 
