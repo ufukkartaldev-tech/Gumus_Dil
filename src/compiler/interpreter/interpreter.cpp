@@ -237,7 +237,7 @@ void Interpreter::visitLiteralExpr(LiteralExpr* expr) {
         } else {
             lastEvaluatedValue = Value(expr->value.intVal);
         }
-    } else lastEvaluatedValue = Value(expr->value.value);
+    } else lastEvaluatedValue = Value(g_gc->allocateObject<GumusString>(expr->value.value), ValueType::STRING);
 }
 
 void Interpreter::visitCallExpr(CallExpr* expr) {
@@ -307,19 +307,19 @@ void Interpreter::visitThisExpr(ThisExpr* expr) {
 }
 
 void Interpreter::visitListExpr(ListExpr* expr) {
-    auto list = std::make_shared<ValueList>();
-    for (const auto& el : expr->elements) list->push_back(evaluate(el));
-    lastEvaluatedValue = Value(list);
+    GumusList* listObj = g_gc->allocateObject<GumusList>();
+    for (const auto& el : expr->elements) listObj->elements.push_back(evaluate(el));
+    lastEvaluatedValue = Value(listObj, ValueType::LIST);
 }
 
 void Interpreter::visitMapExpr(MapExpr* expr) {
-    auto map = std::make_shared<std::map<std::string, Value>>();
+    GumusMap* mapObj = g_gc->allocateObject<GumusMap>();
     for (size_t i = 0; i < expr->keys.size(); ++i) {
         Value key = evaluate(expr->keys[i]);
         Value value = evaluate(expr->values[i]);
-        (*map)[key.toString()] = value;
+        mapObj->items[key.toString()] = value;
     }
-    lastEvaluatedValue = Value(map);
+    lastEvaluatedValue = Value(mapObj, ValueType::MAP);
 }
 
 void Interpreter::visitGetExpr(GetExpr* expr) {
@@ -338,7 +338,7 @@ void Interpreter::visitGetExpr(GetExpr* expr) {
         if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Metin indeksi tamsayi olmalidir.");
         int i = index.intVal;
         if (i < 0 || i >= (int)object.getString().length()) throw LoxRuntimeException(expr->bracket.line, "Metin indeks hatasi (sinir disi).");
-        lastEvaluatedValue = Value(std::string(1, object.getString()[i]));
+        lastEvaluatedValue = Value(g_gc->allocateObject<GumusString>(std::string(1, object.getString()[i])), ValueType::STRING);
     } else throw LoxRuntimeException(expr->bracket.line, "Sadece listeler, metinler ve sozlukler indekslenebilir.");
 }
 
@@ -387,8 +387,14 @@ void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
             default: break;
         }
     } else if (expr->op.type == TokenType::PLUS) {
-        if (left.type == ValueType::STRING) lastEvaluatedValue = Value(left.getString() + right.toString());
-        else if (right.type == ValueType::STRING) lastEvaluatedValue = Value(left.toString() + right.getString());
+        if (left.type == ValueType::STRING) {
+            GumusString* strObj = g_gc->allocateObject<GumusString>(left.getString() + right.toString());
+            lastEvaluatedValue = Value(strObj, ValueType::STRING);
+        }
+        else if (right.type == ValueType::STRING) {
+            GumusString* strObj = g_gc->allocateObject<GumusString>(left.toString() + right.getString());
+            lastEvaluatedValue = Value(strObj, ValueType::STRING);
+        }
         else lastEvaluatedValue = Value();
     } else lastEvaluatedValue = Value();
 }
