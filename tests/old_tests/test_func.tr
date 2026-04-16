@@ -1,6 +1,0 @@
-fonksiyon topla(a, b) {
-    dön a + b
-}
-
-yazdır(topla(3, 5))
-

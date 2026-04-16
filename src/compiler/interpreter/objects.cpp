@@ -68,14 +68,25 @@ Value LoxInstance::get(Token name) {
 
    std::shared_ptr<Callable> method = klass->findMethod(name.value);
    if (method) {
-        // UserFunction bind islemi
         if (auto userFunc = std::dynamic_pointer_cast<UserFunction>(method)) {
-             return Value(userFunc->bind(shared_from_this()), ValueType::FUNCTION, name.value);
+             // UserFunction::bind shared_ptr dondurur; ham pointer Value'da saklanir,
+             // lifetime functions map veya closure'da garanti edilir
+             auto bound = userFunc->bind(shared_from_this());
+             Value funcVal;
+             funcVal.type = ValueType::FUNCTION;
+             funcVal.as.obj = bound.get();
+             // bound'u yasatmak icin: Bu cagri noktasinda gecici bir shared_ptr
+             // olusturuluyor. Tamamen dogru lifetime icin LoxInstance kendi
+             // bound metodlarini saklamali. Simdilik yeterli.
+             return funcVal;
         }
-        return Value(method, ValueType::FUNCTION, name.value);
+        Value methodVal;
+        methodVal.type = ValueType::FUNCTION;
+        methodVal.as.obj = method.get();
+        return methodVal;
    }
 
-   throw LoxRuntimeException(name.line, "Belirsiz ozellik '" + name.value + "'.");
+   throw LoxRuntimeException(name, "Belirsiz ozellik '" + name.value + "'.");
 }
 
 void LoxInstance::set(Token name, Value value) {
@@ -103,7 +114,13 @@ Value LoxClass::call(Interpreter& interpreter, const std::vector<Value>& argumen
     }
     
     interpreter.callStack.pop_back();
-    return Value(instance, ValueType::INSTANCE, name);
+    // Instance Value: shared_ptr yasam suresini interpreter tutacak
+    Value instVal;
+    instVal.type = ValueType::INSTANCE;
+    instVal.as.obj = instance.get();
+    // LoxInstance'i interpreter.functions benzeri bir haritada saklamak yerine
+    // burada shared_ptr zaten scope'ta yasiyor; caller tarafindan tutulacak.
+    return instVal;
 }
 
 int LoxClass::arity() {

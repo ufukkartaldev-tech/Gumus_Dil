@@ -128,7 +128,7 @@ Stmt* StatementParser::ifStatement() {
 
     Stmt* thenBranch = statement();
     Stmt* elseBranch = nullptr;
-    if (parser->match({TokenType::KW_DEGILSE})) {
+    if (parser->match({TokenType::KW_YOKSA})) {
         elseBranch = statement();
     }
 

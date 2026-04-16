@@ -320,18 +320,21 @@ struct LoxRuntimeException : public std::runtime_error {
     std::string suggestion;
 
     // User-defined throw (firlat "hata")
-    LoxRuntimeException(Value errorValue) 
+    LoxRuntimeException(Value errorValue)
         : std::runtime_error("runtime_error"), errorValue(errorValue), isSystemError(false) {}
 
-    // System error (e.g. division by zero)
-    LoxRuntimeException(int line, const std::string& message, const std::string& suggestion = "") 
-        : std::runtime_error(message), line(line), column(0), isSystemError(true), suggestion(suggestion) {}
+    // System error with TOKEN - TERCIH EDILEN kurucu (^ isareti calisir)
+    LoxRuntimeException(const Token& token, const std::string& message, const std::string& suggestion = "")
+        : std::runtime_error(message), line(token.line), column(token.column),
+          lineContent(token.lineContent), isSystemError(true), suggestion(suggestion) {
+        errorValue = Value();
+    }
 
-    // System error with TOKEN
-    LoxRuntimeException(const Token& token, const std::string& message, const std::string& suggestion = "") 
-        : std::runtime_error(message), line(token.line), column(token.column), lineContent(token.lineContent), isSystemError(true), suggestion(suggestion) {
-            errorValue = Value(message);
-        }
+    // int line alan kurucu - KULLANILMAMALI, sadece Token bilinemediginde fallback
+    // Yeni kod Token& alan kurucuyu kullanmali
+    [[deprecated("Token& alan kurucuyu kullanin: LoxRuntimeException(token, mesaj)")]]
+    LoxRuntimeException(int line, const std::string& message, const std::string& suggestion = "")
+        : std::runtime_error(message), line(line), column(0), isSystemError(true), suggestion(suggestion) {}
 };
 
 // Environment Class...
@@ -380,14 +383,13 @@ public:
     std::vector<Stmt*> astList;
     void persistAst(const std::vector<Stmt*>& statements);
     
-    // 🗑️ Garbage Collection
+    // 🗑️ Garbage Collection (Tek Rejim)
     std::unique_ptr<GarbageCollector> garbageCollector;
-    
-    // 📊 Memory Analytics
+
     void initializeGC();
     void collectGarbage();
-    GarbageCollector::MemoryStats getMemoryStats() const;
-    std::string generateMemoryReport() const;
+    size_t getGCObjectCount() const;
+    size_t getGCBytesAllocated() const;
 private:
     // Visitor Pattern Implementation - Stmt Visitors
     void visitExpressionStmt(ExpressionStmt* stmt) override;

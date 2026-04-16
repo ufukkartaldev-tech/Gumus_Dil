@@ -2,8 +2,7 @@
 #include "interpreter.h"
 #include <iostream>
 
-// Global GC instance
-std::unique_ptr<GarbageCollector> g_gc;
+// g_gc KALDIRILDI. Tek GC rejimi: Interpreter::garbageCollector
 
 GarbageCollector::~GarbageCollector() {
     GumusObject* object = firstObject;
@@ -15,64 +14,97 @@ GarbageCollector::~GarbageCollector() {
 }
 
 void GarbageCollector::markValue(Value value) {
-    if (!IS_OBJ(value)) return;
+    if (!IS_OBJ(value)) return;   // IS_OBJ artik BOOLEAN/NIL icin false
     markObject(AS_OBJ(value));
 }
 
 void GarbageCollector::markObject(GumusObject* obj) {
     if (obj == nullptr) return;
-    if (obj->isMarked) return;
-    
+    if (obj->isMarked) return;    // Zaten islendi, donguye girme
     obj->isMarked = true;
-    obj->mark();
+    obj->mark(this);              // Polimorfik: alt siniflar kendi alanlarini isaretler
+}
+
+// Environment zincirini (enclosing'e kadar) kök olarak tarar
+void GarbageCollector::markEnvironment(std::shared_ptr<Environment> env) {
+    Environment* current = env.get();
+    while (current != nullptr) {
+        // map tabanli degerler
+        for (auto& pair : current->values) {
+            markValue(pair.second);
+        }
+        // slot tabanli degerler
+        for (auto& val : current->valuesArray) {
+            markValue(val);
+        }
+        auto parent = current->enclosing.lock();
+        current = parent.get();
+    }
+}
+
+void GarbageCollector::markEnvironmentChain(Environment* env) {
+    while (env != nullptr) {
+        for (auto& pair : env->values)     markValue(pair.second);
+        for (auto& val  : env->valuesArray) markValue(val);
+        auto parent = env->enclosing.lock();
+        env = parent.get();
+    }
 }
 
 void GarbageCollector::collect() {
-    // 1. Mark Roots
+    // --- MARK fazı ---
+
+    // 1. Global environment
+    if (globalEnvironment) {
+        markEnvironmentChain(globalEnvironment.get());
+    }
+
+    // 2. Explicit C++ kökleri
     for (Value* value : roots) {
         markValue(*value);
     }
-    
-    // Global environment values
-    if (globalEnvironment) {
-       for(auto& pair : globalEnvironment->values) {
-           markValue(pair.second);
-       }
-    }
-    // In a complete implementation, the interpreter's call stack environments 
-    // must also be traced here.
-    
+
+    // NOT: Interpreter, call() sırasında aktif Environment'ları
+    // addRoot veya markEnvironment(activeEnv) ile bildirmeli.
+    // Bu çağrı Interpreter::collectGarbage() içinden yapılıyor.
+
+    // --- SWEEP fazı ---
     sweep();
 }
 
 void GarbageCollector::sweep() {
+    size_t freed = 0;
     GumusObject** object = &firstObject;
     while (*object != nullptr) {
         if (!(*object)->isMarked) {
             GumusObject* unreached = *object;
             *object = unreached->next;
+            freed += sizeof(*unreached);   // Tahmini boyut
             delete unreached;
         } else {
-            (*object)->isMarked = false;
+            (*object)->isMarked = false;   // Bir sonraki GC icin sifirla
             object = &(*object)->next;
         }
     }
-    
-    bytesAllocated = 0; // Simplistic approach: reset counter so we wait another 1MB.
+    bytesFreed += freed;
+    // Bir sonraki GC esigini dinamik olarak ayarla (2× mevcut canli heap)
+    size_t live = bytesAllocated - bytesFreed;
+    nextGC = (live > 0) ? live * 2 : 1024 * 1024;
 }
 
-// ---------------------------------------------------------
-// Objektif mark() Gerçekleştirmeleri
-// ---------------------------------------------------------
+// -----------------------------------------------------------------
+// GumusList ve GumusMap mark() implementasyonlari
+// Artik g_gc yerine parametre olarak gelen gc* kullanilir
+// -----------------------------------------------------------------
 
-void GumusList::mark() {
+void GumusList::mark(GarbageCollector* gc) {
     for (auto& el : elements) {
-        if (g_gc) g_gc->markValue(el);
+        gc->markValue(el);
     }
 }
 
-void GumusMap::mark() {
+void GumusMap::mark(GarbageCollector* gc) {
     for (auto& pair : items) {
-        if (g_gc) g_gc->markValue(pair.second);
+        gc->markValue(pair.second);
     }
 }

@@ -445,26 +445,13 @@ void VM::checkGC() {
     if (currentMemory > gcTriggerThreshold) {
         if (gumus_debug) {
             std::cout << "🧹 Triggering GC: " << currentMemory << " bytes used\n";
+            std::cout << "ℹ️  GC yalnizca Interpreter uzerinden calisir (Tek GC Rejimi).\n";
         }
-        
-        if (g_gc) {
-            try {
-                g_gc->collect();
-                
-                // Update threshold adaptively
-                size_t newMemory = getCurrentMemoryUsage();
-                gcTriggerThreshold = std::max(newMemory * 2, static_cast<size_t>(1024 * 1024));
-                
-                if (gumus_debug) {
-                    std::cout << "✅ GC completed: " << newMemory << " bytes, new threshold: " 
-                              << gcTriggerThreshold << "\n";
-                }
-            } catch (const std::exception& e) {
-                std::cerr << "⚠️ GC Error: " << e.what() << std::endl;
-                // Continue execution but increase threshold to avoid repeated failures
-                gcTriggerThreshold *= 2;
-            }
-        }
+        // VM kendi GC'sini tetiklemiyor - g_gc KALDIRILDI.
+        // Bytecode VM icin ilerleyen surumde Interpreter::garbageCollector
+        // VM'e referans olarak verilecek.
+        gcTriggerThreshold *= 2; // Esigi yukari cek, tekrar tetiklenmesin
+
     }
 }
 

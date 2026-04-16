@@ -5,9 +5,12 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <memory> 
+#include <memory>
 #include <sstream>
 #include <iomanip>
+
+// Forward declaration - dairesel bagimliligi onler
+class GarbageCollector;
 
 enum class ValueType {
     INTEGER,
@@ -39,11 +42,12 @@ enum class ObjectType {
 struct GumusObject {
     ObjectType objType;
     bool isMarked;
-    GumusObject* next; // GC Chain
+    GumusObject* next; // GC zinciri
 
     GumusObject(ObjectType type) : objType(type), isMarked(false), next(nullptr) {}
     virtual ~GumusObject() = default;
-    virtual void mark() {} // Polymorphic mark for GC
+    // Polimorfik mark: GC referansini alir, g_gc kullanmaz
+    virtual void mark(GarbageCollector* gc) {}
 };
 
 struct Value;
@@ -57,17 +61,23 @@ struct GumusString : public GumusObject {
 struct GumusList : public GumusObject {
     ValueList elements;
     GumusList() : GumusObject(ObjectType::OBJ_LIST) {}
-    void mark() override; // To be implemented in gc/interpreter
+    void mark(GarbageCollector* gc) override;
 };
 
 struct GumusMap : public GumusObject {
     std::map<std::string, Value> items;
     GumusMap() : GumusObject(ObjectType::OBJ_MAP) {}
-    void mark() override; // To be implemented
+    void mark(GarbageCollector* gc) override;
 };
 
 // Object Macros to safely extract types
-#define IS_OBJ(value)       ((value).type >= ValueType::STRING) // Assuming types after string are objects.
+// IS_OBJ: sadece gercek heap nesneleri icin true - BOOLEAN ve NIL dahil edilmez!
+#define IS_OBJ(value)       ((value).type == ValueType::STRING || \
+                             (value).type == ValueType::LIST   || \
+                             (value).type == ValueType::MAP    || \
+                             (value).type == ValueType::CLASS  || \
+                             (value).type == ValueType::INSTANCE || \
+                             (value).type == ValueType::FUNCTION)
 #define AS_OBJ(value)       ((value).as.obj)
 #define AS_STRING(value)    ((GumusString*)AS_OBJ(value))
 #define AS_CSTRING(value)   (((GumusString*)AS_OBJ(value))->str)
@@ -95,17 +105,10 @@ struct Value {
     Value(double v) : type(ValueType::FLOAT) { as.floatVal = v; }
     Value(bool v) : type(ValueType::BOOLEAN) { as.boolVal = v; }
     
-    // Note: C++ std::string -> Value yapicisi dogrudan kullaniliyorsa obj yaratimi VM veya Garbage Collector uzerinden olmali.
-    // Simdilik geriye donuk uyumluluk icin gecici bir cozum
-    // Value(std::string v) -> Artik otomatik yaratilmamali (Memory arena uzerinden olmali)
-    // Asagidaki raw pointer ile atamalar manuel olacak
+    // GumusObject* ham isaretci ile nesne referansi (GC zincirine dahil)
     Value(GumusObject* o, ValueType t) : type(t) { as.obj = o; }
-    Value(std::shared_ptr<void> fake, ValueType t, std::string n = "") : type(t) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ } 
-    Value(std::shared_ptr<ValueList> fake) : type(ValueType::LIST) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ }
-    Value(std::string v) : type(ValueType::STRING) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ }
-    Value(std::shared_ptr<std::map<std::string, Value>> fake) : type(ValueType::MAP) { as.obj = nullptr; /* LEGACY CODE: SILINECEK */ }
 
-    // Yardımcı Erişim Metotları (Gecici)
+    // Yardimci Erisim Metotlari
     std::string& getString() const { return AS_STRING(*this)->str; }
     ValueList& getList() const { return AS_LIST(*this)->elements; }
     std::map<std::string, Value>& getMap() const { return AS_MAP(*this)->items; }

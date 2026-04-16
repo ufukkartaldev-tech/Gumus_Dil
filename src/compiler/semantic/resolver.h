@@ -22,6 +22,11 @@ enum class ClassType {
     SUBCLASS
 };
 
+struct VariableInfo {
+    bool isDefined;
+    int slot;
+};
+
 class Resolver : public ExprVisitor, public StmtVisitor {
 public:
     Resolver(Interpreter& interpreter);
@@ -29,7 +34,7 @@ public:
 
 private:
     Interpreter& interpreter;
-    std::vector<std::unordered_map<std::string, bool>> scopes;
+    std::vector<std::unordered_map<std::string, VariableInfo>> scopes;
     FunctionType currentFunction = FunctionType::NONE;
     ClassType currentClass = ClassType::NONE;
 

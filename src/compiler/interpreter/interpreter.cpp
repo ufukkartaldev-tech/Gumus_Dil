@@ -98,6 +98,8 @@ Interpreter::Interpreter() {
     searchPaths.push_back(".");
     searchPaths.push_back("lib");
     searchPaths.push_back("std_lib");
+    // Tek GC rejimi: constructor'da baslatilir
+    initializeGC();
     registerNativeFunctions(*this);
 }
 
@@ -149,24 +151,38 @@ void Interpreter::execute(Stmt* stmt) {
 
 void Interpreter::visitFunctionStmt(FunctionStmt* stmt) {
     auto function = std::make_shared<UserFunction>(stmt, environment);
-    environment->define(stmt->name.value, Value(function, ValueType::FUNCTION, stmt->name.value));
-    if (environment == globals) functions[stmt->name.value] = function;
+    // UserFunction, shared_ptr tabanli - Value'da as.obj olarak saklanir
+    Value funcVal;
+    funcVal.type = ValueType::FUNCTION;
+    funcVal.as.obj = function.get(); // Ham pointer; fonksiyon shared_ptr'de yasatilir
+    // Shared_ptr'yi functions map'inde tut (yasam suresi garanti)
+    functions[stmt->name.value] = function;
+    environment->define(stmt->name.value, funcVal);
+    if (environment == globals) {} // Zaten yukarida eklendi
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
 void Interpreter::visitVarStmt(VarStmt* stmt) {
     Value value;
     if (stmt->initializer != nullptr) value = evaluate(stmt->initializer);
-    
+
     if (stmt->slot != -1) {
-        // Fast Array Eklemesi
-        environment->defineFast(value);
-        // Hem de globals ve dynamic scope lara uyum saglasin
-        environment->define(stmt->name.value, value);
+        // Slot sistemi aktif: SADECE hizli array'e yaz
+        // (Slot indeksi Resolver tarafindan atandi, distance=0 bu scope'ta)
+        int expectedSlot = (int)environment->valuesArray.size();
+        if (stmt->slot == expectedSlot) {
+            environment->defineFast(value);
+        } else {
+            // Slot uyumsuzlugu: array'i genislet
+            while ((int)environment->valuesArray.size() <= stmt->slot)
+                environment->valuesArray.push_back(Value());
+            environment->valuesArray[stmt->slot] = value;
+        }
     } else {
+        // Global veya slot atanamayan durum: map kullan
         environment->define(stmt->name.value, value);
     }
-    
+
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
@@ -247,7 +263,7 @@ void Interpreter::visitLiteralExpr(LiteralExpr* expr) {
         } else {
             lastEvaluatedValue = Value(expr->value.intVal);
         }
-    } else lastEvaluatedValue = Value(g_gc->allocateObject<GumusString>(expr->value.value), ValueType::STRING);
+    } else lastEvaluatedValue = Value(garbageCollector->allocateObject<GumusString>(expr->value.value), ValueType::STRING);
 }
 
 void Interpreter::visitCallExpr(CallExpr* expr) {
@@ -261,13 +277,15 @@ void Interpreter::visitCallExpr(CallExpr* expr) {
         throw;
     }
     std::shared_ptr<Callable> function = nullptr;
-    if (callee.type == ValueType::CLASS || callee.type == ValueType::FUNCTION) function = std::static_pointer_cast<Callable>(callee.obj);
-    if (!function) throw LoxRuntimeException(0, "Sadece fonksiyonlar ve siniflar cagrilabilir."); 
+    if (callee.type == ValueType::CLASS || callee.type == ValueType::FUNCTION) {
+        function = std::static_pointer_cast<Callable>(callee.as.obj);
+    }
+    if (!function) throw LoxRuntimeException(expr->paren, "Sadece fonksiyonlar ve siniflar cagrilabilir.");
     if (expr->arguments.size() != function->arity()) {
         std::string func_name = "bilinmeyen";
         if (auto var = dynamic_cast<VariableExpr*>(expr->callee)) func_name = var->name.value;
         else if (auto prop = dynamic_cast<PropertyExpr*>(expr->callee)) func_name = prop->name.value;
-        throw LoxRuntimeException(expr->paren.line, "Fonksiyon '" + func_name + "': Beklenen parametre " + std::to_string(function->arity()) + " ama alinan " + std::to_string(expr->arguments.size()) + ".");
+        throw LoxRuntimeException(expr->paren, "Fonksiyon '" + func_name + "': Beklenen parametre " + std::to_string(function->arity()) + " ama alinan " + std::to_string(expr->arguments.size()) + ".");
     }
     std::vector<Value> arguments;
     for (const auto& arg : expr->arguments) arguments.push_back(evaluate(arg));
@@ -290,7 +308,7 @@ void Interpreter::visitVariableExpr(VariableExpr* expr) {
                 lastEvaluatedValue = Value(functions[expr->name.value], ValueType::FUNCTION, expr->name.value);
                 return;
             }
-            throw LoxRuntimeException(expr->name.line, "Tanimlanmamis degisken: '" + expr->name.value + "'.");
+            throw LoxRuntimeException(expr->name, "Tanimlanmamis degisken: '" + expr->name.value + "'.");
         }
     }
 }
@@ -299,27 +317,32 @@ void Interpreter::visitAssignExpr(AssignExpr* expr) {
     Value value = evaluate(expr->value);
     if (expr->distance != -1) {
         if (expr->slot != -1) {
+            // Slot sistemi: SADECE array'e yaz, map sync yok
             environment->assignAtSlot(expr->distance, expr->slot, value);
+        } else {
+            // Slot yok: map tabanli atama
+            environment->assignAt(expr->distance, expr->name.value, value);
         }
-        environment->assignAt(expr->distance, expr->name.value, value); // Legacy fallback sync
+    } else {
+        globals->assign(expr->name.value, value);
     }
-    else globals->assign(expr->name.value, value);
     lastEvaluatedValue = value;
 }
 
 void Interpreter::visitSetExpr(SetExpr* expr) {
     Value object = evaluate(expr->object);
     if (object.type != ValueType::INSTANCE) {
-        throw LoxRuntimeException(expr->name.line, "Sadece nesnelerin ozellikleri atanabilir. Alinan tip: " + std::to_string((int)object.type));
+        throw LoxRuntimeException(expr->name, "Sadece nesnelerin ozellikleri atanabilir. Alinan tip: " + std::to_string((int)object.type));
     }
     if (!expr->name.value.empty() && expr->name.value[0] == '_') {
-        if (activeInstance != object.obj) throw LoxRuntimeException(expr->name.line, "Ozel ozellige atama engellendi: '" + expr->name.value + "'.");
+        if (activeInstance != object.as.obj) throw LoxRuntimeException(expr->name, "Ozel ozellige atama engellendi: '" + expr->name.value + "'.");
     }
     Value value = evaluate(expr->value);
-    auto instance = std::static_pointer_cast<LoxInstance>(object.obj);
+    auto instance = std::static_pointer_cast<LoxInstance>(object.as.obj);
     instance->set(expr->name, value);
     lastEvaluatedValue = value;
 }
+
 
 void Interpreter::visitThisExpr(ThisExpr* expr) {
     if (expr->distance != -1) lastEvaluatedValue = environment->getAt(expr->distance, expr->keyword.value);
@@ -327,13 +350,13 @@ void Interpreter::visitThisExpr(ThisExpr* expr) {
 }
 
 void Interpreter::visitListExpr(ListExpr* expr) {
-    GumusList* listObj = g_gc->allocateObject<GumusList>();
+    GumusList* listObj = garbageCollector->allocateObject<GumusList>();
     for (const auto& el : expr->elements) listObj->elements.push_back(evaluate(el));
     lastEvaluatedValue = Value(listObj, ValueType::LIST);
 }
 
 void Interpreter::visitMapExpr(MapExpr* expr) {
-    GumusMap* mapObj = g_gc->allocateObject<GumusMap>();
+    GumusMap* mapObj = garbageCollector->allocateObject<GumusMap>();
     for (size_t i = 0; i < expr->keys.size(); ++i) {
         Value key = evaluate(expr->keys[i]);
         Value value = evaluate(expr->values[i]);
@@ -346,20 +369,20 @@ void Interpreter::visitGetExpr(GetExpr* expr) {
     Value object = evaluate(expr->object);
     Value index = evaluate(expr->index);
     if (object.type == ValueType::LIST) {
-        if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Liste indeksi tamsayi olmalidir.");
+        if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket, "Liste indeksi tamsayi olmalidir.");
         int i = index.intVal;
-        if (i < 0 || i >= (int)object.getList().size()) throw LoxRuntimeException(expr->bracket.line, "Liste indeks hatasi (sinir disi).");
+        if (i < 0 || i >= (int)object.getList().size()) throw LoxRuntimeException(expr->bracket, "Liste indeks hatasi (sinir disi).");
         lastEvaluatedValue = object.getList()[i];
     } else if (object.type == ValueType::MAP) {
         std::string key = index.toString();
         if (object.getMap().count(key)) lastEvaluatedValue = object.getMap()[key];
         else lastEvaluatedValue = Value();
     } else if (object.type == ValueType::STRING) {
-        if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Metin indeksi tamsayi olmalidir.");
+        if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket, "Metin indeksi tamsayi olmalidir.");
         int i = index.intVal;
-        if (i < 0 || i >= (int)object.getString().length()) throw LoxRuntimeException(expr->bracket.line, "Metin indeks hatasi (sinir disi).");
-        lastEvaluatedValue = Value(g_gc->allocateObject<GumusString>(std::string(1, object.getString()[i])), ValueType::STRING);
-    } else throw LoxRuntimeException(expr->bracket.line, "Sadece listeler, metinler ve sozlukler indekslenebilir.");
+        if (i < 0 || i >= (int)object.getString().length()) throw LoxRuntimeException(expr->bracket, "Metin indeks hatasi (sinir disi).");
+        lastEvaluatedValue = Value(garbageCollector->allocateObject<GumusString>(std::string(1, object.getString()[i])), ValueType::STRING);
+    } else throw LoxRuntimeException(expr->bracket, "Sadece listeler, metinler ve sozlukler indekslenebilir.");
 }
 
 void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
@@ -398,8 +421,8 @@ void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
             case TokenType::PLUS: lastEvaluatedValue = isFloat ? Value(l + r) : Value((int)(l + r)); break;
             case TokenType::MINUS: lastEvaluatedValue = isFloat ? Value(l - r) : Value((int)(l - r)); break;
             case TokenType::MULTIPLY: lastEvaluatedValue = isFloat ? Value(l * r) : Value((int)(l * r)); break;
-            case TokenType::DIVIDE: if (r == 0) throw LoxRuntimeException(expr->op.line, "Sifira bolunme hatasi."); lastEvaluatedValue = isFloat ? Value(l / r) : Value((int)(l / r)); break;
-            case TokenType::MOD: if (r == 0) throw LoxRuntimeException(expr->op.line, "Sifira gore mod alma hatasi."); lastEvaluatedValue = isFloat ? Value(std::fmod(l, r)) : Value((int)l % (int)r); break;
+            case TokenType::DIVIDE: if (r == 0) throw LoxRuntimeException(expr->op, "Sifira bolunme hatasi."); lastEvaluatedValue = isFloat ? Value(l / r) : Value((int)(l / r)); break;
+            case TokenType::MOD: if (r == 0) throw LoxRuntimeException(expr->op, "Sifira gore mod alma hatasi."); lastEvaluatedValue = isFloat ? Value(std::fmod(l, r)) : Value((int)l % (int)r); break;
             case TokenType::GREATER: lastEvaluatedValue = Value(l > r); break;
             case TokenType::GREATER_EQUAL: lastEvaluatedValue = Value(l >= r); break;
             case TokenType::LESS: lastEvaluatedValue = Value(l < r); break;
@@ -408,11 +431,11 @@ void Interpreter::visitBinaryExpr(BinaryExpr* expr) {
         }
     } else if (expr->op.type == TokenType::PLUS) {
         if (left.type == ValueType::STRING) {
-            GumusString* strObj = g_gc->allocateObject<GumusString>(left.getString() + right.toString());
+            GumusString* strObj = garbageCollector->allocateObject<GumusString>(left.getString() + right.toString());
             lastEvaluatedValue = Value(strObj, ValueType::STRING);
         }
         else if (right.type == ValueType::STRING) {
-            GumusString* strObj = g_gc->allocateObject<GumusString>(left.toString() + right.getString());
+            GumusString* strObj = garbageCollector->allocateObject<GumusString>(left.toString() + right.getString());
             lastEvaluatedValue = Value(strObj, ValueType::STRING);
         }
         else lastEvaluatedValue = Value();
@@ -423,13 +446,16 @@ void Interpreter::visitClassStmt(ClassStmt* stmt) {
     std::shared_ptr<LoxClass> superclass = nullptr;
     if (stmt->superclass != nullptr) {
         Value scVal = evaluate(stmt->superclass);
-        if (scVal.type != ValueType::CLASS) throw LoxRuntimeException(stmt->name.line, "Ust sinif bir sinif olmalidir.");
-        superclass = std::static_pointer_cast<LoxClass>(scVal.obj);
+        if (scVal.type != ValueType::CLASS) throw LoxRuntimeException(stmt->name, "Ust sinif bir sinif olmalidir.");
+        superclass = std::static_pointer_cast<LoxClass>(scVal.as.obj);
     }
     environment->define(stmt->name.value, Value());
     if (superclass != nullptr) {
         environment = std::make_shared<Environment>(environment, "SinifAta");
-        environment->define("ata", Value(superclass, ValueType::CLASS, superclass->name));
+        Value superVal;
+        superVal.type = ValueType::CLASS;
+        superVal.as.obj = superclass.get();
+        environment->define("ata", superVal);
     }
     std::map<std::string, std::shared_ptr<Callable>> methods;
     for (const auto& method : stmt->methods) {
@@ -438,7 +464,13 @@ void Interpreter::visitClassStmt(ClassStmt* stmt) {
     }
     auto klass = std::make_shared<LoxClass>(stmt->name.value, superclass, methods);
     if (superclass != nullptr) environment = environment->enclosing.lock();
-    environment->assign(stmt->name.value, Value(klass, ValueType::CLASS, stmt->name.value));
+    // Class Value: shared_ptr yasam suresini functions-benzeri harita garanti eder
+    Value classVal;
+    classVal.type = ValueType::CLASS;
+    classVal.as.obj = klass.get();
+    // Klass'i yasatmak icin global bir haritada sakla (GC entegrasyonuna kadar)
+    functions[stmt->name.value] = klass;
+    environment->assign(stmt->name.value, classVal);
     lastEvaluatedStatus = ExecutionStatus(ExecutionResult::OK);
 }
 
@@ -448,11 +480,11 @@ void Interpreter::visitPropertyExpr(PropertyExpr* expr) {
     if (PropertyHandlers::handle(*this, object, expr->name.value, res)) { lastEvaluatedValue = res; return; }
     if (object.type == ValueType::INSTANCE) {
         if (!expr->name.value.empty() && expr->name.value[0] == '_') {
-            if (activeInstance != object.obj) throw LoxRuntimeException(expr->name.line, "Ozel ozellige erisim engellendi: '" + expr->name.value + "'.");
+            if (activeInstance != object.as.obj) throw LoxRuntimeException(expr->name, "Ozel ozellige erisim engellendi: '" + expr->name.value + "'.");
         }
-        auto instance = std::static_pointer_cast<LoxInstance>(object.obj);
+        auto instance = std::static_pointer_cast<LoxInstance>(object.as.obj);
         lastEvaluatedValue = instance->get(expr->name);
-    } else throw LoxRuntimeException(expr->name.line, "Sadece nesnelerin veya yerlesik tiplerin ozellikleri/metotlari olabilir.");
+    } else throw LoxRuntimeException(expr->name, "Sadece nesnelerin veya yerlesik tiplerin ozellikleri/metotlari olabilir.");
 }
 
 void Interpreter::executeBlock(const std::vector<Stmt*>& statements, std::shared_ptr<Environment> env) {
@@ -532,12 +564,12 @@ void Interpreter::visitIndexSetExpr(IndexSetExpr* expr) {
     Value index = evaluate(expr->index);
     Value value = evaluate(expr->value);
     if (object.type == ValueType::LIST) {
-        if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket.line, "Liste indeksi tamsayi olmalidir.");
+        if (index.type != ValueType::INTEGER) throw LoxRuntimeException(expr->bracket, "Liste indeksi tamsayi olmalidir.");
         int i = index.intVal;
-        if (i < 0 || i >= (int)object.getList().size()) throw LoxRuntimeException(expr->bracket.line, "Liste indeks hatasi (sinir disi).");
+        if (i < 0 || i >= (int)object.getList().size()) throw LoxRuntimeException(expr->bracket, "Liste indeks hatasi (sinir disi).");
         object.getList()[i] = value;
     } else if (object.type == ValueType::MAP) object.getMap()[index.toString()] = value;
-    else throw LoxRuntimeException(expr->bracket.line, "Sadece listelere ve sozluklere indeks ile atama yapilabilir.");
+    else throw LoxRuntimeException(expr->bracket, "Sadece listelere ve sozluklere indeks ile atama yapilabilir.");
     lastEvaluatedValue = value;
 }
 
@@ -545,12 +577,12 @@ void Interpreter::visitSuperExpr(SuperExpr* expr) {
     int distance = expr->distance;
     Value superclass = environment->getAt(distance, "ata");
     Value object = environment->getAt(distance - 1, "oz"); 
-    if (superclass.type != ValueType::CLASS) throw LoxRuntimeException(expr->keyword.line, "'ata' bulunamadi. Mesafe: " + std::to_string(distance));
-    if (object.type != ValueType::INSTANCE) throw LoxRuntimeException(expr->keyword.line, "'oz' bulunamadi. Mesafe: " + std::to_string(distance - 1));
-    auto klass = std::static_pointer_cast<LoxClass>(superclass.obj);
-    auto instance = std::static_pointer_cast<LoxInstance>(object.obj);
+    if (superclass.type != ValueType::CLASS) throw LoxRuntimeException(expr->keyword, "'ata' bulunamadi. Mesafe: " + std::to_string(distance));
+    if (object.type != ValueType::INSTANCE) throw LoxRuntimeException(expr->keyword, "'oz' bulunamadi. Mesafe: " + std::to_string(distance - 1));
+    auto klass = std::static_pointer_cast<LoxClass>(superclass.as.obj);
+    auto instance = std::static_pointer_cast<LoxInstance>(object.as.obj);
     std::shared_ptr<Callable> method = klass->findMethod(expr->method.value);
-    if (!method) throw LoxRuntimeException(expr->method.line, "Ust sinifta '" + expr->method.value + "' metodu bulunamadi.");
+    if (!method) throw LoxRuntimeException(expr->method, "Ust sinifta '" + expr->method.value + "' metodu bulunamadi.");
     if (auto userMethod = std::dynamic_pointer_cast<UserFunction>(method)) lastEvaluatedValue = Value(userMethod->bind(instance), ValueType::FUNCTION);
     else lastEvaluatedValue = Value(method, ValueType::FUNCTION);
 }
@@ -575,10 +607,10 @@ void Interpreter::visitModuleStmt(ModuleStmt* stmt) {
 
 void Interpreter::visitScopeResolutionExpr(ScopeResolutionExpr* expr) {
     std::string moduleName = expr->moduleName.value;
-    if (modules.find(moduleName) == modules.end()) throw LoxRuntimeException(0, "Modul bulunamadi: '" + moduleName + "'.");
+    if (modules.find(moduleName) == modules.end()) throw LoxRuntimeException(expr->moduleName, "Modul bulunamadi: '" + moduleName + "'.");
     auto module = modules[moduleName];
     try { lastEvaluatedValue = module->environment->get(expr->name.value); }
-    catch (...) { throw LoxRuntimeException(0, "Modul '" + moduleName + "' icinde '" + expr->name.value + "' bulunamadi."); }
+    catch (...) { throw LoxRuntimeException(expr->name, "Modul '" + moduleName + "' icinde '" + expr->name.value + "' bulunamadi."); }
 }
 static bool _containsDeclaration(Stmt* stmt) {
     if (!stmt) return false;

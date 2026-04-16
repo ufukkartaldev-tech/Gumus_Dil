@@ -141,32 +141,31 @@ void registerNativeFunctions(Interpreter& interpreter) {
     interpreter.functions["ag_gonder"] = ag_gonder;
 
     // ag_oku()
-    auto ag_oku = std::make_shared<NativeFunction>("ag_oku", 0, [](Interpreter&, const std::vector<Value>& args) {
-        if (aktif_soket == INVALID_SOCKET) return Value("");
-        
+    auto ag_oku = std::make_shared<NativeFunction>("ag_oku", 0, [](Interpreter& interpreter, const std::vector<Value>& args) {
+        if (aktif_soket == INVALID_SOCKET)
+            return Value(interpreter.garbageCollector->allocateObject<GumusString>(""), ValueType::STRING);
+
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(aktif_soket, &readfds);
-        
+
         timeval timeout;
         timeout.tv_sec = 0;
         timeout.tv_usec = 1000; // 1ms
-        
-        // MinGW select signature might differ slightly but usually compatible
+
         int activity = select(0, &readfds, NULL, NULL, &timeout);
-        
+
         if (activity > 0) {
             char buffer[1024];
             int bytesReceived = recv(aktif_soket, buffer, 1023, 0);
             if (bytesReceived > 0) {
                 buffer[bytesReceived] = '\0';
-                // Remove newline if present at the end for cleaner strings
                 std::string s(buffer);
                 if (!s.empty() && s.back() == '\n') s.pop_back();
-                return Value(s);
+                return Value(interpreter.garbageCollector->allocateObject<GumusString>(s), ValueType::STRING);
             }
         }
-        return Value("");
+        return Value(interpreter.garbageCollector->allocateObject<GumusString>(""), ValueType::STRING);
     });
     interpreter.functions["ag_oku"] = ag_oku;
 
@@ -183,10 +182,10 @@ void registerNativeFunctions(Interpreter& interpreter) {
     interpreter.functions["uzunluk"] = uzunluk;
 
     // girdi()
-    auto girdi = std::make_shared<NativeFunction>("girdi", 0, [](Interpreter&, const std::vector<Value>& args) {
+    auto girdi = std::make_shared<NativeFunction>("girdi", 0, [](Interpreter& interpreter, const std::vector<Value>& args) {
         std::string line;
         std::getline(std::cin, line);
-        return Value(line);
+        return Value(interpreter.garbageCollector->allocateObject<GumusString>(line), ValueType::STRING);
     });
     interpreter.functions["girdi"] = girdi;
 
@@ -203,8 +202,8 @@ void registerNativeFunctions(Interpreter& interpreter) {
     interpreter.functions["sayiYap"] = sayiYap;
 
     // metin(deger)
-    auto metin = std::make_shared<NativeFunction>("metin", 1, [](Interpreter&, const std::vector<Value>& args) {
-        return Value(g_gc->allocateObject<GumusString>(args[0].toString()), ValueType::STRING);
+    auto metin = std::make_shared<NativeFunction>("metin", 1, [](Interpreter& interpreter, const std::vector<Value>& args) {
+        return Value(interpreter.garbageCollector->allocateObject<GumusString>(args[0].toString()), ValueType::STRING);
     });
     interpreter.functions["metin"] = metin;
 
@@ -297,15 +296,16 @@ void registerNativeFunctions(Interpreter& interpreter) {
     interpreter.functions["dosya_yaz"] = yaz; // Alias geriye donuk uyumluluk icin
 
     // oku(yol)
-    auto oku = std::make_shared<NativeFunction>("oku", 1, [](Interpreter&, const std::vector<Value>& args) {
-        if (args[0].type != ValueType::STRING) return Value(g_gc->allocateObject<GumusString>(""), ValueType::STRING); 
+    auto oku = std::make_shared<NativeFunction>("oku", 1, [](Interpreter& interpreter, const std::vector<Value>& args) {
+        if (args[0].type != ValueType::STRING)
+            return Value(interpreter.garbageCollector->allocateObject<GumusString>(""), ValueType::STRING);
         std::ifstream file(args[0].getString());
         if (file.is_open()) {
             std::stringstream buffer;
             buffer << file.rdbuf();
-            return Value(g_gc->allocateObject<GumusString>(buffer.str()), ValueType::STRING);
+            return Value(interpreter.garbageCollector->allocateObject<GumusString>(buffer.str()), ValueType::STRING);
         }
-        return Value(g_gc->allocateObject<GumusString>(""), ValueType::STRING); 
+        return Value(interpreter.garbageCollector->allocateObject<GumusString>(""), ValueType::STRING);
     });
     interpreter.functions["oku"] = oku;
     interpreter.functions["dosya_oku"] = oku; // Alias geriye donuk uyumluluk

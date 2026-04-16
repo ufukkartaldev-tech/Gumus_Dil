@@ -1,34 +1,38 @@
 #include "interpreter.h"
 #include "garbage_collector.h"
 
-// 🗑️ Garbage Collection Implementation
+// ============================================================
+// Tek GC Rejimi: Yalnizca Interpreter::garbageCollector kullanilir.
+// g_gc global KALDIRILDI. Tum allocateObject cagrilari
+// interpreter.garbageCollector->allocateObject<T>() uzerinden yapilir.
+// ============================================================
+
 void Interpreter::initializeGC() {
     if (!garbageCollector) {
         garbageCollector = std::make_unique<GarbageCollector>(globals);
-        g_gc = std::make_unique<GarbageCollector>(globals);
-        
         if (gumus_debug) {
-            std::cout << "🗑️ Garbage Collector initialized\n";
+            std::cout << "🗑️ Garbage Collector baslatildi (tek rejim)\n";
         }
     }
 }
 
 void Interpreter::collectGarbage() {
-    if (garbageCollector) {
-        garbageCollector->collect();
-    }
+    if (!garbageCollector) return;
+
+    // Call-stack uzerindeki aktif environment'lari kok olarak isle
+    // environment gunceli (gecerli scope), globals her zaman kok
+    garbageCollector->markEnvironment(environment);
+    garbageCollector->markEnvironment(globals);
+
+    garbageCollector->collect();
 }
 
-GarbageCollector::MemoryStats Interpreter::getMemoryStats() const {
-    if (garbageCollector) {
-        return garbageCollector->getMemoryStats();
-    }
-    return GarbageCollector::MemoryStats{};
+size_t Interpreter::getGCObjectCount() const {
+    if (garbageCollector) return garbageCollector->getObjectCount();
+    return 0;
 }
 
-std::string Interpreter::generateMemoryReport() const {
-    if (garbageCollector) {
-        return garbageCollector->generateReport();
-    }
-    return "🗑️ Garbage Collector not initialized";
+size_t Interpreter::getGCBytesAllocated() const {
+    if (garbageCollector) return garbageCollector->getBytesAllocated();
+    return 0;
 }
