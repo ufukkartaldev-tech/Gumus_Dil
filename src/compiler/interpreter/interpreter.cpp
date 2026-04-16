@@ -135,7 +135,8 @@ void Interpreter::execute(Stmt* stmt) {
             std::cout << " }\n";
             std::cout << "__MEMORY_JSON_END__\n";
         }
-    } catch (const LoxRuntimeException& e) {
+    } catch (LoxRuntimeException& e) {
+        if (e.callstack.empty()) e.callstack = this->callStack;
         // Report runtime error to stability system
         REPORT_ERROR("interpreter", "execute", e.what(), GumusStability::ErrorSeverity::ERROR, e.line);
         throw; // Re-throw for proper handling

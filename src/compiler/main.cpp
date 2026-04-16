@@ -292,6 +292,26 @@ void run(const std::string& source, const std::string& filename) {
     } catch (const GumusException& error) {
         JsonHata(error.type, error.what(), error.line);
         return;
+    } catch (const LoxRuntimeException& error) {
+        std::string finalMsg = error.what();
+        
+        // Hata Izi (Call Stack)
+        if (!error.callstack.empty()) {
+            finalMsg += "\n\nHata Izi (Traceback):\n";
+            for (auto it = error.callstack.rbegin(); it != error.callstack.rend(); ++it) {
+                finalMsg += "  -> " + *it + " icinde\n";
+            }
+        }
+        
+        // Gorsellestirme (Visual Pointer)
+        if (!error.lineContent.empty() && error.column > 0) {
+            finalMsg += "\n" + error.lineContent + "\n";
+            for (int i = 1; i < error.column; ++i) finalMsg += " ";
+            finalMsg += "^ Burası Gümüşhaneli!";
+        }
+
+        JsonHata("runtime_error", finalMsg, error.line, filename, error.suggestion);
+        return;
     } catch (const std::exception& error) {
         JsonHata("system_error", error.what(), 0);
         return;

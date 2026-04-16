@@ -313,6 +313,9 @@ struct ExecutionStatus {
 struct LoxRuntimeException : public std::runtime_error {
     Value errorValue;
     int line = 0;
+    int column = 0;
+    std::string lineContent = "";
+    std::vector<std::string> callstack;
     bool isSystemError = false;
     std::string suggestion;
 
@@ -322,7 +325,11 @@ struct LoxRuntimeException : public std::runtime_error {
 
     // System error (e.g. division by zero)
     LoxRuntimeException(int line, const std::string& message, const std::string& suggestion = "") 
-        : std::runtime_error(message), line(line), isSystemError(true), suggestion(suggestion) {
+        : std::runtime_error(message), line(line), column(0), isSystemError(true), suggestion(suggestion) {}
+
+    // System error with TOKEN
+    LoxRuntimeException(const Token& token, const std::string& message, const std::string& suggestion = "") 
+        : std::runtime_error(message), line(token.line), column(token.column), lineContent(token.lineContent), isSystemError(true), suggestion(suggestion) {
             errorValue = Value(message);
         }
 };

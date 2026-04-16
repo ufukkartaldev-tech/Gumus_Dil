@@ -82,6 +82,7 @@ struct Token {
     std::string value;
     int line;
     int column;
+    std::string lineContent; // Gorsellestirme icin hatali satirin metni
 
     double floatVal = 0.0;
     int intVal = 0;

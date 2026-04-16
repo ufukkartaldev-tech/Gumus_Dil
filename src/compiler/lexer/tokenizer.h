@@ -12,10 +12,12 @@ public:
 
 private:
     std::string source;
+    std::vector<std::string> sourceLines; // NEW: Tüm satırlar saklanıyor
     int position;
     int line;
     int column;
 
+    void extractLines(); // NEW: Kaynak kodu satırlara böler
     char peek(int offset = 0) const;
     char advance();
     bool isAtEnd() const;

@@ -3,7 +3,22 @@
 #include "../json_hata.h"
 
 Tokenizer::Tokenizer(const std::string& source) 
-    : source(source), position(0), line(1), column(1) {}
+    : source(source), position(0), line(1), column(1) {
+    extractLines();
+}
+
+void Tokenizer::extractLines() {
+    size_t start = 0;
+    for (size_t i = 0; i < source.length(); ++i) {
+        if (source[i] == '\n') {
+            sourceLines.push_back(source.substr(start, i - start));
+            start = i + 1;
+        }
+    }
+    if (start < source.length()) {
+        sourceLines.push_back(source.substr(start));
+    }
+}
 
 std::vector<Token> Tokenizer::tokenize() {
     std::vector<Token> tokens;
@@ -19,7 +34,16 @@ std::vector<Token> Tokenizer::tokenize() {
 
         tokens.push_back(scanToken());
     }
+    
     tokens.push_back({TokenType::END_OF_FILE, "", line, column});
+    
+    // Yaratılan tüm tokenlara ilgili kod satırını (lineContent) ekle
+    for (auto& t : tokens) {
+        if (t.line > 0 && t.line <= (int)sourceLines.size()) {
+            t.lineContent = sourceLines[t.line - 1];
+        }
+    }
+    
     return tokens;
 }
 
