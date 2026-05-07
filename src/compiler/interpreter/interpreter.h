@@ -4,27 +4,25 @@
 #include "../parser/arena.h"
 #include "value.h"
 #include "garbage_collector.h"
-#include <memory> 
+#include "../json_hata.h"
+#include <memory>
 #include <functional>
 #include <unordered_map>
 #include <vector>
 #include <string>
 #include <set>
+#include <map>
 
-namespace gumus {
-namespace compiler {
-namespace interpreter {
-
-// Forward declarations for modular components
-class StatementExecutor;
-class ExpressionEvaluator;
-class ErrorSuggestion;
-
-// Forward decls
+// ============================================================
+// Forward declarations
+// ============================================================
 class Interpreter;
 class LoxInstance;
 class LoxClass;
 
+// ============================================================
+// Callable — Çağrılabilir nesnelerin soyut arayüzü
+// ============================================================
 struct Callable {
     virtual ~Callable() = default;
     virtual Value call(Interpreter& interpreter, const std::vector<Value>& arguments) = 0;
@@ -32,184 +30,83 @@ struct Callable {
     virtual std::string toString() = 0;
 };
 
+// ============================================================
+// Environment — Değişken kapsam yönetimi
+// ============================================================
 class Environment : public std::enable_shared_from_this<Environment> {
 public:
     std::weak_ptr<Environment> enclosing;
-    std::unordered_map<std::string, Value> values; // Geriye donuk uyumluluk
-    std::vector<Value> valuesArray;                // YENI: Hizli Index tabanli erisim
+    std::unordered_map<std::string, Value> values; // Geriye donuk uyumluluk (map tabanlı)
+    std::vector<Value> valuesArray;                // YENI: Hizli index tabanli erisim
     std::string name;
 
     Environment() : name("Global") {}
-    Environment(std::shared_ptr<Environment> enclosing, std::string name = "Blok") : enclosing(enclosing), name(name) {}
+    Environment(std::shared_ptr<Environment> enc, std::string n = "Blok")
+        : enclosing(enc), name(n) {}
 
-    // Yeni Hizli Erisim Yapisi (Resolver'da slot atamasi gectikten sonra kullanilacak)
+    // --- Hizli slot tabanlı erisim ---
     int defineFast(Value value) {
         valuesArray.push_back(value);
-        return valuesArray.size() - 1; // Slot indexini donderir
+        return (int)valuesArray.size() - 1;
     }
 
     Value getAtSlot(int distance, int slot) {
-        Environment* current = this;
-        for (int i = 0; i < distance; i++) {
-            auto parent = current->enclosing.lock();
-            current = parent.get();
-        }
-        return current->valuesArray[slot];
+        Environment* cur = this;
+        for (int i = 0; i < distance; i++) cur = cur->enclosing.lock().get();
+        return cur->valuesArray[slot];
     }
 
     void assignAtSlot(int distance, int slot, Value value) {
-        Environment* current = this;
-        for (int i = 0; i < distance; i++) {
-            auto parent = current->enclosing.lock();
-            current = parent.get();
+        Environment* cur = this;
+        for (int i = 0; i < distance; i++) cur = cur->enclosing.lock().get();
+        cur->valuesArray[slot] = value;
+    }
+
+    // --- Klasik map tabanlı erisim ---
+    void define(const std::string& n, Value v) { values[n] = v; }
+
+    Value get(const std::string& n) {
+        for (Environment* cur = this; cur != nullptr;) {
+            auto it = cur->values.find(n);
+            if (it != cur->values.end()) return it->second;
+            auto parent = cur->enclosing.lock();
+            if (!parent) break;
+            cur = parent.get();
         }
-        current->valuesArray[slot] = value;
+        throw GumusException("runtime_error", 0, "Tanımlanmamış değişken '" + n + "'.");
     }
 
-    // Klasik yavas map tabanli methodlar 
-    void define(const std::string& name, Value value) {
-        values[name] = value;
-    }
-
-    Value get(const std::string& name) {
-        Environment* current = this;
-        while (current != nullptr) {
-            auto it = current->values.find(name);
-            if (it != current->values.end()) return it->second;
-            
-            auto parent = current->enclosing.lock();
-            if (parent == nullptr) break;
-            current = parent.get();
+    void assign(const std::string& n, Value v) {
+        for (Environment* cur = this; cur != nullptr;) {
+            auto it = cur->values.find(n);
+            if (it != cur->values.end()) { it->second = v; return; }
+            auto parent = cur->enclosing.lock();
+            if (!parent) break;
+            cur = parent.get();
         }
-        
-        throw GumusException("runtime_error", 0, "Tanımlanmamış değişken '" + name + "'.");
+        throw GumusException("runtime_error", 0, "Tanımlanmamış değişken '" + n + "'.");
     }
 
-    void assign(const std::string& name, Value value) {
-        Environment* current = this;
-        while (current != nullptr) {
-            auto it = current->values.find(name);
-            if (it != current->values.end()) {
-                it->second = value;
-                return;
-            }
-            
-            auto parent = current->enclosing.lock();
-            if (parent == nullptr) break;
-            current = parent.get();
-        }
-        
-        throw GumusException("runtime_error", 0, "Tanımlanmamış değişken '" + name + "'.");
-    }
-};
-
-/**
- * Main Interpreter class - now modular and focused on coordination
- * Delegates specific execution tasks to specialized components
- */
-class Interpreter : public ExprVisitor<Value>, public StmtVisitor<Value> {
-public:
-    Interpreter();
-    
-    // Main execution methods
-    void interpret(const std::vector<Stmt*>& statements);
-    Value evaluate(Expr* expr);
-    void execute(Stmt* stmt);
-    
-    // Public interface for modular components
-    std::shared_ptr<Environment> globals;
-    std::shared_ptr<Environment> environment;
-    std::unordered_map<std::string, std::shared_ptr<GumusFunction>> functions;
-    std::vector<std::string> searchPaths;
-    
-    // Visitor interface (delegated to modules)
-    Value visitBinaryExpr(BinaryExpr* expr) override;
-    Value visitUnaryExpr(UnaryExpr* expr) override;
-    Value visitCallExpr(CallExpr* expr) override;
-    Value visitGetExpr(GetExpr* expr) override;
-    Value visitSetExpr(SetExpr* expr) override;
-    Value visitAssignExpr(AssignExpr* expr) override;
-    Value visitVariableExpr(VariableExpr* expr) override;
-    Value visitLiteralExpr(LiteralExpr* expr) override;
-    Value visitGroupingExpr(GroupingExpr* expr) override;
-    Value visitLogicalExpr(LogicalExpr* expr) override;
-    Value visitThisExpr(ThisExpr* expr) override;
-    Value visitSuperExpr(SuperExpr* expr) override;
-    
-    Value visitFunctionStmt(FunctionStmt* stmt) override;
-    Value visitClassStmt(ClassStmt* stmt) override;
-    Value visitBlockStmt(BlockStmt* stmt) override;
-    Value visitVarStmt(VarStmt* stmt) override;
-    Value visitIfStmt(IfStmt* stmt) override;
-    Value visitWhileStmt(WhileStmt* stmt) override;
-    Value visitReturnStmt(ReturnStmt* stmt) override;
-    Value visitPrintStmt(PrintStmt* stmt) override;
-    Value visitExpressionStmt(ExpressionStmt* stmt) override;
-
-private:
-    // Modular components
-    std::unique_ptr<StatementExecutor> statementExecutor;
-    std::unique_ptr<ExpressionEvaluator> expressionEvaluator;
-    std::unique_ptr<ErrorSuggestion> errorSuggestion;
-    
-    // Helper methods
-    void initializeNativeFunctions();
-    void setupSearchPaths();
-    
-    friend class StatementExecutor;
-    friend class ExpressionEvaluator;
-    friend class ErrorSuggestion;
-};
-
-} // namespace interpreter
-} // namespace compiler  
-} // namespace gumus        throw std::runtime_error("Tanimlanmamis degisken: '" + name + "'.");
-    }
-
-    void assign(const std::string& name, Value value) {
-        Environment* current = this;
-        while (current != nullptr) {
-            auto it = current->values.find(name);
-            if (it != current->values.end()) {
-                it->second = value;
-                return;
-            }
-            
-            auto parent = current->enclosing.lock();
-            if (parent == nullptr) break;
-            current = parent.get();
-        }
-        throw std::runtime_error("Tanimlanmamis degisken: '" + name + "'.");
-    }
-    
-    bool has(const std::string& name) {
-        Environment* current = this;
-        while (current != nullptr) {
-            if (current->values.count(name)) return true;
-            
-            auto parent = current->enclosing.lock();
-            if (parent == nullptr) break;
-            current = parent.get();
+    bool has(const std::string& n) {
+        for (Environment* cur = this; cur != nullptr;) {
+            if (cur->values.count(n)) return true;
+            auto parent = cur->enclosing.lock();
+            if (!parent) break;
+            cur = parent.get();
         }
         return false;
     }
 
-    Value getAt(int distance, const std::string& name) {
-        Environment* current = this;
-        for (int i = 0; i < distance; i++) {
-            auto parent = current->enclosing.lock();
-            current = parent.get();
-        }
-        return current->values[name];
+    Value getAt(int distance, const std::string& n) {
+        Environment* cur = this;
+        for (int i = 0; i < distance; i++) cur = cur->enclosing.lock().get();
+        return cur->values[n];
     }
 
-    void assignAt(int distance, const std::string& name, Value value) {
-        Environment* current = this;
-        for (int i = 0; i < distance; i++) {
-            auto parent = current->enclosing.lock();
-            current = parent.get();
-        }
-        current->values[name] = value;
+    void assignAt(int distance, const std::string& n, Value v) {
+        Environment* cur = this;
+        for (int i = 0; i < distance; i++) cur = cur->enclosing.lock().get();
+        cur->values[n] = v;
     }
 
     std::string toJson() {
@@ -220,37 +117,39 @@ private:
         for (const auto& pair : values) {
             if (!first) json += ", ";
             json += "\"" + pair.first + "\": " + pair.second.toJson();
-
             first = false;
         }
         json += "}";
-        
         auto parent = enclosing.lock();
-        if (parent != nullptr) {
+        if (parent)
             json += ", \"parent_id\": \"" + std::to_string((unsigned long long)parent.get()) + "\"";
-        } else {
+        else
             json += ", \"parent\": null";
-        }
         json += "}";
         return json;
     }
 };
 
-// --- NativeFunction & UserFunction Definitions ---
-
+// ============================================================
+// NativeFunction
+// ============================================================
 class NativeFunction : public Callable {
     std::function<Value(Interpreter&, const std::vector<Value>&)> func;
     int arityVal;
     std::string name;
 public:
-    NativeFunction(std::string name, int arity, std::function<Value(Interpreter&, const std::vector<Value>&)> func)
+    NativeFunction(std::string name, int arity,
+                   std::function<Value(Interpreter&, const std::vector<Value>&)> func)
         : name(name), arityVal(arity), func(func) {}
 
-    Value call(Interpreter& interpreter, const std::vector<Value>& arguments);
-    int arity();
-    std::string toString();
+    Value call(Interpreter& interpreter, const std::vector<Value>& arguments) override;
+    int arity() override;
+    std::string toString() override;
 };
 
+// ============================================================
+// UserFunction
+// ============================================================
 class UserFunction : public Callable {
 public:
     FunctionStmt* declaration;
@@ -258,23 +157,24 @@ public:
 
     UserFunction(FunctionStmt* declaration, std::shared_ptr<Environment> closure);
 
-    int arity();
+    int arity() override;
     std::shared_ptr<UserFunction> bind(std::shared_ptr<LoxInstance> instance);
-    Value call(Interpreter& interpreter, const std::vector<Value>& arguments);
-    std::string toString();
+    Value call(Interpreter& interpreter, const std::vector<Value>& arguments) override;
+    std::string toString() override;
 };
 
-
+// ============================================================
+// LoxInstance & LoxClass
+// ============================================================
 class LoxInstance : public std::enable_shared_from_this<LoxInstance> {
 public:
-   std::shared_ptr<LoxClass> klass;
-   std::map<std::string, Value> fields;
-   
-   LoxInstance(std::shared_ptr<LoxClass> klass);
+    std::shared_ptr<LoxClass> klass;
+    std::map<std::string, Value> fields;
 
-   Value get(Token name);
-   void set(Token name, Value value);
-   std::string toString();
+    LoxInstance(std::shared_ptr<LoxClass> klass);
+    Value get(Token name);
+    void set(Token name, Value value);
+    std::string toString();
 };
 
 class LoxClass : public Callable, public std::enable_shared_from_this<LoxClass> {
@@ -283,23 +183,20 @@ public:
     std::shared_ptr<LoxClass> superclass;
     std::map<std::string, std::shared_ptr<Callable>> methods;
 
-    LoxClass(std::string name, std::shared_ptr<LoxClass> superclass, std::map<std::string, std::shared_ptr<Callable>> methods)
-        : name(name), superclass(superclass), methods(methods) {}
+    LoxClass(std::string n, std::shared_ptr<LoxClass> sc,
+             std::map<std::string, std::shared_ptr<Callable>> m)
+        : name(n), superclass(sc), methods(m) {}
 
-    Value call(Interpreter& interpreter, const std::vector<Value>& arguments);
-    int arity();
-    std::string toString();
-    
+    Value call(Interpreter& interpreter, const std::vector<Value>& arguments) override;
+    int arity() override;
+    std::string toString() override;
     std::shared_ptr<Callable> findMethod(std::string name);
 };
 
-
-enum class ExecutionResult {
-    OK,
-    RETURN,
-    BREAK,
-    CONTINUE
-};
+// ============================================================
+// ExecutionResult & ExecutionStatus
+// ============================================================
+enum class ExecutionResult { OK, RETURN, BREAK, CONTINUE };
 
 struct ExecutionStatus {
     ExecutionResult type;
@@ -309,89 +206,95 @@ struct ExecutionStatus {
     ExecutionStatus(ExecutionResult type, Value value) : type(type), value(value) {}
 };
 
-// Exception for User-Level Lox Errors (Try-Catch) & System Errors
+// ============================================================
+// LoxRuntimeException
+// ============================================================
 struct LoxRuntimeException : public std::runtime_error {
     Value errorValue;
     int line = 0;
     int column = 0;
-    std::string lineContent = "";
+    std::string lineContent;
     std::vector<std::string> callstack;
     bool isSystemError = false;
     std::string suggestion;
 
-    // User-defined throw (firlat "hata")
-    LoxRuntimeException(Value errorValue)
+    // Kullanıcı tanımlı fırlatma (firlat "hata")
+    explicit LoxRuntimeException(Value errorValue)
         : std::runtime_error("runtime_error"), errorValue(errorValue), isSystemError(false) {}
 
-    // System error with TOKEN - TERCIH EDILEN kurucu (^ isareti calisir)
-    LoxRuntimeException(const Token& token, const std::string& message, const std::string& suggestion = "")
+    // Token tabanlı sistem hatası — TERCIH EDILEN kurucu
+    LoxRuntimeException(const Token& token, const std::string& message,
+                        const std::string& suggestion = "")
         : std::runtime_error(message), line(token.line), column(token.column),
           lineContent(token.lineContent), isSystemError(true), suggestion(suggestion) {
         errorValue = Value();
     }
 
-    // int line alan kurucu - KULLANILMAMALI, sadece Token bilinemediginde fallback
-    // Yeni kod Token& alan kurucuyu kullanmali
+    // Sadece satır numarası bilinen fallback — KULLANILMAMALI
     [[deprecated("Token& alan kurucuyu kullanin: LoxRuntimeException(token, mesaj)")]]
-    LoxRuntimeException(int line, const std::string& message, const std::string& suggestion = "")
-        : std::runtime_error(message), line(line), column(0), isSystemError(true), suggestion(suggestion) {}
+    LoxRuntimeException(int line, const std::string& message,
+                        const std::string& suggestion = "")
+        : std::runtime_error(message), line(line), column(0),
+          isSystemError(true), suggestion(suggestion) {}
 };
 
-// Environment Class...
-
+// ============================================================
+// Module
+// ============================================================
 struct Module {
     std::string name;
     std::shared_ptr<Environment> environment;
 };
 
-// ... NativeFunction definintions ...
+// ============================================================
+// GumusFunction (forward — interpreter.cpp içinde kullanılıyor)
+// ============================================================
+class GumusFunction : public Callable {};
 
+// ============================================================
+// Interpreter — TEK VE GERÇEK TANIM
+// interpreter.cpp bu sınıfı implement eder.
+// ============================================================
 class Interpreter : public ExprVisitor, public StmtVisitor {
-
 public:
-    Interpreter(); 
+    Interpreter();
+
     void interpret(const std::vector<Stmt*>& statements);
-    void executeBlock(const std::vector<Stmt*>& statements, std::shared_ptr<Environment> environment);
-    
+    void executeBlock(const std::vector<Stmt*>& statements,
+                      std::shared_ptr<Environment> environment);
     Value evaluate(Expr* expr);
     void execute(Stmt* stmt);
-    // Environment Management (Public for UserFunction Access)
+
+    // --- Public state (UserFunction, native_functions, property_handlers erişimi) ---
     std::shared_ptr<Environment> globals;
     std::shared_ptr<Environment> environment;
-    
-    // Module Map
-    std::map<std::string, std::shared_ptr<Module>> modules;
-    
-    // Function Map
+
+    std::map<std::string, std::shared_ptr<Module>>   modules;
     std::map<std::string, std::shared_ptr<Callable>> functions;
 
-    // Access Control: Currently executing instance (this)
-    std::shared_ptr<void> activeInstance; // void* to avoid circular dependency loop in header logic
-    
-    // Import Management
-    std::set<std::string> loadedFiles;
+    std::shared_ptr<void> activeInstance; // LoxInstance* (dairesel bağımlılık önlenir)
+
+    std::set<std::string>    loadedFiles;
     std::vector<std::string> searchPaths;
 
-    // Visitor Pattern Support
-    Value lastEvaluatedValue;
+    Value           lastEvaluatedValue;
     ExecutionStatus lastEvaluatedStatus;
-    int currentLine = 0;
+    int             currentLine = 0;
     std::vector<std::string> callStack;
 
-    // AST Persistence & Memory Management
-    MemoryArena astArena;
+    MemoryArena      astArena;
     std::vector<Stmt*> astList;
     void persistAst(const std::vector<Stmt*>& statements);
-    
-    // 🗑️ Garbage Collection (Tek Rejim)
-    std::unique_ptr<GarbageCollector> garbageCollector;
 
+    // 🗑️ Garbage Collection
+    std::unique_ptr<GarbageCollector> garbageCollector;
     void initializeGC();
     void collectGarbage();
     size_t getGCObjectCount() const;
     size_t getGCBytesAllocated() const;
+
 private:
-    // Visitor Pattern Implementation - Stmt Visitors
+    // --- Stmt Visitors ---
     void visitExpressionStmt(ExpressionStmt* stmt) override;
     void visitPrintStmt(PrintStmt* stmt) override;
     void visitIfStmt(IfStmt* stmt) override;
@@ -408,8 +311,7 @@ private:
     void visitModuleStmt(ModuleStmt* stmt) override;
     void visitImportStmt(ImportStmt* stmt) override;
 
-
-    // Visitor Pattern Implementation - Expr Visitors
+    // --- Expr Visitors ---
     void visitLiteralExpr(LiteralExpr* expr) override;
     void visitBinaryExpr(BinaryExpr* expr) override;
     void visitLogicalExpr(LogicalExpr* expr) override;
@@ -426,7 +328,4 @@ private:
     void visitSuperExpr(SuperExpr* expr) override;
     void visitScopeResolutionExpr(ScopeResolutionExpr* expr) override;
     void visitMapExpr(MapExpr* expr) override;
-
 };
-
-#endif // INTERPRETER_H

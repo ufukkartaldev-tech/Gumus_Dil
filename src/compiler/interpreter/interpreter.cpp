@@ -305,7 +305,7 @@ void Interpreter::visitVariableExpr(VariableExpr* expr) {
         try { lastEvaluatedValue = globals->get(expr->name.value); }
         catch (const std::runtime_error&) {
             if (functions.count(expr->name.value)) {
-                lastEvaluatedValue = Value(functions[expr->name.value], ValueType::FUNCTION, expr->name.value);
+                lastEvaluatedValue = Value(functions[expr->name.value].get(), ValueType::FUNCTION);
                 return;
             }
             throw LoxRuntimeException(expr->name, "Tanimlanmamis degisken: '" + expr->name.value + "'.");
